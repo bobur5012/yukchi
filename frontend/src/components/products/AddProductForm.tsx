@@ -1,0 +1,130 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ImagePlus, Camera, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { createProduct } from "@/lib/api/products";
+import { getTrips } from "@/lib/api/trips";
+import type { Trip } from "@/types";
+import { toast } from "sonner";
+import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
+
+export function AddProductForm() {
+  const router = useRouter();
+  const [name, setName]       = useState("");
+  const [costPrice, setCostPrice] = useState("");
+  const [quantity, setQuantity]   = useState("1");
+  const [tripId, setTripId]       = useState("");
+  const [image, setImage]         = useState<string | null>(null);
+  const [trips, setTrips]         = useState<Trip[]>([]);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef  = useRef<HTMLInputElement>(null);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => setImage(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  useEffect(() => { getTrips(1, 50).then((r) => setTrips(r.trips)); }, []);
+
+  const q = parseInt(quantity, 10) || 1;
+  const cp = parseFloat(costPrice) || 0;
+  const activeTrips = trips.filter((t) => t.status === "active" || t.status === "planned");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || cp <= 0 || q <= 0 || !tripId) {
+      toast.error("Заполните все поля"); return;
+    }
+    try {
+      await createProduct({ name, quantity: q, costPrice: costPrice, tripId, imageUrl: image || undefined });
+      toast.success("Товар добавлен");
+      router.push("/products");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Ошибка");
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 pb-20">
+      {/* Photo */}
+      <FormCard>
+        <FormSection title="Фото">
+          <div className="px-4 pb-4">
+            {image ? (
+              <div className="relative rounded-xl overflow-hidden">
+                <img src={image} alt="Превью" className="w-full h-40 object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setImage(null)}
+                  className="absolute top-2 right-2 size-7 rounded-full bg-black/50 flex items-center justify-center"
+                >
+                  <X className="size-3.5 text-white" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input ref={galleryInputRef} type="file" accept="image/*" className="sr-only" onChange={handleImageSelect} />
+                <input ref={cameraInputRef}  type="file" accept="image/*" capture="environment" className="sr-only" onChange={handleImageSelect} />
+                <Button type="button" variant="outline" className="flex-1 h-[44px] rounded-xl text-[15px]" onClick={() => galleryInputRef.current?.click()}>
+                  <ImagePlus className="size-4" /> Галерея
+                </Button>
+                <Button type="button" variant="outline" className="flex-1 h-[44px] rounded-xl text-[15px]" onClick={() => cameraInputRef.current?.click()}>
+                  <Camera className="size-4" /> Камера
+                </Button>
+              </div>
+            )}
+          </div>
+        </FormSection>
+      </FormCard>
+
+      {/* Main fields */}
+      <FormCard>
+        <FormSection>
+          <FormRow label="Название">
+            <Input placeholder="Кожаная сумка" value={name} onChange={(e) => setName(e.target.value)} />
+          </FormRow>
+          <FormRow label="Количество">
+            <Input type="number" min="1" placeholder="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+          </FormRow>
+          <FormRow label="Себестоимость ($)">
+            <Input type="number" step="0.01" placeholder="45" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} />
+          </FormRow>
+        </FormSection>
+      </FormCard>
+
+      {/* Trip */}
+      <FormCard>
+        <FormSection>
+          <FormRow label="Поездка">
+            <Select value={tripId} onValueChange={setTripId}>
+              <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
+                <SelectValue placeholder="Выберите поездку" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeTrips.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </FormRow>
+        </FormSection>
+      </FormCard>
+
+      <Button type="submit" className="w-full" disabled={!name || cp <= 0 || q <= 0 || !tripId}>
+        Добавить товар
+      </Button>
+    </form>
+  );
+}

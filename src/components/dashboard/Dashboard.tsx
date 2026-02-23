@@ -144,11 +144,13 @@ function ActivityRow({
   title,
   subtitle,
   date,
+  locale,
 }: {
   id: string;
   title: string;
   subtitle: string;
   date: string;
+  locale: "ru" | "uz";
 }) {
   return (
     <Link href={`/trips/${id}`}>
@@ -283,6 +285,7 @@ export function Dashboard() {
                 title={trip.name}
                 subtitle={trip.region?.name ?? ""}
                 date={trip.departureDate ?? ""}
+                locale={locale}
               />
             ))
           )}

@@ -8,9 +8,11 @@ import { useAuthStore } from "@/stores/auth";
 import { getDashboard } from "@/lib/api/dashboard";
 import type { DashboardData } from "@/lib/api/dashboard";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import { Plane } from "lucide-react";
 
 export function RecentActivity() {
+  const { t, locale } = useTranslations();
   const role = useAuthStore((s) => s.user?.role);
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,11 +41,11 @@ export function RecentActivity() {
       >
         <Card className="rounded-2xl shadow-lg">
           <CardHeader>
-            <h2 className="text-lg font-semibold">Последние поездки</h2>
+            <h2 className="text-lg font-semibold">{t("dashboard.recentTrips")}</h2>
           </CardHeader>
           <CardContent className="space-y-2">
             {trips.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">Нет поездок</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t("dashboard.noTrips")}</p>
             ) : (
               trips.map((item) => (
                 <Link key={item.id} href={`/trips/${item.id}`}>
@@ -58,7 +60,7 @@ export function RecentActivity() {
                       </p>
                     </div>
                     <span className="text-xs text-muted-foreground shrink-0">
-                      {formatDateSafe(item.departureDate ?? "", "d MMM")}
+                      {formatDateSafe(item.departureDate ?? "", "d MMM", locale)}
                     </span>
                   </div>
                 </Link>

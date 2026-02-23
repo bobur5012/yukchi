@@ -10,6 +10,7 @@ import type { Courier } from "@/types";
 import { Pencil } from "lucide-react";
 import { SettingsContent } from "@/components/settings/SettingsContent";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { useTranslations } from "@/lib/useTranslations";
 
 function getInitials(name: string): string {
   const parts = name?.trim().split(/\s+/) ?? [];
@@ -18,6 +19,7 @@ function getInitials(name: string): string {
 }
 
 export function ProfileContent() {
+  const { t } = useTranslations();
   const user = useAuthStore((s) => s.user);
   const { locale, setLocale } = useLocale();
   const [courier, setCourier] = useState<Courier | null>(null);
@@ -30,9 +32,9 @@ export function ProfileContent() {
     }
   }, [user?.role, user?.id]);
 
-  const displayName = courier?.name ?? user?.name ?? "Пользователь";
+  const displayName = courier?.name ?? user?.name ?? t("common.user");
   const avatarUrl   = courier?.avatarUrl;
-  const roleLabel   = user?.role === "admin" ? "Администратор" : "Курьер";
+  const roleLabel   = user?.role === "admin" ? t("common.admin") : t("common.courier");
 
   const handleSaveName = async () => {
     if (user?.role !== "courier" || !user?.id || !nameValue.trim()) return;
@@ -63,8 +65,8 @@ export function ProfileContent() {
               className="flex-1 max-w-[180px] text-center h-[44px] rounded-xl bg-muted border border-border px-3 text-[16px] outline-none focus:border-primary"
               autoFocus
             />
-            <Button size="sm" onClick={handleSaveName} className="h-[44px]">OK</Button>
-            <Button size="sm" variant="ghost" className="h-[44px]" onClick={() => { setEditingName(false); setNameValue(displayName); }}>Отмена</Button>
+            <Button size="sm" onClick={handleSaveName} className="h-[44px]">{t("common.ok")}</Button>
+            <Button size="sm" variant="ghost" className="h-[44px]" onClick={() => { setEditingName(false); setNameValue(displayName); }}>{t("common.cancel")}</Button>
           </div>
         ) : (
           <div className="flex items-center gap-1.5">
@@ -88,13 +90,13 @@ export function ProfileContent() {
 
       {/* Language */}
       <div className="bg-card rounded-2xl border border-border/30 px-4 py-3">
-        <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-[0.07em] mb-3">Язык</p>
+        <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-[0.07em] mb-3">{t("profile.language")}</p>
         <div className="flex gap-2">
           <Button variant={locale === "ru" ? "default" : "secondary"} className="flex-1 h-[44px] rounded-[13px] text-[15px]" onClick={() => setLocale("ru")}>
-            🇷🇺 Русский
+            🇷🇺 {t("profile.russian")}
           </Button>
           <Button variant={locale === "uz" ? "default" : "secondary"} className="flex-1 h-[44px] rounded-[13px] text-[15px]" onClick={() => setLocale("uz")}>
-            🇺🇿 O&apos;zbekcha
+            🇺🇿 {t("profile.uzbek")}
           </Button>
         </div>
       </div>

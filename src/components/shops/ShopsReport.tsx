@@ -6,10 +6,12 @@ import type { Shop } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import { Store, Wallet, AlertTriangle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
 export function ShopsReport() {
+  const { locale } = useTranslations();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -90,7 +92,7 @@ export function ShopsReport() {
                     </p>
                     {lastPayment(shop) && (
                       <p className="text-xs text-muted-foreground">
-                        Оплата: {formatDateSafe(lastPayment(shop)!.createdAt, "d MMM")}
+                        Оплата: {formatDateSafe(lastPayment(shop)!.createdAt, "d MMM", locale)}
                       </p>
                     )}
                   </div>

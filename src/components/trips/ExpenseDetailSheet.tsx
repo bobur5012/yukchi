@@ -7,6 +7,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import type { Expense } from "@/types";
 
 interface ExpenseDetailSheetProps {
@@ -22,6 +23,7 @@ export function ExpenseDetailSheet({
   expense,
   tripCurrency,
 }: ExpenseDetailSheetProps) {
+  const { locale } = useTranslations();
   if (!expense) return null;
 
   return (
@@ -43,7 +45,7 @@ export function ExpenseDetailSheet({
           </div>
           <div>
             <p className="text-[13px] text-muted-foreground">Дата</p>
-            <p className="text-[15px] font-medium">{expense.createdAt ? formatDateSafe(expense.createdAt, "d MMMM yyyy") : "—"}</p>
+            <p className="text-[15px] font-medium">{expense.createdAt ? formatDateSafe(expense.createdAt, "d MMMM yyyy", locale) : "—"}</p>
           </div>
         </div>
       </SheetContent>

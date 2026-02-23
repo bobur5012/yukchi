@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "@/lib/useTranslations";
 import {
   LayoutDashboard,
   Plane,
@@ -26,36 +27,36 @@ import { QuickActionsSheet } from "@/components/layout/QuickActionsSheet";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
-const adminMainNavItems = [
-  { href: "/dashboard", label: "Главная", icon: LayoutDashboard },
-  { href: "/trips",     label: "Поездки", icon: Plane },
-  { href: "/shops",     label: "Магазины", icon: Store },
+const adminMainNavItems = (t: (k: string) => string) => [
+  { href: "/dashboard", label: t("nav.home"), icon: LayoutDashboard },
+  { href: "/trips",     label: t("nav.trips"), icon: Plane },
+  { href: "/shops",     label: t("nav.shops"), icon: Store },
 ];
 
-const courierMainNavItems = [
-  { href: "/dashboard", label: "Главная",  icon: LayoutDashboard },
-  { href: "/trips",     label: "Поездки",  icon: Plane },
-  { href: "/products",  label: "Товары",   icon: Package },
-  { href: "/profile",   label: "Профиль",  icon: User },
+const courierMainNavItems = (t: (k: string) => string) => [
+  { href: "/dashboard", label: t("nav.home"),  icon: LayoutDashboard },
+  { href: "/trips",     label: t("nav.trips"),  icon: Plane },
+  { href: "/products",  label: t("nav.products"),   icon: Package },
+  { href: "/profile",   label: t("nav.profile"),  icon: User },
 ];
 
-const adminMoreItems = [
-  { href: "/products", label: "Товары",    icon: Package },
-  { href: "/couriers", label: "Курьеры",   icon: Users },
-  { href: "/profile",  label: "Профиль",   icon: User },
+const adminMoreItems = (t: (k: string) => string) => [
+  { href: "/products", label: t("nav.products"),    icon: Package },
+  { href: "/couriers", label: t("nav.couriers"),   icon: Users },
+  { href: "/profile",  label: t("nav.profile"),   icon: User },
 ];
 
-function MoreSheet({ onNavigate }: { onNavigate: () => void }) {
+function MoreSheet({ onNavigate, t }: { onNavigate: () => void; t: (k: string) => string }) {
   return (
     <SheetContent
       side="bottom"
       className="rounded-t-2xl border-t border-border/40 bg-card pb-safe"
     >
       <SheetHeader className="px-4 pt-4 pb-2">
-        <SheetTitle className="text-[17px] font-semibold">Ещё</SheetTitle>
+        <SheetTitle className="text-[17px] font-semibold">{t("nav.more")}</SheetTitle>
       </SheetHeader>
       <div className="flex flex-col pb-6 pt-1">
-        {adminMoreItems.map(({ href, label, icon: Icon }) => (
+        {adminMoreItems(t).map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
@@ -129,17 +130,18 @@ function NavItem({
 }
 
 export function BottomNav() {
+  const { t } = useTranslations();
   const pathname = usePathname();
   const role = useAuthStore((s) => s.user?.role);
   const [moreOpen, setMoreOpen] = useState(false);
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
 
   const isAdmin = role === "admin";
-  const mainNavItems = isAdmin ? adminMainNavItems : courierMainNavItems;
+  const mainNavItems = isAdmin ? adminMainNavItems(t) : courierMainNavItems(t);
 
   const isMoreActive =
     isAdmin &&
-    adminMoreItems.some(
+    adminMoreItems(t).some(
       (item) => pathname === item.href || pathname.startsWith(item.href + "/")
     );
 
@@ -242,11 +244,11 @@ export function BottomNav() {
                     isMoreActive ? "text-primary" : "text-muted-foreground"
                   )}
                 >
-                  Ещё
+                  {t("nav.more")}
                 </span>
               </button>
             </SheetTrigger>
-            <MoreSheet onNavigate={() => setMoreOpen(false)} />
+            <MoreSheet onNavigate={() => setMoreOpen(false)} t={t} />
           </Sheet>
         )}
       </div>

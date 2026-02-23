@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/lib/useTranslations";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Switch } from "@/components/ui/switch";
@@ -32,6 +33,7 @@ function SettingRow({ label, children }: { label: string; children: React.ReactN
 }
 
 export function SettingsContent({ role = "admin" }: SettingsContentProps) {
+  const { t } = useTranslations();
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
   const {
@@ -44,82 +46,82 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
   return (
     <div className="space-y-4">
       {/* Notifications */}
-      <SectionCard title="Уведомления">
-        <SettingRow label="Новый долг">
+      <SectionCard title={t("settings.notifications")}>
+        <SettingRow label={t("settings.newDebt")}>
           <Switch checked={notifications.newDebt} onCheckedChange={(v) => setNotifications({ newDebt: v })} />
         </SettingRow>
-        <SettingRow label="Получена оплата">
+        <SettingRow label={t("settings.paymentReceived")}>
           <Switch checked={notifications.paymentReceived} onCheckedChange={(v) => setNotifications({ paymentReceived: v })} />
         </SettingRow>
-        <SettingRow label="Напоминание о поездке">
+        <SettingRow label={t("settings.tripReminder")}>
           <Switch checked={notifications.tripReminder} onCheckedChange={(v) => setNotifications({ tripReminder: v })} />
         </SettingRow>
       </SectionCard>
 
       {role === "admin" && (
-        <SectionCard title="Telegram Bot">
+        <SectionCard title={t("settings.telegramBot")}>
           <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">Token</label>
+            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.token")}</label>
             <Input placeholder="123456:ABC..." value={telegramBot.token} onChange={(e) => setTelegramBot({ token: e.target.value })} />
           </div>
           <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">Chat ID</label>
+            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.chatId")}</label>
             <Input placeholder="-1001234567890" value={telegramBot.chatId} onChange={(e) => setTelegramBot({ chatId: e.target.value })} />
           </div>
-          <Button variant="outline" className="w-full h-[44px] rounded-[13px]">Проверить подключение</Button>
+          <Button variant="outline" className="w-full h-[44px] rounded-[13px]">{t("settings.checkConnection")}</Button>
           <div className="flex items-center gap-2">
             {telegramBot.status === "connected"
               ? <CheckCircle className="size-4 text-emerald-500" />
               : <XCircle className="size-4 text-muted-foreground" />}
             <span className="text-[14px] text-muted-foreground">
-              {telegramBot.status === "connected" ? "Подключено" : telegramBot.status === "error" ? "Ошибка" : "Не подключено"}
+              {telegramBot.status === "connected" ? t("settings.connected") : telegramBot.status === "error" ? t("settings.error") : t("settings.notConnected")}
             </span>
           </div>
         </SectionCard>
       )}
 
       {role === "admin" && (
-        <SectionCard title="Telegram Client">
+        <SectionCard title={t("settings.telegramClient")}>
           <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">Номер телефона</label>
+            <label className="text-[13px] text-muted-foreground block mb-1">{t("auth.phone")}</label>
             <PhoneInput value={telegramClient.phone} onChange={(v) => setTelegramClient({ phone: v })} />
           </div>
           <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">App ID</label>
+            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.appId")}</label>
             <Input placeholder="12345678" value={telegramClient.appId} onChange={(e) => setTelegramClient({ appId: e.target.value })} />
           </div>
           <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">Hash</label>
+            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.hash")}</label>
             <Input placeholder="abcdef123456..." value={telegramClient.appHash} onChange={(e) => setTelegramClient({ appHash: e.target.value })} />
           </div>
           <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">Код</label>
-            <Input placeholder="Код из Telegram" value={telegramClient.code} onChange={(e) => setTelegramClient({ code: e.target.value })} />
+            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.code")}</label>
+            <Input placeholder={t("settings.codePlaceholder")} value={telegramClient.code} onChange={(e) => setTelegramClient({ code: e.target.value })} />
           </div>
-          <Button variant="outline" className="w-full h-[44px] rounded-[13px]">Войти</Button>
+          <Button variant="outline" className="w-full h-[44px] rounded-[13px]">{t("settings.signIn")}</Button>
           <div className="flex items-center gap-2">
             {telegramClient.status === "authorized"
               ? <CheckCircle className="size-4 text-emerald-500" />
               : <XCircle className="size-4 text-muted-foreground" />}
             <span className="text-[14px] text-muted-foreground">
-              {telegramClient.status === "authorized" ? "Авторизован" : telegramClient.status === "pending" ? "Ожидание кода" : "Не авторизован"}
+              {telegramClient.status === "authorized" ? t("settings.authorized") : telegramClient.status === "pending" ? t("settings.pending") : t("settings.notAuthorized")}
             </span>
           </div>
         </SectionCard>
       )}
 
       {role === "admin" && (
-        <SectionCard title="Шаблоны сообщений">
+        <SectionCard title={t("settings.messageTemplates")}>
           <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">Новый долг</label>
+            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.newDebt")}</label>
             <Input value={messageTemplates.newDebt} onChange={(e) => setMessageTemplate("newDebt", e.target.value)} placeholder="{shop}, {amount}, {currency}" />
           </div>
           <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">Получена оплата</label>
+            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.paymentReceived")}</label>
             <Input value={messageTemplates.paymentReceived} onChange={(e) => setMessageTemplate("paymentReceived", e.target.value)} placeholder="{shop}, {amount}" />
           </div>
           <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">Напоминание о поездке</label>
+            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.tripReminder")}</label>
             <Input value={messageTemplates.tripReminder} onChange={(e) => setMessageTemplate("tripReminder", e.target.value)} placeholder="{trip}, {days}" />
           </div>
         </SectionCard>
@@ -133,7 +135,7 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
           onClick={handleLogout}
         >
           <LogOut className="size-4 mr-2" />
-          Выйти из аккаунта
+          {t("settings.logout")}
         </Button>
       </div>
     </div>

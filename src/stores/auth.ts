@@ -39,7 +39,9 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch {
           set({ isLoading: false });
-          throw new Error("Неверный номер телефона или пароль");
+          const e = new Error("Invalid credentials");
+          (e as Error & { code?: string }).code = "INVALID_CREDENTIALS";
+          throw e;
         }
       },
 
@@ -92,7 +94,11 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: AUTH_KEY,
-      partialize: (s) => ({ user: s.user }),
+      partialize: (s) => ({
+        user: s.user,
+        accessToken: s.accessToken,
+        isAuthenticated: s.isAuthenticated,
+      }),
     }
   )
 );

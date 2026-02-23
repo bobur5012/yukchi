@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/select";
 import { AvatarPicker } from "@/components/ui/avatar-picker";
 import { getCourier, updateCourier } from "@/lib/api/couriers";
+import { getPhoneDigits } from "@/lib/phone-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import type { Courier } from "@/types";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
@@ -25,6 +27,7 @@ function getInitials(name: string): string {
 }
 
 export function EditCourierForm() {
+  const { t } = useTranslations();
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
@@ -42,22 +45,24 @@ export function EditCourierForm() {
         setAvatar(c.avatarUrl || "");
         setStatus(c.status === "active" ? "active" : "inactive");
       })
-      .catch(() => toast.error("Курьер не найден"))
+      .catch(() => toast.error(t("couriers.notFound")))
       .finally(() => setLoading(false));
   }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !phone.trim()) { toast.error("Заполните обязательные поля"); return; }
+    if (!name.trim() || !phone.trim()) { toast.error(t("common.fillRequiredFields")); return; }
     if (!id) return;
     try {
+      const digits = getPhoneDigits(phone);
+      const phoneE164 = digits.length >= 12 ? `+${digits}` : phone;
       await updateCourier(id, {
-        name: name.trim(), phone, status, avatarUrl: avatar.trim() || undefined,
+        name: name.trim(), phone: phoneE164, status, avatarUrl: avatar.trim() || undefined,
       });
-      toast.success("Курьер обновлён");
+      toast.success(t("couriers.updated"));
       router.push("/couriers");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Ошибка");
+      toast.error(err instanceof Error ? err.message : t("common.error"));
     }
   };
 
@@ -82,27 +87,27 @@ export function EditCourierForm() {
 
       <FormCard>
         <FormSection>
-          <FormRow label="Имя">
-            <Input placeholder="Алексей" value={name} onChange={(e) => setName(e.target.value)} />
+          <FormRow label={t("common.name")}>
+            <Input placeholder={t("couriers.placeholderName")} value={name} onChange={(e) => setName(e.target.value)} />
           </FormRow>
-          <FormRow label="Телефон">
+          <FormRow label={t("common.phone")}>
             <PhoneInput value={phone} onChange={setPhone} />
           </FormRow>
-          <FormRow label="Статус">
+          <FormRow label={t("couriers.status")}>
             <Select value={status} onValueChange={(v: "active" | "inactive") => setStatus(v)}>
               <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Активен</SelectItem>
-                <SelectItem value="inactive">Неактивен</SelectItem>
+                <SelectItem value="active">{t("couriers.active")}</SelectItem>
+                <SelectItem value="inactive">{t("couriers.inactive")}</SelectItem>
               </SelectContent>
             </Select>
           </FormRow>
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full">Сохранить</Button>
+      <Button type="submit" className="w-full">{t("common.save")}</Button>
     </form>
   );
 }

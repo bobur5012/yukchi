@@ -2,27 +2,28 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
+import { useTranslations } from "@/lib/useTranslations";
 
-const TITLES: Record<string, string> = {
-  "/dashboard":     "Главная",
-  "/trips":         "Поездки",
-  "/trips/new":     "Новая поездка",
-  "/products":      "Товары",
-  "/products/new":  "Новый товар",
-  "/shops":         "Магазины",
-  "/shops/new":     "Новый долг",
-  "/couriers":      "Курьеры",
-  "/couriers/new":  "Новый курьер",
-  "/profile":       "Профиль",
+const TITLE_KEYS: Record<string, string> = {
+  "/dashboard":     "titles.home",
+  "/trips":         "nav.trips",
+  "/trips/new":     "titles.newTrip",
+  "/products":      "titles.products",
+  "/products/new":  "titles.newProduct",
+  "/shops":         "titles.shops",
+  "/shops/new":     "titles.newDebt",
+  "/couriers":      "titles.couriers",
+  "/couriers/new":  "titles.newCourier",
+  "/profile":       "titles.profile",
 };
 
-function getTitle(pathname: string): string {
-  if (TITLES[pathname]) return TITLES[pathname];
-  if (pathname.match(/^\/trips\/[^/]+\/expenses\/new$/)) return "Добавить расход";
-  if (pathname.match(/^\/trips\/[^/]+$/))               return "Поездка";
-  if (pathname.match(/^\/shops\/[^/]+\/debt\/new$/))     return "Добавить долг";
-  if (pathname.match(/^\/shops\/[^/]+\/payments\/new$/)) return "Оплата";
-  if (pathname.match(/^\/shops\/[^/]+$/))                return "Магазин";
+function getTitleKey(pathname: string): string {
+  if (TITLE_KEYS[pathname]) return TITLE_KEYS[pathname];
+  if (pathname.match(/^\/trips\/[^/]+\/expenses\/new$/)) return "titles.addExpense";
+  if (pathname.match(/^\/trips\/[^/]+$/))               return "titles.trip";
+  if (pathname.match(/^\/shops\/[^/]+\/debt\/new$/))     return "titles.addDebt";
+  if (pathname.match(/^\/shops\/[^/]+\/payments\/new$/)) return "titles.payment";
+  if (pathname.match(/^\/shops\/[^/]+$/))                return "titles.shop";
   return "Yukchi";
 }
 
@@ -59,9 +60,11 @@ function getBackHref(pathname: string): string | undefined {
 interface HeaderProps { title?: string }
 
 export function Header({ title }: HeaderProps) {
+  const { t } = useTranslations();
   const router   = useRouter();
   const pathname = usePathname();
-  const displayTitle = title ?? getTitle(pathname);
+  const titleKey = getTitleKey(pathname);
+  const displayTitle = title ?? (titleKey.startsWith("titles.") || titleKey.startsWith("nav.") ? t(titleKey) : titleKey);
   const showBack     = shouldShowBack(pathname);
   const backHref     = getBackHref(pathname);
 
@@ -87,7 +90,7 @@ export function Header({ title }: HeaderProps) {
               transition-colors shrink-0 text-[16px]"
           >
             <ChevronLeft className="size-5 -ml-1" strokeWidth={2.5} />
-            <span className="leading-none">Назад</span>
+            <span className="leading-none">{t("nav.back")}</span>
           </button>
         )}
         <h1 className="flex-1 text-[17px] font-semibold truncate tracking-[-0.02em] text-center px-2">

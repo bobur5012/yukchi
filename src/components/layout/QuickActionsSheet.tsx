@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "@/lib/useTranslations";
 import { Plane, Wallet, CreditCard, Package, ArrowLeft, Store } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
 import { getShops } from "@/lib/api/shops";
@@ -21,6 +22,7 @@ interface QuickActionsSheetProps {
 }
 
 export function QuickActionsSheet({ open, onOpenChange }: QuickActionsSheetProps) {
+  const { t } = useTranslations();
   const router = useRouter();
   const role = useAuthStore((s) => s.user?.role);
   const [shops, setShops] = useState<Shop[]>([]);
@@ -46,22 +48,22 @@ export function QuickActionsSheet({ open, onOpenChange }: QuickActionsSheetProps
 
   const actionItems = [
     {
-      label: "Новая поездка",
+      label: t("quickActions.newTrip"),
       href: "/trips/new",
       icon: Plane,
     },
     ...(isAdmin
       ? [
-          { label: "Добавить долг", href: "/shops/new", icon: Wallet },
+          { label: t("quickActions.addDebt"), href: "/shops/new", icon: Wallet },
           {
-            label: "Внести оплату",
+            label: t("quickActions.makePayment"),
             icon: CreditCard,
             hasSubmenu: true,
           },
         ]
       : []),
     ...(role === "courier"
-      ? [{ label: "Добавить товар", href: "/products/new", icon: Package }]
+      ? [{ label: t("quickActions.addProduct"), href: "/products/new", icon: Package }]
       : []),
   ];
 
@@ -80,11 +82,11 @@ export function QuickActionsSheet({ open, onOpenChange }: QuickActionsSheetProps
               className="flex items-center gap-2 text-left text-lg font-semibold text-foreground"
             >
               <ArrowLeft className="h-5 w-5" />
-              Выберите магазин
+              {t("shops.selectShop")}
             </button>
           ) : (
             <SheetTitle className="text-lg font-semibold">
-              Быстрые действия
+              {t("quickActions.title")}
             </SheetTitle>
           )}
         </SheetHeader>
@@ -135,7 +137,7 @@ export function QuickActionsSheet({ open, onOpenChange }: QuickActionsSheetProps
             >
               {shops.length === 0 ? (
                 <p className="px-4 py-6 text-sm text-muted-foreground">
-                  Нет магазинов
+                  {t("shops.noShops")}
                 </p>
               ) : (
                 shops.map((shop) => (

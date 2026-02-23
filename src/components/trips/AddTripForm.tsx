@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,11 +16,15 @@ import { getCouriers } from "@/lib/api/couriers";
 import { getRegions } from "@/lib/api/regions";
 import { CURRENCIES } from "@/lib/constants";
 import { CourierSelectList } from "@/components/couriers/CourierSelectList";
+import { useTranslations } from "@/lib/useTranslations";
 import type { Courier, Region } from "@/types";
 import { toast } from "sonner";
-import { FormCard, FormRow, FormSection, FieldLabel, FieldHint } from "@/components/ui/form-helpers";
+import { FormCard, FormRow, FormSection, FieldHint } from "@/components/ui/form-helpers";
 
 export function AddTripForm() {
+  const { t } = useTranslations();
+  const tRef = useRef(t);
+  tRef.current = t;
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
   const [name, setName] = useState("");
@@ -33,18 +37,24 @@ export function AddTripForm() {
   const [courierIds, setCourierIds] = useState<string[]>([]);
   const [couriers, setCouriers] = useState<Courier[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
+  const [regionsLoading, setRegionsLoading] = useState(true);
 
   useEffect(() => { getCouriers().then(setCouriers); }, []);
-  useEffect(() => { getRegions().then(setRegions); }, []);
+  useEffect(() => {
+    getRegions()
+      .then(setRegions)
+      .catch(() => toast.error(tRef.current("trips.regionsLoadError")))
+      .finally(() => setRegionsLoading(false));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const numBudget = parseFloat(budget);
     if (!name || !dateDeparture || !dateReturn || isNaN(numBudget) || numBudget <= 0 || !regionId) {
-      toast.error("Заполните все поля"); return;
+      toast.error(t("common.fillAllFields")); return;
     }
     if (dateReturn < dateDeparture) {
-      toast.error("Дата возвращения не может быть раньше даты вылета"); return;
+      toast.error(t("trips.returnBeforeDeparture")); return;
     }
     try {
       await createTrip({
@@ -57,10 +67,10 @@ export function AddTripForm() {
         regionId,
         courierIds: courierIds.length > 0 ? courierIds : undefined,
       });
-      toast.success("Поездка создана");
+      toast.success(t("trips.created"));
       router.push("/trips");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Ошибка");
+      toast.error(err instanceof Error ? err.message : t("common.error"));
     }
   };
 
@@ -76,32 +86,32 @@ export function AddTripForm() {
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
       <FormCard>
         <FormSection>
-          <FormRow label="Название">
-            <Input placeholder="Стамбул 12.02" value={name} onChange={(e) => setName(e.target.value)} />
+          <FormRow label={t("trips.name")}>
+            <Input placeholder={t("trips.namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} />
           </FormRow>
         </FormSection>
 
-        <FormSection title="Даты">
-          <FormRow label="Дата вылета">
+        <FormSection title={t("trips.dates")}>
+          <FormRow label={t("trips.departureDate")}>
             <Input type="date" value={dateDeparture} onChange={(e) => setDateDeparture(e.target.value)} />
           </FormRow>
-          <FormRow label="Дата возвращения">
+          <FormRow label={t("trips.returnDate")}>
             <Input type="date" value={dateReturn} onChange={(e) => setDateReturn(e.target.value)} min={dateDeparture} />
             {durationDays > 0 && (
               <FieldHint>
-                {durationDays} {durationDays === 1 ? "день" : durationDays < 5 ? "дня" : "дней"}
+                {durationDays} {durationDays === 1 ? t("trips.day") : durationDays < 5 ? t("trips.daysFew") : t("trips.daysMany")}
               </FieldHint>
             )}
           </FormRow>
         </FormSection>
 
-        <FormSection title="Регион">
-          <FormRow label="Регион">
+        <FormSection title={t("trips.region")}>
+          <FormRow label={t("trips.region")}>
             <Select value={regionId} onValueChange={setRegionId}>
               <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-                <SelectValue placeholder="Выберите регион" />
+                <SelectValue placeholder={regionsLoading ? t("common.loading") : regions.length === 0 ? t("trips.noRegions") : t("trips.selectRegion")} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" className="z-[100]">
                 {regions.map((r) => (
                   <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
                 ))}
@@ -110,8 +120,8 @@ export function AddTripForm() {
           </FormRow>
         </FormSection>
 
-        <FormSection title="Бюджет">
-          <FormRow label="Старый долг">
+        <FormSection title={t("trips.budget")}>
+          <FormRow label={t("trips.oldDebt")}>
             <Input type="number" placeholder="0" value={oldDebt} onChange={(e) => setOldDebt(e.target.value)} />
           </FormRow>
           <div className="flex gap-3">
@@ -133,12 +143,12 @@ export function AddTripForm() {
       </FormCard>
 
       <FormCard>
-        <FormSection title="Курьеры">
+        <FormSection title={t("trips.couriers")}>
           <CourierSelectList couriers={couriers} selectedIds={courierIds} onToggle={toggleCourier} />
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full">Создать поездку</Button>
+      <Button type="submit" className="w-full">{t("trips.create")}</Button>
     </form>
   );
 }

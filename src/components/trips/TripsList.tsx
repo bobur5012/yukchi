@@ -7,16 +7,12 @@ import { useAuthStore } from "@/stores/auth";
 import type { Trip } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import { ChevronRight, Plane } from "lucide-react";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { VirtualList } from "@/components/ui/virtual-list";
 
-const statusLabels: Record<string, string> = {
-  active: "Активна",
-  completed: "Завершена",
-  planned: "Запланирована",
-};
 
 const statusVariants: Record<string, string> = {
   active: "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400",
@@ -25,6 +21,7 @@ const statusVariants: Record<string, string> = {
 };
 
 export function TripsList() {
+  const { t, locale } = useTranslations();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const user = useAuthStore((s) => s.user);
@@ -45,8 +42,8 @@ export function TripsList() {
         <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
           <EmptyState
             icon={Plane}
-            title="Нет поездок"
-            description="Создайте первую поездку"
+            title={t("tripsDetail.noTrips")}
+            description={t("tripsDetail.createFirst")}
           />
         </div>
       ) : (
@@ -76,25 +73,25 @@ export function TripsList() {
                         {trip.name}
                       </h3>
                       <p className="text-sm text-muted-foreground mt-0.5">
-                        {formatDateSafe(trip.departureDate ?? "", "d MMMM yyyy")}
-                        {trip.returnDate && ` — ${formatDateSafe(trip.returnDate, "d MMM yyyy")}`}
+                        {formatDateSafe(trip.departureDate ?? "", "d MMMM yyyy", locale)}
+                        {trip.returnDate && ` — ${formatDateSafe(trip.returnDate, "d MMM yyyy", locale)}`}
                       </p>
                       <div className="flex flex-wrap gap-2 mt-2">
                         <Badge
                           variant="secondary"
                           className={statusVariants[trip.status]}
                         >
-                          {statusLabels[trip.status]}
+                          {t(`tripsDetail.${trip.status}`)}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {(trip.tripCouriers ?? []).length} курьер(ов)
+                          {(trip.tripCouriers ?? []).length} {t("tripsDetail.couriersCount")}
                         </span>
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-1" />
                   </div>
                   <div className="mt-4 pt-4 border-t border-border flex justify-between text-sm">
-                    <span className="text-muted-foreground">Бюджет:</span>
+                    <span className="text-muted-foreground">{t("tripsDetail.budget")}:</span>
                     <span>{trip.budget} {trip.currency}</span>
                   </div>
                   <div className="flex justify-between text-sm mt-1">

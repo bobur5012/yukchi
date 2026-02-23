@@ -6,6 +6,7 @@ import { getTrip } from "@/lib/api/trips";
 import { getProducts } from "@/lib/api/products";
 import { getCouriers } from "@/lib/api/couriers";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import { useAuthStore } from "@/stores/auth";
 import type { Trip, Product, Expense } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +25,7 @@ interface TripDetailProps {
 }
 
 export function TripDetail({ tripId }: TripDetailProps) {
+  const { t, locale } = useTranslations();
   const role = useAuthStore((s) => s.user?.role);
   const [trip, setTrip] = useState<Trip | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -55,7 +57,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
   if (!trip) {
     return (
       <div className="py-12 text-center text-muted-foreground">
-        Поездка не найдена
+        {t("tripsDetail.notFound")}
       </div>
     );
   }
@@ -70,22 +72,22 @@ export function TripDetail({ tripId }: TripDetailProps) {
     <div className="space-y-4 pb-20">
       <Tabs defaultValue="info" className="w-full">
         <TabsList className="w-full grid grid-cols-3 rounded-2xl">
-          <TabsTrigger value="info">Информация</TabsTrigger>
-          <TabsTrigger value="expenses">Расходы</TabsTrigger>
-          <TabsTrigger value="products">Товары</TabsTrigger>
+          <TabsTrigger value="info">{t("tripsDetail.info")}</TabsTrigger>
+          <TabsTrigger value="expenses">{t("tripsDetail.expenses")}</TabsTrigger>
+          <TabsTrigger value="products">{t("tripsDetail.products")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="info" className="mt-4">
           <Card className="rounded-2xl card-premium">
             <CardContent className="p-4 space-y-4">
               <div>
-                <p className="text-[13px] text-muted-foreground">Бюджет</p>
+                <p className="text-[13px] text-muted-foreground">{t("tripsDetail.budget")}</p>
                 <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em]">
                   {trip.budget} {trip.currency}
                 </p>
               </div>
               <div>
-                <p className="text-[13px] text-muted-foreground">Остаток</p>
+                <p className="text-[13px] text-muted-foreground">{t("tripsDetail.remaining")}</p>
                 <p
                   className={`text-[20px] font-bold tabular-nums tracking-[-0.03em] ${
                     remaining < 0 ? "text-destructive" : ""
@@ -95,7 +97,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground mb-2">Участники</p>
+                <p className="text-sm text-muted-foreground mb-2">{t("tripsDetail.participants")}</p>
                 <div className="flex flex-wrap gap-2">
                   {(trip.tripCouriers ?? []).map((tc) => (
                     <Badge key={tc.id} variant="secondary">
@@ -106,13 +108,13 @@ export function TripDetail({ tripId }: TripDetailProps) {
               </div>
               {oldDebt > 0 && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Старый долг</p>
+                  <p className="text-sm text-muted-foreground">{t("trips.oldDebt")}</p>
                   <p className="text-lg font-semibold">{trip.oldDebt} {trip.currency}</p>
                 </div>
               )}
               <p className="text-sm text-muted-foreground">
-                Вылет: {formatDateSafe(trip.departureDate ?? "", "d MMMM yyyy")}
-                {trip.returnDate && ` — Возвращение: ${formatDateSafe(trip.returnDate, "d MMMM yyyy")}`}
+                {t("tripsDetail.departure")}: {formatDateSafe(trip.departureDate ?? "", "d MMMM yyyy", locale)}
+                {trip.returnDate && ` — ${t("tripsDetail.return")}: ${formatDateSafe(trip.returnDate, "d MMMM yyyy", locale)}`}
               </p>
             </CardContent>
           </Card>
@@ -123,7 +125,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
             <Button asChild className="w-full sticky top-14 z-10">
               <Link href={`/trips/${tripId}/expenses/new`} className="inline-flex items-center justify-center gap-2">
                 <Plus className="h-4 w-4" />
-                Добавить расход
+                {t("tripsDetail.addExpense")}
               </Link>
             </Button>
             <div className="space-y-2">
@@ -132,13 +134,13 @@ export function TripDetail({ tripId }: TripDetailProps) {
                   <CardContent className="py-8">
                     <EmptyState
                       icon={Receipt}
-                      title="Нет расходов"
-                      description="Добавьте первый расход в поездку"
+                      title={t("tripsDetail.noExpenses")}
+                      description={t("tripsDetail.noExpensesDesc")}
                       action={
                         <Button asChild className="">
                           <Link href={`/trips/${tripId}/expenses/new`} className="inline-flex items-center gap-2">
                             <Plus className="h-4 w-4" />
-                            Добавить расход
+                            {t("tripsDetail.addExpense")}
                           </Link>
                         </Button>
                       }
@@ -164,7 +166,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
                           <div className="min-w-0">
                             <p className="font-semibold text-base">{exp.description}</p>
                             <p className="text-sm text-muted-foreground">
-                              {formatDateSafe(exp.createdAt ?? "", "d MMM yyyy")}
+                              {formatDateSafe(exp.createdAt ?? "", "d MMM yyyy", locale)}
                             </p>
                           </div>
                         </div>

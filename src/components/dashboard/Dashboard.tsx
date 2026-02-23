@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { getDashboard } from "@/lib/api/dashboard";
 import type { DashboardData } from "@/lib/api/dashboard";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import {
   AlertTriangle,
   Banknote,
@@ -163,7 +164,7 @@ function ActivityRow({
           <p className="text-[13px] text-muted-foreground truncate">{subtitle}</p>
         </div>
         <span className="text-[12px] text-muted-foreground shrink-0">
-          {formatDateSafe(date, "d MMM")}
+          {formatDateSafe(date, "d MMM", locale)}
         </span>
       </motion.div>
     </Link>
@@ -171,6 +172,7 @@ function ActivityRow({
 }
 
 export function Dashboard() {
+  const { t, locale } = useTranslations();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -205,9 +207,9 @@ export function Dashboard() {
   return (
     <div className="space-y-4">
       <HeroCard
-        label="Общий долг"
+        label={t("dashboard.totalDebt")}
         amount={m.totalDebt}
-        subtitle={totalDebt > 0 ? `Долг: ${parseFloat(m.totalDebt).toLocaleString()} $` : undefined}
+        subtitle={totalDebt > 0 ? `${t("dashboard.debt")}: ${parseFloat(m.totalDebt).toLocaleString()} $` : undefined}
         href="/shops"
         icon={Banknote}
         gradient={heroGradient}
@@ -223,35 +225,35 @@ export function Dashboard() {
         <Button asChild className="flex-1 h-[44px] rounded-[13px] text-[15px]">
           <Link href="/trips/new" className="inline-flex items-center gap-1.5">
             <Plus className="size-4" />
-            Новая поездка
+            {t("dashboard.newTrip")}
           </Link>
         </Button>
         <Button asChild variant="secondary" className="flex-1 h-[44px] rounded-[13px] text-[15px]">
           <Link href="/shops/new" className="inline-flex items-center gap-1.5">
             <Wallet className="size-4" />
-            Добавить долг
+            {t("dashboard.addDebt")}
           </Link>
         </Button>
       </motion.div>
 
       <div className="grid grid-cols-2 gap-3">
         <MetricCard
-          title="Долг" value={`${parseFloat(m.totalDebt).toLocaleString()} $`}
+          title={t("dashboard.debt")} value={`${parseFloat(m.totalDebt).toLocaleString()} $`}
           href="/shops" icon={AlertTriangle}
           iconBg="bg-amber-500/15" iconColor="text-amber-400" delay={0.1}
         />
         <MetricCard
-          title="Активные поездки" value={m.tripsCount.toString()}
+          title={t("dashboard.activeTrips")} value={m.tripsCount.toString()}
           href="/trips" icon={Plane}
           iconBg="bg-emerald-500/15" iconColor="text-emerald-400" delay={0.13}
         />
         <MetricCard
-          title="Остаток бюджета" value={`${parseFloat(m.remainingUsd).toLocaleString()} $`}
+          title={t("dashboard.remainingBudget")} value={`${parseFloat(m.remainingUsd).toLocaleString()} $`}
           href="/trips" icon={PiggyBank}
           iconBg="bg-violet-500/15" iconColor="text-violet-400" delay={0.16}
         />
         <MetricCard
-          title="Общий бюджет" value={`${parseFloat(m.totalBudgetUsd).toLocaleString()} $`}
+          title={t("dashboard.totalBudget")} value={`${parseFloat(m.totalBudgetUsd).toLocaleString()} $`}
           href="/trips" icon={TrendingUp}
           iconBg="bg-indigo-500/15" iconColor="text-indigo-400" delay={0.19}
         />
@@ -264,14 +266,14 @@ export function Dashboard() {
         className="rounded-2xl bg-card border border-border/30 overflow-hidden"
       >
         <div className="px-4 pt-4 pb-2">
-          <h2 className="text-[17px] font-semibold">Последние поездки</h2>
+          <h2 className="text-[17px] font-semibold">{t("dashboard.recentTrips")}</h2>
         </div>
         <div className="divide-y divide-border/30">
           {(data.recentTrips ?? []).length === 0 ? (
             <EmptyState
               icon={Receipt}
-              title="Нет поездок"
-              description="Здесь появятся последние поездки"
+              title={t("dashboard.noTrips")}
+              description={t("dashboard.noTripsDescription")}
             />
           ) : (
             (data.recentTrips ?? []).slice(0, 5).map((trip) => (

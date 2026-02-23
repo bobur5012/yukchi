@@ -7,10 +7,13 @@ import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { AvatarPicker } from "@/components/ui/avatar-picker";
 import { createCourier } from "@/lib/api/couriers";
+import { getPhoneDigits } from "@/lib/phone-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
 
 export function AddCourierForm() {
+  const { t } = useTranslations();
   const router = useRouter();
   const [name, setName]     = useState("");
   const [phone, setPhone]   = useState("");
@@ -19,14 +22,16 @@ export function AddCourierForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) {
-      toast.error("Заполните все поля"); return;
+      toast.error(t("common.fillAllFields")); return;
     }
     try {
-      await createCourier({ name: name.trim(), phone, avatarUrl: avatar.trim() || undefined });
-      toast.success("Курьер создан");
+      const digits = getPhoneDigits(phone);
+      const phoneE164 = digits.length >= 12 ? `+${digits}` : phone;
+      await createCourier({ name: name.trim(), phone: phoneE164, avatarUrl: avatar.trim() || undefined });
+      toast.success(t("couriers.created"));
       router.push("/couriers");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Ошибка");
+      toast.error(err instanceof Error ? err.message : t("common.error"));
     }
   };
 
@@ -39,16 +44,16 @@ export function AddCourierForm() {
 
       <FormCard>
         <FormSection>
-          <FormRow label="Имя">
-            <Input placeholder="Алексей" value={name} onChange={(e) => setName(e.target.value)} />
+          <FormRow label={t("common.name")}>
+            <Input placeholder={t("couriers.placeholderName")} value={name} onChange={(e) => setName(e.target.value)} />
           </FormRow>
-          <FormRow label="Телефон">
+          <FormRow label={t("common.phone")}>
             <PhoneInput value={phone} onChange={setPhone} />
           </FormRow>
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full">Создать</Button>
+      <Button type="submit" className="w-full">{t("couriers.create")}</Button>
     </form>
   );
 }

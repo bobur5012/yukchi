@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { getPhoneDigits } from "@/lib/phone-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import { toast } from "sonner";
 
 export default function LoginPage() {
+  const { t } = useTranslations();
   const router = useRouter();
   const { isAuthenticated, login, isLoading } = useAuthStore();
   const [phone, setPhone]       = useState("");
@@ -22,15 +24,16 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone.trim() || !password) {
-      toast.error("Заполните все поля");
+      toast.error(t("auth.fillAllFields"));
       return;
     }
     try {
       const digits = getPhoneDigits(phone);
-      await login(digits.length >= 12 ? `+${digits}` : phone.trim(), password);
+      await login(digits.length >= 12 ? `+${digits}` : phone.trim(), password.trim());
       router.replace("/dashboard");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Ошибка входа");
+      const e = err as Error & { code?: string };
+      toast.error(e?.code === "INVALID_CREDENTIALS" ? t("auth.invalidCredentials") : (e?.message || t("auth.loginError")));
     }
   };
 
@@ -41,9 +44,9 @@ export default function LoginPage() {
         <p className="text-[13px] font-semibold text-primary tracking-[0.1em] uppercase mb-1">
           Yukchi
         </p>
-        <h1 className="text-[22px] font-bold tracking-[-0.03em]">Войдите в систему</h1>
+        <h1 className="text-[22px] font-bold tracking-[-0.03em]">{t("auth.loginTitle")}</h1>
         <p className="text-[15px] text-muted-foreground mt-1">
-          Управление поездками и товарами
+          {t("auth.loginSubtitle")}
         </p>
       </div>
 
@@ -53,7 +56,7 @@ export default function LoginPage() {
           {/* Phone */}
           <div className="px-4 pt-4 pb-3">
             <label className="text-[13px] font-semibold text-muted-foreground uppercase tracking-[0.06em] block mb-1.5">
-              Номер телефона
+              {t("auth.phone")}
             </label>
             <PhoneInput value={phone} onChange={setPhone} />
           </div>
@@ -64,7 +67,7 @@ export default function LoginPage() {
           {/* Password */}
           <div className="px-4 pt-3 pb-4">
             <label className="text-[13px] font-semibold text-muted-foreground uppercase tracking-[0.06em] block mb-1.5">
-              Пароль
+              {t("auth.password")}
             </label>
             <Input
               type="password"
@@ -84,7 +87,7 @@ export default function LoginPage() {
         className="w-full mt-4 h-[50px] text-[16px] font-semibold rounded-[14px]"
         disabled={isLoading}
       >
-        {isLoading ? "Вход…" : "Войти"}
+        {isLoading ? t("auth.loggingIn") : t("auth.login")}
       </Button>
 
       {/* Dev hint */}

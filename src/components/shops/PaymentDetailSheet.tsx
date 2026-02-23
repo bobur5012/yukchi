@@ -7,6 +7,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import type { Payment } from "@/types";
 
 interface PaymentDetailSheetProps {
@@ -22,6 +23,7 @@ export function PaymentDetailSheet({
   payment,
   currency,
 }: PaymentDetailSheetProps) {
+  const { locale } = useTranslations();
   if (!payment) return null;
 
   return (
@@ -39,7 +41,7 @@ export function PaymentDetailSheet({
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Дата</p>
-            <p className="font-medium">{formatDateSafe(payment.date, "d MMMM yyyy")}</p>
+            <p className="font-medium">{formatDateSafe(payment.date, "d MMMM yyyy", locale)}</p>
           </div>
           {payment.comment && (
             <div>

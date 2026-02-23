@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import { MessageCircle, Phone, MapPin, Plus, Wallet, Receipt } from "lucide-react";
 import { PaymentDetailSheet } from "./PaymentDetailSheet";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -21,6 +22,7 @@ interface ShopDetailProps {
 }
 
 export function ShopDetail({ shopId }: ShopDetailProps) {
+  const { t, locale } = useTranslations();
   const role = useAuthStore((s) => s.user?.role);
   const [shop, setShop] = useState<Shop | null>(null);
   const [entryDetail, setEntryDetail] = useState<ShopDebtEntry | null>(null);
@@ -113,7 +115,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                         <div>
                           <p className="font-medium">{pay.amount} UZS</p>
                           <p className="text-xs text-muted-foreground">
-                            {formatDateSafe(pay.createdAt, "d MMM yyyy")}
+                            {formatDateSafe(pay.createdAt, "d MMM yyyy", locale)}
                             {pay.description && ` · ${pay.description}`}
                           </p>
                         </div>

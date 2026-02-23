@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { getPhoneDigits } from "@/lib/phone-utils";
+import { useTranslations } from "@/lib/useTranslations";
 import { createShop, addDebtEntry } from "@/lib/api/shops";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
 
 export function AddShopForm() {
+  const { t } = useTranslations();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -25,11 +27,11 @@ export function AddShopForm() {
     const digits = getPhoneDigits(phone);
     const phoneNormalized = digits.length >= 12 ? `+${digits}` : undefined;
     if (!name.trim() || !ownerName.trim()) {
-      toast.error("Заполните название и имя владельца");
+      toast.error(t("shops.fillNameAndOwner"));
       return;
     }
     if (!phoneNormalized) {
-      toast.error("Введите полный номер телефона");
+      toast.error(t("shops.fullPhoneRequired"));
       return;
     }
     try {
@@ -47,10 +49,10 @@ export function AddShopForm() {
           description: comment.trim() || undefined,
         });
       }
-      toast.success("Магазин добавлен");
+      toast.success(t("shops.added"));
       router.push("/shops");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Ошибка");
+      toast.error(err instanceof Error ? err.message : t("common.error"));
     }
   };
 
@@ -58,24 +60,24 @@ export function AddShopForm() {
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
       <FormCard>
         <FormSection>
-          <FormRow label="Название магазина">
-            <Input placeholder="Магазин «Стиль»" value={name} onChange={(e) => setName(e.target.value)} />
+          <FormRow label={t("shops.shopName")}>
+            <Input placeholder={t("shops.shopNamePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} />
           </FormRow>
-          <FormRow label="Имя владельца">
-            <Input placeholder="Иван Иванов" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} />
+          <FormRow label={t("shops.ownerName")}>
+            <Input placeholder={t("shops.ownerNamePlaceholder")} value={ownerName} onChange={(e) => setOwnerName(e.target.value)} />
           </FormRow>
-          <FormRow label="Адрес">
-            <Input placeholder="ул. Примерная, 10" value={address} onChange={(e) => setAddress(e.target.value)} />
+          <FormRow label={t("shops.address")}>
+            <Input placeholder={t("shops.addressPlaceholder")} value={address} onChange={(e) => setAddress(e.target.value)} />
           </FormRow>
-          <FormRow label="Телефон">
+          <FormRow label={t("common.phone")}>
             <PhoneInput value={phone} onChange={setPhone} />
           </FormRow>
         </FormSection>
       </FormCard>
 
       <FormCard>
-        <FormSection title="Начальный долг (опционально)">
-          <FormRow label="Сумма">
+        <FormSection title={t("shops.initialDebt")}>
+          <FormRow label={t("common.amount")}>
             <Input
               type="number"
               placeholder="0"
@@ -83,13 +85,13 @@ export function AddShopForm() {
               onChange={(e) => setInitialDebt(e.target.value)}
             />
           </FormRow>
-          <FormRow label="Комментарий">
-            <Input placeholder="Опционально" value={comment} onChange={(e) => setComment(e.target.value)} />
+          <FormRow label={t("common.comment")}>
+            <Input placeholder={t("common.optional")} value={comment} onChange={(e) => setComment(e.target.value)} />
           </FormRow>
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full">Добавить</Button>
+      <Button type="submit" className="w-full">{t("shops.add")}</Button>
     </form>
   );
 }

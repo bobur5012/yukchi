@@ -10,12 +10,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDateSafe } from "@/lib/date-utils";
 import { useTranslations } from "@/lib/useTranslations";
-import { MessageCircle, Phone, MapPin, Plus, Wallet, Receipt } from "lucide-react";
+import {
+  MessageCircle,
+  Phone,
+  MapPin,
+  Plus,
+  Wallet,
+  ArrowDownCircle,
+  ArrowUpCircle,
+} from "lucide-react";
 import { PaymentDetailSheet } from "./PaymentDetailSheet";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { VirtualList } from "@/components/ui/virtual-list";
 import type { ShopDebtEntry } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface ShopDetailProps {
   shopId: string;
@@ -26,8 +35,6 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
   const role = useAuthStore((s) => s.user?.role);
   const [shop, setShop] = useState<Shop | null>(null);
   const [entryDetail, setEntryDetail] = useState<ShopDebtEntry | null>(null);
-
-  const refreshShop = () => getShop(shopId).then(setShop);
 
   useEffect(() => {
     getShop(shopId).then(setShop);
@@ -48,7 +55,10 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
   const phoneDigits = shop.phone?.replace(/\D/g, "") || "";
   const telegramUrl = phoneDigits ? `https://t.me/+${phoneDigits}` : "#";
   const hasTelegramLink = !!phoneDigits;
-  const payments = (shop.debtEntries ?? []).filter((e) => e.type === "payment");
+
+  const allEntries = [...(shop.debtEntries ?? [])].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 
   return (
     <div className="space-y-4 pb-20">
@@ -59,68 +69,98 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
           <TabsTrigger value="contacts">Контакты</TabsTrigger>
         </TabsList>
 
+        {/* ── DEBT TAB ─────────────────────────────────────── */}
         <TabsContent value="debt" className="mt-4">
           <Card className="rounded-2xl card-premium">
             <CardContent className="p-4 space-y-4">
+
+              {/* Debt amount + status */}
               <div>
                 <p className="text-sm text-muted-foreground">Общая сумма долга</p>
-                <p className="text-[22px] font-bold tabular-nums tracking-[-0.03em]">
+                <p className="text-[26px] font-bold tabular-nums tracking-[-0.03em]">
                   {parseFloat(shop.debt || "0").toLocaleString()} UZS
                 </p>
                 <span
-                  className={`inline-block mt-2 text-xs px-2 py-0.5 rounded-full ${
+                  className={cn(
+                    "inline-block mt-2 text-xs px-2.5 py-1 rounded-full font-medium",
                     shop.status === "active"
                       ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
                       : "bg-muted text-muted-foreground"
-                  }`}
+                  )}
                 >
                   {shop.status === "active" ? "Активен" : "Неактивен"}
                 </span>
               </div>
-              <div className="flex gap-2 mb-4 sticky top-14 z-10 bg-card -mx-4 px-4 py-2 -mt-2">
-                <Button asChild className="flex-1">
-                  <Link href={`/shops/${shopId}/payments/new`} className="inline-flex items-center justify-center gap-2">
-                    <Plus className="h-4 w-4" />
+
+              {/* Action buttons — 2-column grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <Button asChild className="h-11 rounded-xl gap-2">
+                  <Link href={`/shops/${shopId}/payments/new`}>
+                    <ArrowUpCircle className="h-4 w-4" />
                     Внести оплату
                   </Link>
                 </Button>
                 {role === "admin" && (
-                  <Button asChild variant="outline" className="flex-1">
-                    <Link href={`/shops/${shopId}/debt/new`} className="inline-flex items-center justify-center gap-2">
-                      <Wallet className="h-4 w-4" />
+                  <Button asChild variant="outline" className="h-11 rounded-xl gap-2">
+                    <Link href={`/shops/${shopId}/debt/new`}>
+                      <ArrowDownCircle className="h-4 w-4" />
                       Добавить долг
                     </Link>
                   </Button>
                 )}
               </div>
+
+              {/* Payment history */}
               <div>
-                <p className="section-title mb-2">История платежей</p>
-                {payments.length === 0 ? (
+                <p className="section-title mb-3">История платежей</p>
+                {allEntries.length === 0 ? (
                   <EmptyState
-                    icon={Receipt}
-                    title="Нет платежей"
-                    description="Платежи появятся здесь"
+                    icon={Wallet}
+                    title="Нет записей"
+                    description="Записи появятся здесь"
                   />
                 ) : (
                   <VirtualList
-                    items={payments}
-                    estimateSize={64}
+                    items={allEntries}
+                    estimateSize={72}
                     gap={8}
-                    height="min(300px, 40vh)"
-                    renderItem={(pay) => (
-                      <div
-                        className="flex justify-between items-center py-2 px-3 rounded-xl bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors active:scale-[0.99]"
-                        onClick={() => setEntryDetail(pay)}
-                      >
-                        <div>
-                          <p className="font-medium">{pay.amount} UZS</p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatDateSafe(pay.createdAt, "d MMM yyyy", locale)}
-                            {pay.description && ` · ${pay.description}`}
-                          </p>
+                    height="min(380px, 50vh)"
+                    renderItem={(entry) => {
+                      const isDebt = entry.type === "debt";
+                      return (
+                        <div
+                          className={cn(
+                            "flex items-center gap-3 py-3 px-4 rounded-xl cursor-pointer transition-colors active:scale-[0.99]",
+                            isDebt
+                              ? "bg-emerald-500/8 hover:bg-emerald-500/12 border border-emerald-500/20"
+                              : "bg-red-500/8 hover:bg-red-500/12 border border-red-500/20"
+                          )}
+                          onClick={() => setEntryDetail(entry)}
+                        >
+                          <div className={cn(
+                            "size-9 rounded-xl flex items-center justify-center shrink-0",
+                            isDebt ? "bg-emerald-500/15" : "bg-red-500/15"
+                          )}>
+                            {isDebt
+                              ? <ArrowDownCircle className="size-5 text-emerald-500" />
+                              : <ArrowUpCircle className="size-5 text-red-500" />
+                            }
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={cn(
+                              "font-semibold text-[15px] tabular-nums",
+                              isDebt ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                            )}>
+                              {isDebt ? "+" : "−"}{parseFloat(entry.amount).toLocaleString()} UZS
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {formatDateSafe(entry.createdAt, "d MMM yyyy, HH:mm", locale)}
+                              {entry.description && ` · ${entry.description}`}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    }}
                   />
                 )}
               </div>
@@ -128,6 +168,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
           </Card>
         </TabsContent>
 
+        {/* ── PRODUCTS TAB ─────────────────────────────────── */}
         <TabsContent value="products" className="mt-4">
           <Card className="rounded-2xl card-premium">
             <CardContent className="py-8 text-center text-muted-foreground">
@@ -136,46 +177,95 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
           </Card>
         </TabsContent>
 
+        {/* ── CONTACTS TAB ─────────────────────────────────── */}
         <TabsContent value="contacts" className="mt-4">
-          <Card className="rounded-2xl card-premium">
-            <CardContent className="p-4 space-y-4">
-              {shop.phone && (
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-muted-foreground">{shop.phone}</span>
-                  <Button size="sm" className="shrink-0" asChild>
-                    <a href={`tel:${shop.phone}`}>
-                      <Phone className="h-4 w-4 mr-2" />
+          <div className="space-y-3">
+            {shop.phone && (
+              <Card className="rounded-2xl card-premium overflow-hidden">
+                <CardContent className="p-0">
+                  <a
+                    href={`tel:${shop.phone}`}
+                    className="flex items-center gap-4 p-4 hover:bg-accent/40 transition-colors active:bg-accent"
+                  >
+                    <div className="size-11 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
+                      <Phone className="size-5 text-emerald-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground mb-0.5">Телефон</p>
+                      <p className="font-semibold text-[15px] truncate">{shop.phone}</p>
+                    </div>
+                    <span className="text-sm font-medium text-emerald-500 shrink-0">
                       Позвонить
-                    </a>
-                  </Button>
-                </div>
-              )}
-              {hasTelegramLink && (
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-muted-foreground">Telegram</span>
-                  <Button size="sm" variant="outline" className="shrink-0" asChild>
-                    <a href={telegramUrl} target="_blank" rel="noopener noreferrer">
-                      <MessageCircle className="h-4 w-4 mr-2" />
+                    </span>
+                  </a>
+                </CardContent>
+              </Card>
+            )}
+
+            {hasTelegramLink && (
+              <Card className="rounded-2xl card-premium overflow-hidden">
+                <CardContent className="p-0">
+                  <a
+                    href={telegramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-4 p-4 hover:bg-accent/40 transition-colors active:bg-accent"
+                  >
+                    <div className="size-11 rounded-xl bg-sky-500/15 flex items-center justify-center shrink-0">
+                      <MessageCircle className="size-5 text-sky-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground mb-0.5">Telegram</p>
+                      <p className="font-semibold text-[15px] truncate">
+                        {shop.phone}
+                      </p>
+                    </div>
+                    <span className="text-sm font-medium text-sky-500 shrink-0">
                       Открыть чат
-                    </a>
-                  </Button>
-                </div>
-              )}
-              {shop.address && (
-                <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-muted-foreground shrink-0" />
-                  <span className="text-sm">{shop.address}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    </span>
+                  </a>
+                </CardContent>
+              </Card>
+            )}
+
+            {shop.address && (
+              <Card className="rounded-2xl card-premium">
+                <CardContent className="p-4 flex items-start gap-4">
+                  <div className="size-11 rounded-xl bg-violet-500/15 flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin className="size-5 text-violet-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground mb-0.5">Адрес</p>
+                    <p className="font-semibold text-[15px]">{shop.address}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {!shop.phone && !shop.address && (
+              <Card className="rounded-2xl card-premium">
+                <CardContent className="py-10 text-center text-muted-foreground">
+                  Контакты не указаны
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
 
       <PaymentDetailSheet
         open={!!entryDetail}
         onOpenChange={(open) => !open && setEntryDetail(null)}
-        payment={entryDetail ? { id: entryDetail.id, amount: entryDetail.amount, date: entryDetail.createdAt, comment: entryDetail.description } : null}
+        payment={
+          entryDetail
+            ? {
+                id: entryDetail.id,
+                amount: entryDetail.amount,
+                date: entryDetail.createdAt,
+                comment: entryDetail.description,
+              }
+            : null
+        }
         currency="UZS"
       />
     </div>

@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
+import { TopCouriers } from "./TopCouriers";
 
 function AnimatedNumber({ value }: { value: string }) {
   return (
@@ -291,6 +292,8 @@ export function Dashboard() {
           )}
         </div>
       </motion.div>
+
+      <TopCouriers />
     </div>
   );
 }

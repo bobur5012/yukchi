@@ -15,6 +15,7 @@ export async function getCourier(id: string): Promise<Courier> {
 export async function createCourier(data: {
   name: string;
   phone: string;
+  password: string;
   avatarUrl?: string;
 }): Promise<Courier> {
   return api.post<Courier>("/couriers", data);

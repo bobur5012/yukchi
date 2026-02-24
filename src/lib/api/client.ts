@@ -26,6 +26,15 @@ export async function apiFetch<T>(
     headers,
   });
 
+  if (res.status === 401) {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("yukchi_token");
+      localStorage.removeItem("yukchi_auth");
+      window.location.href = "/login";
+    }
+    throw new Error("Unauthorized");
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
     throw new Error(err.message || `HTTP ${res.status}`);

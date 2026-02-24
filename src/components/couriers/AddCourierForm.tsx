@@ -11,23 +11,34 @@ import { getPhoneDigits } from "@/lib/phone-utils";
 import { useTranslations } from "@/lib/useTranslations";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
+import { Eye, EyeOff } from "lucide-react";
 
 export function AddCourierForm() {
   const { t } = useTranslations();
   const router = useRouter();
-  const [name, setName]     = useState("");
-  const [phone, setPhone]   = useState("");
-  const [avatar, setAvatar] = useState("");
+  const [name, setName]         = useState("");
+  const [phone, setPhone]       = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [avatar, setAvatar]     = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) {
       toast.error(t("common.fillAllFields")); return;
     }
+    if (!password.trim() || password.length < 6) {
+      toast.error("Пароль должен содержать минимум 6 символов"); return;
+    }
     try {
       const digits = getPhoneDigits(phone);
       const phoneE164 = digits.length >= 12 ? `+${digits}` : phone;
-      await createCourier({ name: name.trim(), phone: phoneE164, avatarUrl: avatar.trim() || undefined });
+      await createCourier({
+        name: name.trim(),
+        phone: phoneE164,
+        password: password.trim(),
+        avatarUrl: avatar.trim() || undefined,
+      });
       toast.success(t("couriers.created"));
       router.push("/couriers");
     } catch (err) {
@@ -49,6 +60,24 @@ export function AddCourierForm() {
           </FormRow>
           <FormRow label={t("common.phone")}>
             <PhoneInput value={phone} onChange={setPhone} />
+          </FormRow>
+          <FormRow label="Пароль">
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Минимум 6 символов"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pr-11"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setShowPassword((p) => !p)}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
           </FormRow>
         </FormSection>
       </FormCard>

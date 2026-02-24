@@ -14,12 +14,16 @@ import {
 import { createTrip } from "@/lib/api/trips";
 import { getCouriers } from "@/lib/api/couriers";
 import { getRegions } from "@/lib/api/regions";
-import { CURRENCIES } from "@/lib/constants";
+import { CURRENCIES, REGIONS } from "@/lib/constants";
 import { CourierSelectList } from "@/components/couriers/CourierSelectList";
 import { useTranslations } from "@/lib/useTranslations";
 import type { Courier, Region } from "@/types";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection, FieldHint } from "@/components/ui/form-helpers";
+
+function buildFallbackRegions(): Region[] {
+  return REGIONS.map((name, i) => ({ id: String(i + 1), name, nameUz: name }));
+}
 
 export function AddTripForm() {
   const { t } = useTranslations();
@@ -33,7 +37,6 @@ export function AddTripForm() {
   const [budget, setBudget] = useState("");
   const [currency, setCurrency] = useState("USD");
   const [regionId, setRegionId] = useState("");
-  const [oldDebt, setOldDebt] = useState("");
   const [courierIds, setCourierIds] = useState<string[]>([]);
   const [couriers, setCouriers] = useState<Courier[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
@@ -42,8 +45,17 @@ export function AddTripForm() {
   useEffect(() => { getCouriers().then(setCouriers); }, []);
   useEffect(() => {
     getRegions()
-      .then(setRegions)
-      .catch(() => toast.error(tRef.current("trips.regionsLoadError")))
+      .then((data) => {
+        if (data && data.length > 0) {
+          setRegions(data);
+        } else {
+          setRegions(buildFallbackRegions());
+        }
+      })
+      .catch(() => {
+        setRegions(buildFallbackRegions());
+        toast.error(tRef.current("trips.regionsLoadError"));
+      })
       .finally(() => setRegionsLoading(false));
   }, []);
 
@@ -62,7 +74,7 @@ export function AddTripForm() {
         departureDate: dateDeparture,
         returnDate: dateReturn,
         budget: budget,
-        oldDebt: oldDebt || "0",
+        oldDebt: "0",
         currency,
         regionId,
         courierIds: courierIds.length > 0 ? courierIds : undefined,
@@ -92,43 +104,42 @@ export function AddTripForm() {
         </FormSection>
 
         <FormSection title={t("trips.dates")}>
-          <FormRow label={t("trips.departureDate")}>
-            <Input type="date" value={dateDeparture} onChange={(e) => setDateDeparture(e.target.value)} />
-          </FormRow>
-          <FormRow label={t("trips.returnDate")}>
-            <Input type="date" value={dateReturn} onChange={(e) => setDateReturn(e.target.value)} min={dateDeparture} />
-            {durationDays > 0 && (
-              <FieldHint>
-                {durationDays} {durationDays === 1 ? t("trips.day") : durationDays < 5 ? t("trips.daysFew") : t("trips.daysMany")}
-              </FieldHint>
-            )}
-          </FormRow>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1.5">{t("trips.departureDate")}</p>
+              <Input type="date" value={dateDeparture} onChange={(e) => setDateDeparture(e.target.value)} />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1.5">{t("trips.returnDate")}</p>
+              <Input type="date" value={dateReturn} onChange={(e) => setDateReturn(e.target.value)} min={dateDeparture} />
+            </div>
+          </div>
+          {durationDays > 0 && (
+            <FieldHint>
+              {durationDays} {durationDays === 1 ? t("trips.day") : durationDays < 5 ? t("trips.daysFew") : t("trips.daysMany")}
+            </FieldHint>
+          )}
         </FormSection>
 
         <FormSection title={t("trips.region")}>
-          <FormRow label={t("trips.region")}>
-            <Select value={regionId} onValueChange={setRegionId}>
-              <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-                <SelectValue placeholder={regionsLoading ? t("common.loading") : regions.length === 0 ? t("trips.noRegions") : t("trips.selectRegion")} />
-              </SelectTrigger>
-              <SelectContent position="popper" className="z-[100]">
-                {regions.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormRow>
+          <Select value={regionId} onValueChange={setRegionId}>
+            <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
+              <SelectValue placeholder={regionsLoading ? t("common.loading") : regions.length === 0 ? t("trips.noRegions") : t("trips.selectRegion")} />
+            </SelectTrigger>
+            <SelectContent position="popper" className="z-[100]">
+              {regions.map((r) => (
+                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FormSection>
 
         <FormSection title={t("trips.budget")}>
-          <FormRow label={t("trips.oldDebt")}>
-            <Input type="number" placeholder="0" value={oldDebt} onChange={(e) => setOldDebt(e.target.value)} />
-          </FormRow>
           <div className="flex gap-3">
             <div className="flex-1">
               <Input type="number" placeholder="5 000" value={budget} onChange={(e) => setBudget(e.target.value)} />
             </div>
-            <div className="w-24">
+            <div className="w-28">
               <Select value={currency} onValueChange={setCurrency}>
                 <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
                   <SelectValue />

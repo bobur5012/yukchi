@@ -64,9 +64,8 @@ export function TripDetail({ tripId }: TripDetailProps) {
 
   const expenses = trip.expenses ?? [];
   const spent = expenses.reduce((s, e) => s + parseFloat(e.amount || "0"), 0);
-  const oldDebt = parseFloat(trip.oldDebt || "0");
   const budgetNum = parseFloat(trip.budget || "0");
-  const remaining = budgetNum - spent - oldDebt;
+  const remaining = budgetNum - spent;
 
   return (
     <div className="space-y-4 pb-20">
@@ -106,12 +105,6 @@ export function TripDetail({ tripId }: TripDetailProps) {
                   ))}
                 </div>
               </div>
-              {oldDebt > 0 && (
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("trips.oldDebt")}</p>
-                  <p className="text-lg font-semibold">{trip.oldDebt} {trip.currency}</p>
-                </div>
-              )}
               <p className="text-sm text-muted-foreground">
                 {t("tripsDetail.departure")}: {formatDateSafe(trip.departureDate ?? "", "d MMMM yyyy", locale)}
                 {trip.returnDate && ` — ${t("tripsDetail.return")}: ${formatDateSafe(trip.returnDate, "d MMMM yyyy", locale)}`}

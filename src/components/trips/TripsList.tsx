@@ -2,16 +2,25 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getTrips } from "@/lib/api/trips";
+import { getTrips, deleteTrip } from "@/lib/api/trips";
 import { useAuthStore } from "@/stores/auth";
 import type { Trip } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatDateSafe } from "@/lib/date-utils";
 import { useTranslations } from "@/lib/useTranslations";
-import { ChevronRight, Plane } from "lucide-react";
+import { ChevronRight, Plane, Pencil, Trash2 } from "lucide-react";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { VirtualList } from "@/components/ui/virtual-list";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 
 const statusVariants: Record<string, string> = {
@@ -22,15 +31,37 @@ const statusVariants: Record<string, string> = {
 
 export function TripsList() {
   const { t, locale } = useTranslations();
+  const role = useAuthStore((s) => s.user?.role);
+  const isAdmin = role === "admin";
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
-  const user = useAuthStore((s) => s.user);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
+  const loadTrips = () => {
     getTrips(1, 50)
       .then((r) => setTrips(r.trips))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadTrips();
   }, []);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      await deleteTrip(deleteId);
+      setTrips((prev) => prev.filter((tr) => tr.id !== deleteId));
+      setDeleteId(null);
+      toast.success("Поездка удалена");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Ошибка удаления");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   if (loading) {
     return <ListSkeleton count={4} />;
@@ -63,10 +94,10 @@ export function TripsList() {
                   ? "border-l-4 border-l-muted-foreground/40"
                   : "border-l-4 border-l-blue-500";
             return (
-              <Link href={`/trips/${trip.id}`}>
-                <div
-                  className={`rounded-2xl border border-border/50 bg-card p-4 card-premium ${statusBorder}`}
-                >
+              <div
+                className={`rounded-2xl border border-border/50 bg-card overflow-hidden card-premium ${statusBorder}`}
+              >
+                <Link href={`/trips/${trip.id}`} className="block p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-lg truncate">
@@ -104,11 +135,53 @@ export function TripsList() {
                       {remaining} {trip.currency}
                     </span>
                   </div>
-                </div>
-              </Link>
+                </Link>
+                {isAdmin && (
+                  <div className="flex items-center gap-1 px-4 pb-4 pt-0">
+                    <div className="flex-1" />
+                    <Button variant="ghost" size="icon" className="size-9 rounded-xl" asChild>
+                      <Link href={`/trips/${trip.id}/edit`}>
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-9 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setDeleteId(trip.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
             );
           }}
         />
+      )}
+
+      {isAdmin && (
+        <Dialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+          <DialogContent className="rounded-2xl sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Удалить поездку?</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              Поездка и все связанные данные будут удалены безвозвратно.
+            </p>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setDeleteId(null)}>
+                Отмена
+              </Button>
+              <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                {deleting ? "Удаление…" : "Удалить"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

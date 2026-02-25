@@ -8,10 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { formatDateSafe } from "@/lib/date-utils";
 import { useTranslations } from "@/lib/useTranslations";
 import { Store, Wallet, AlertTriangle, CheckCircle } from "lucide-react";
+import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import Link from "next/link";
 
 export function ShopsReport() {
   const { locale } = useTranslations();
+  const { formatAmount } = useFormattedAmount();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -88,7 +90,7 @@ export function ShopsReport() {
                   </div>
                   <div className="text-right shrink-0">
                     <p className="font-semibold">
-                      {parseFloat(shop.debt || "0").toLocaleString()} UZS
+                      {formatAmount(parseFloat(shop.debt || "0"))}
                     </p>
                     {lastPayment(shop) && (
                       <p className="text-xs text-muted-foreground">

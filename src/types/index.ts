@@ -91,6 +91,7 @@ export interface Shop {
   ownerName: string;
   phone: string;
   address?: string;
+  region?: string;
   debt: string;
   status: ShopStatus;
   debtEntries?: ShopDebtEntry[];

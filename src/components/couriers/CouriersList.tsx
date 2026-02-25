@@ -3,16 +3,24 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { getCouriers } from "@/lib/api/couriers";
+import { getCouriers, deleteCourier } from "@/lib/api/couriers";
 import { useAuthStore } from "@/stores/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Pencil, Users, Crown, Star, Plus, Minus } from "lucide-react";
+import { Pencil, Users, Crown, Star, Plus, Minus, Trash2 } from "lucide-react";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { VirtualList } from "@/components/ui/virtual-list";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 import type { Courier } from "@/types";
 
 const POINTS_KEY = "yukchi_courier_points";
@@ -53,6 +61,8 @@ export function CouriersList() {
   const [couriers, setCouriers] = useState<CourierWithPoints[]>([]);
   const [loading, setLoading] = useState(true);
   const [awardingId, setAwardingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadCouriers = useCallback(() => {
     const pts = loadPoints();
@@ -69,6 +79,21 @@ export function CouriersList() {
   }, []);
 
   useEffect(() => { loadCouriers(); }, [loadCouriers]);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      await deleteCourier(deleteId);
+      setCouriers((prev) => prev.filter((c) => c.id !== deleteId));
+      setDeleteId(null);
+      toast.success("Курьер удалён");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Ошибка удаления");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const adjustPoints = (courierId: string, delta: number) => {
     const pts = loadPoints();
@@ -210,6 +235,14 @@ export function CouriersList() {
                           <Pencil className="size-4" />
                         </Link>
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteId(courier.id)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -226,6 +259,27 @@ export function CouriersList() {
           );
         })}
       </div>
+
+      {isAdmin && (
+        <Dialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+          <DialogContent className="rounded-2xl sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Удалить курьера?</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              Курьер будет помечен как неактивный.
+            </p>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setDeleteId(null)}>
+                Отмена
+              </Button>
+              <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                {deleting ? "Удаление…" : "Удалить"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

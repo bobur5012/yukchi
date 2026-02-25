@@ -32,6 +32,27 @@ export async function createTrip(data: {
   return api.post<Trip>("/trips", data);
 }
 
+export async function updateTrip(
+  id: string,
+  data: Partial<{
+    name: string;
+    departureDate: string;
+    returnDate: string;
+    budget: string;
+    oldDebt: string;
+    currency: string;
+    regionId: string;
+    status: string;
+    courierIds: string[];
+  }>
+): Promise<Trip> {
+  return api.patch<Trip>(`/trips/${id}`, data);
+}
+
+export async function deleteTrip(id: string): Promise<void> {
+  await api.delete<void>(`/trips/${id}`);
+}
+
 export async function addExpense(
   tripId: string,
   data: { description: string; amount: string; currency: string }

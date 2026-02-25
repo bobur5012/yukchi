@@ -32,3 +32,7 @@ export async function updateCourier(
 ): Promise<Courier> {
   return api.patch<Courier>(`/couriers/${id}`, data);
 }
+
+export async function deleteCourier(id: string): Promise<void> {
+  await api.delete<void>(`/couriers/${id}`);
+}

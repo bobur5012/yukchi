@@ -1,15 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { getShops } from "@/lib/api/shops";
+import { getShops, deleteShop } from "@/lib/api/shops";
 import type { Shop } from "@/types";
+import { useAuthStore } from "@/stores/auth";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Store } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  MessageCircle,
+  Store,
+  Phone,
+  MapPin,
+  Search,
+  Pencil,
+  Trash2,
+  User,
+} from "lucide-react";
+import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { VirtualList } from "@/components/ui/virtual-list";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const statusColors: Record<string, string> = {
   active: "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400",
@@ -22,19 +42,47 @@ const statusLabels: Record<string, string> = {
 };
 
 export function ShopsList() {
-  const searchParams = useSearchParams();
-  const filter = searchParams.get("filter");
+  const role = useAuthStore((s) => s.user?.role);
+  const isAdmin = role === "admin";
+  const { formatAmount } = useFormattedAmount();
+
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
+  const loadShops = useCallback(() => {
     getShops(1, 100).then((r) => setShops(r.shops)).finally(() => setLoading(false));
   }, []);
 
-  const filteredShops =
-    filter === "overdue"
-      ? shops.filter((s) => parseFloat(s.debt || "0") > 0)
-      : shops;
+  useEffect(() => {
+    loadShops();
+  }, [loadShops]);
+
+  const filteredShops = shops.filter(
+    (s) =>
+      !search.trim() ||
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.ownerName?.toLowerCase().includes(search.toLowerCase()) ||
+      s.phone?.includes(search) ||
+      s.address?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      await deleteShop(deleteId);
+      setShops((prev) => prev.filter((s) => s.id !== deleteId));
+      setDeleteId(null);
+      toast.success("Магазин удалён");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Ошибка удаления");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   if (loading) {
     return <ListSkeleton count={4} />;
@@ -42,67 +90,139 @@ export function ShopsList() {
 
   return (
     <div className="space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Input
+          placeholder="Поиск по названию, владельцу, телефону, адресу..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-10 h-12 rounded-xl bg-muted/50 border-border/50"
+        />
+      </div>
+
       {filteredShops.length === 0 ? (
         <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
           <EmptyState
             icon={Store}
-            title={filter === "overdue" ? "Нет просроченных долгов" : "Нет магазинов"}
-            description={filter === "overdue" ? "Все долги в норме" : "Добавьте первый магазин"}
+            title={search ? "Ничего не найдено" : "Нет магазинов"}
+            description={search ? "Попробуйте другой запрос" : "Добавьте первый магазин"}
           />
         </div>
       ) : (
         <VirtualList
           items={filteredShops}
-          estimateSize={110}
-          gap={16}
+          estimateSize={140}
+          gap={12}
           renderItem={(shop) => {
-            const telegramUrl = shop.phone?.startsWith("+")
-              ? `https://t.me/${shop.phone.replace(/\D/g, "")}`
-              : null;
+            const phoneDigits = shop.phone?.replace(/\D/g, "") || "";
+            const telegramUrl = phoneDigits ? `https://t.me/+${phoneDigits}` : null;
+            const telUrl = shop.phone ? `tel:${shop.phone}` : null;
+
             return (
-              <div className="rounded-2xl border border-border/50 bg-card p-4 flex items-start gap-2 card-premium">
-                <Link
-                  href={`/shops/${shop.id}`}
-                  className="min-w-0 flex-1"
-                >
-                  <h3 className="font-semibold text-lg truncate">
-                    {shop.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">{shop.ownerName}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${
-                        statusColors[shop.status]
-                      }`}
-                    >
-                      {statusLabels[shop.status]}
-                    </span>
-                    <span className="font-semibold text-lg">
-                      {parseFloat(shop.debt || "0").toLocaleString()} UZS
-                    </span>
+              <div className="rounded-2xl border border-border/50 bg-card overflow-hidden card-premium">
+                <Link href={`/shops/${shop.id}`} className="block p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-[17px] truncate">{shop.name}</h3>
+                      <div className="flex items-center gap-2 mt-1.5 text-sm text-muted-foreground">
+                        <User className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{shop.ownerName}</span>
+                      </div>
+                      {shop.address && (
+                        <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                          <MapPin className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{shop.address}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
+                        <span
+                          className={cn(
+                            "text-xs px-2.5 py-1 rounded-full font-medium",
+                            statusColors[shop.status]
+                          )}
+                        >
+                          {statusLabels[shop.status]}
+                        </span>
+                        <span className="font-semibold text-[16px] tabular-nums text-primary">
+                          {formatAmount(parseFloat(shop.debt || "0"))}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </Link>
-                {telegramUrl && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0"
-                    asChild
-                  >
-                    <a
-                      href={telegramUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <MessageCircle className="h-5 w-5" />
-                    </a>
-                  </Button>
-                )}
+
+                {/* Actions row */}
+                <div className="flex items-center gap-1 px-4 pb-4 pt-0">
+                  {telUrl && (
+                    <Button variant="ghost" size="icon" className="size-9 rounded-xl" asChild>
+                      <a href={telUrl}>
+                        <Phone className="h-4 w-4 text-emerald-500" />
+                      </a>
+                    </Button>
+                  )}
+                  {telegramUrl && (
+                    <Button variant="ghost" size="icon" className="size-9 rounded-xl" asChild>
+                      <a href={telegramUrl} target="_blank" rel="noopener noreferrer">
+                        <MessageCircle className="h-4 w-4 text-sky-500" />
+                      </a>
+                    </Button>
+                  )}
+                  <div className="flex-1" />
+                  {isAdmin && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-9 rounded-xl"
+                        asChild
+                      >
+                        <Link href={`/shops/${shop.id}/edit`}>
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-9 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setDeleteId(shop.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             );
           }}
         />
       )}
+
+      <Dialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+        <DialogContent className="rounded-2xl sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Удалить магазин?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Магазин будет помечен как неактивный. Данные сохранятся.
+          </p>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteId(null)}>
+              Отмена
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Удаление…" : "Удалить"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

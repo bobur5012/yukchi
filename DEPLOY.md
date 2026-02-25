@@ -39,16 +39,26 @@ railway up
 
 ---
 
-## Миграции БД (после изменений в schema.prisma)
+## ⚠️ Миграции БД (обязательно после деплоя API!)
 
-Если меняли Prisma-схему, нужно применить миграции:
+**Ошибка «The table `public.settings` does not exist»** — значит миграции не применены.
+
+1. Railway Dashboard → проект yukchi → **Postgres** → **Connect** → скопировать **Public Network** URL
+2. Выполнить:
 
 ```powershell
 cd C:\Users\Bobur\Desktop\Yukchi\yukchi-backend\api
-# Подставить публичный DATABASE_URL из Railway
-$env:DATABASE_URL = "postgresql://postgres:PASSWORD@HOST.railway.app:PORT/railway"
+$env:DATABASE_URL = "postgresql://postgres:ВАШ_ПАРОЛЬ@monorail.proxy.rlwy.net:ПОРТ/railway"
 npx prisma migrate deploy
 ```
+
+Подставьте реальные значения из Railway (пароль, хост, порт).
+
+---
+
+## Миграции (после изменений в schema.prisma)
+
+При любых изменениях Prisma-схемы — снова выполнить `prisma migrate deploy` с DATABASE_URL из Railway.
 
 ---
 

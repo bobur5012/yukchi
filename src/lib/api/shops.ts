@@ -29,6 +29,24 @@ export async function createShop(data: {
   return api.post<Shop>("/shops", data);
 }
 
+export async function updateShop(
+  id: string,
+  data: Partial<{
+    name: string;
+    ownerName: string;
+    phone: string;
+    address: string;
+    region: string;
+    status: "active" | "inactive";
+  }>
+): Promise<Shop> {
+  return api.patch<Shop>(`/shops/${id}`, data);
+}
+
+export async function deleteShop(id: string): Promise<void> {
+  await api.delete<void>(`/shops/${id}`);
+}
+
 export async function addDebtEntry(
   shopId: string,
   data: {

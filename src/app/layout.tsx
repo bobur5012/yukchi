@@ -19,6 +19,15 @@ export const metadata: Metadata = {
   title: "Yukchi - Управление импортом",
   description: "Система управления поездками, товарами и долгами магазинов",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.ico",
+    apple: "/icon.ico",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Yukchi",
+    statusBarStyle: "default",
+  },
 };
 
 export const viewport: Viewport = {

@@ -11,6 +11,7 @@ import { Pencil } from "lucide-react";
 import { SettingsContent } from "@/components/settings/SettingsContent";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useTranslations } from "@/lib/useTranslations";
+import { useCurrencyStore } from "@/stores/currency";
 
 function getInitials(name: string): string {
   const parts = name?.trim().split(/\s+/) ?? [];
@@ -22,6 +23,8 @@ export function ProfileContent() {
   const { t } = useTranslations();
   const user = useAuthStore((s) => s.user);
   const { locale, setLocale } = useLocale();
+  const currency = useCurrencyStore((s) => s.currency);
+  const setCurrency = useCurrencyStore((s) => s.setCurrency);
   const [courier, setCourier] = useState<Courier | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
@@ -98,6 +101,23 @@ export function ProfileContent() {
           <Button variant={locale === "uz" ? "default" : "secondary"} className="flex-1 h-[44px] rounded-[13px] text-[15px]" onClick={() => setLocale("uz")}>
             🇺🇿 {t("profile.uzbek")}
           </Button>
+        </div>
+      </div>
+
+      {/* Currency */}
+      <div className="bg-card rounded-2xl border border-border/30 px-4 py-3">
+        <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-[0.07em] mb-3">Валюта</p>
+        <div className="flex gap-2">
+          {(["USD", "UZS", "TRY"] as const).map((c) => (
+            <Button
+              key={c}
+              variant={currency === c ? "default" : "secondary"}
+              className="flex-1 h-[44px] rounded-[13px] text-[15px]"
+              onClick={() => setCurrency(c)}
+            >
+              {c}
+            </Button>
+          ))}
         </div>
       </div>
 

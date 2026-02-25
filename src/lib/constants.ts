@@ -20,6 +20,22 @@ export const CITIES = REGIONS;
 
 export const CURRENCIES = ["USD", "EUR", "UZS", "TRY", "RUB"] as const;
 
+export const TURKEY_CITIES = [
+  "Стамбул",
+  "Анкара",
+  "Измир",
+  "Анталья",
+  "Бурса",
+  "Адана",
+  "Конья",
+  "Газиантеп",
+  "Мерсин",
+  "Кайсери",
+  "Другое",
+] as const;
+
+export const PRODUCT_UNITS = ["шт", "кг", "м", "л", "упак"] as const;
+
 export const EXPENSE_CATEGORIES = [
   "Транспорт",
   "Проживание",

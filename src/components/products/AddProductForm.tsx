@@ -14,20 +14,22 @@ import {
 } from "@/components/ui/select";
 import { createProduct } from "@/lib/api/products";
 import { getTrips } from "@/lib/api/trips";
+import { PRODUCT_UNITS } from "@/lib/constants";
 import type { Trip } from "@/types";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
 
 export function AddProductForm() {
   const router = useRouter();
-  const [name, setName]       = useState("");
-  const [costPrice, setCostPrice] = useState("");
-  const [quantity, setQuantity]   = useState("1");
-  const [tripId, setTripId]       = useState("");
-  const [image, setImage]         = useState<string | null>(null);
-  const [trips, setTrips]         = useState<Trip[]>([]);
+  const [name, setName] = useState("");
+  const [quantity, setQuantity] = useState("1");
+  const [unit, setUnit] = useState<string>(PRODUCT_UNITS[0]);
+  const [pricePerUnit, setPricePerUnit] = useState("");
+  const [tripId, setTripId] = useState("");
+  const [image, setImage] = useState<string | null>(null);
+  const [trips, setTrips] = useState<Trip[]>([]);
   const galleryInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef  = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,16 +43,23 @@ export function AddProductForm() {
   useEffect(() => { getTrips(1, 50).then((r) => setTrips(r.trips)); }, []);
 
   const q = parseInt(quantity, 10) || 1;
-  const cp = parseFloat(costPrice) || 0;
+  const ppu = parseFloat(pricePerUnit) || 0;
+  const costPrice = (q * ppu).toFixed(2);
   const activeTrips = trips.filter((t) => t.status === "active" || t.status === "planned");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || cp <= 0 || q <= 0 || !tripId) {
+    if (!name || ppu <= 0 || q <= 0 || !tripId) {
       toast.error("Заполните все поля"); return;
     }
     try {
-      await createProduct({ name, quantity: q, costPrice: costPrice, tripId, imageUrl: image || undefined });
+      await createProduct({
+        name,
+        quantity: q,
+        costPrice,
+        tripId,
+        imageUrl: image || undefined,
+      });
       toast.success("Товар добавлен");
       router.push("/products");
     } catch (err) {
@@ -78,7 +87,7 @@ export function AddProductForm() {
             ) : (
               <div className="flex gap-2">
                 <input ref={galleryInputRef} type="file" accept="image/*" className="sr-only" onChange={handleImageSelect} />
-                <input ref={cameraInputRef}  type="file" accept="image/*" capture="environment" className="sr-only" onChange={handleImageSelect} />
+                <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="sr-only" onChange={handleImageSelect} />
                 <Button type="button" variant="outline" className="flex-1 h-[44px] rounded-xl text-[15px]" onClick={() => galleryInputRef.current?.click()}>
                   <ImagePlus className="size-4" /> Галерея
                 </Button>
@@ -97,12 +106,39 @@ export function AddProductForm() {
           <FormRow label="Название">
             <Input placeholder="Кожаная сумка" value={name} onChange={(e) => setName(e.target.value)} />
           </FormRow>
-          <FormRow label="Количество">
-            <Input type="number" min="1" placeholder="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1.5">Количество</p>
+              <Input type="number" min="1" placeholder="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1.5">Единица</p>
+              <Select value={unit} onValueChange={setUnit}>
+                <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRODUCT_UNITS.map((u) => (
+                    <SelectItem key={u} value={u}>{u}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <FormRow label={`Цена за ${unit} ($)`}>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="45"
+              value={pricePerUnit}
+              onChange={(e) => setPricePerUnit(e.target.value)}
+            />
           </FormRow>
-          <FormRow label="Себестоимость ($)">
-            <Input type="number" step="0.01" placeholder="45" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} />
-          </FormRow>
+          {ppu > 0 && q > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Итого: {costPrice} $
+            </p>
+          )}
         </FormSection>
       </FormCard>
 
@@ -122,7 +158,7 @@ export function AddProductForm() {
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full" disabled={!name || cp <= 0 || q <= 0 || !tripId}>
+      <Button type="submit" className="w-full" disabled={!name || ppu <= 0 || q <= 0 || !tripId}>
         Добавить товар
       </Button>
     </form>

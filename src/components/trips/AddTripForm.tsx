@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,22 +13,17 @@ import {
 } from "@/components/ui/select";
 import { createTrip } from "@/lib/api/trips";
 import { getCouriers } from "@/lib/api/couriers";
-import { getRegions } from "@/lib/api/regions";
-import { CURRENCIES, REGIONS } from "@/lib/constants";
+import { CURRENCIES, TURKEY_CITIES } from "@/lib/constants";
 import { CourierSelectList } from "@/components/couriers/CourierSelectList";
 import { useTranslations } from "@/lib/useTranslations";
-import type { Courier, Region } from "@/types";
+import type { Courier } from "@/types";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection, FieldHint } from "@/components/ui/form-helpers";
 
-function buildFallbackRegions(): Region[] {
-  return REGIONS.map((name, i) => ({ id: String(i + 1), name, nameUz: name }));
-}
+const OTHER_VALUE = "Другое";
 
 export function AddTripForm() {
   const { t } = useTranslations();
-  const tRef = useRef(t);
-  tRef.current = t;
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
   const [name, setName] = useState("");
@@ -36,32 +31,17 @@ export function AddTripForm() {
   const [dateReturn, setDateReturn] = useState(today);
   const [budget, setBudget] = useState("");
   const [currency, setCurrency] = useState("USD");
-  const [regionId, setRegionId] = useState("");
+  const [city, setCity] = useState("");
+  const [cityOther, setCityOther] = useState("");
   const [courierIds, setCourierIds] = useState<string[]>([]);
   const [couriers, setCouriers] = useState<Courier[]>([]);
-  const [regions, setRegions] = useState<Region[]>([]);
-  const [regionsLoading, setRegionsLoading] = useState(true);
 
   useEffect(() => { getCouriers().then(setCouriers); }, []);
-  useEffect(() => {
-    getRegions()
-      .then((data) => {
-        if (data && data.length > 0) {
-          setRegions(data);
-        } else {
-          setRegions(buildFallbackRegions());
-        }
-      })
-      .catch(() => {
-        setRegions(buildFallbackRegions());
-        toast.error(tRef.current("trips.regionsLoadError"));
-      })
-      .finally(() => setRegionsLoading(false));
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const numBudget = parseFloat(budget);
+    const regionId = city === OTHER_VALUE ? cityOther.trim() : city;
     if (!name || !dateDeparture || !dateReturn || isNaN(numBudget) || numBudget <= 0 || !regionId) {
       toast.error(t("common.fillAllFields")); return;
     }
@@ -94,6 +74,8 @@ export function AddTripForm() {
   const toggleCourier = (id: string) =>
     setCourierIds((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
 
+  const showCityOther = city === OTHER_VALUE;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
       <FormCard>
@@ -121,17 +103,27 @@ export function AddTripForm() {
           )}
         </FormSection>
 
-        <FormSection title={t("trips.region")}>
-          <Select value={regionId} onValueChange={setRegionId}>
+        <FormSection title="Город Турции">
+          <Select value={city} onValueChange={setCity}>
             <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-              <SelectValue placeholder={regionsLoading ? t("common.loading") : regions.length === 0 ? t("trips.noRegions") : t("trips.selectRegion")} />
+              <SelectValue placeholder="Выберите город" />
             </SelectTrigger>
             <SelectContent position="popper" className="z-[100]">
-              {regions.map((r) => (
-                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+              {TURKEY_CITIES.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {showCityOther && (
+            <div className="mt-3">
+              <Input
+                placeholder="Укажите город"
+                value={cityOther}
+                onChange={(e) => setCityOther(e.target.value)}
+                className="h-[44px] rounded-xl"
+              />
+            </div>
+          )}
         </FormSection>
 
         <FormSection title={t("trips.budget")}>

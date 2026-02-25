@@ -24,6 +24,7 @@ export async function createShop(data: {
   ownerName: string;
   phone: string;
   address?: string;
+  region?: string;
 }): Promise<Shop> {
   return api.post<Shop>("/shops", data);
 }

@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 import { TopCouriers } from "./TopCouriers";
+import { CurrencyWidget } from "./CurrencyWidget";
 
 function AnimatedNumber({ value }: { value: string }) {
   return (
@@ -238,6 +239,8 @@ export function Dashboard() {
           </Link>
         </Button>
       </motion.div>
+
+      <CurrencyWidget />
 
       <div className="grid grid-cols-2 gap-3">
         <MetricCard

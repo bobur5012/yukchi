@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { AvatarPicker } from "@/components/ui/avatar-picker";
 import { createCourier } from "@/lib/api/couriers";
+import { uploadAvatar } from "@/lib/api/storage";
 import { getPhoneDigits } from "@/lib/phone-utils";
 import { useTranslations } from "@/lib/useTranslations";
 import { toast } from "sonner";
@@ -50,7 +51,18 @@ export function AddCourierForm() {
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
       {/* Avatar */}
       <div className="flex justify-center py-4">
-        <AvatarPicker value={avatar || null} onChange={(v) => setAvatar(v ?? "")} />
+        <AvatarPicker
+          value={avatar || null}
+          onChange={(v) => setAvatar(v ?? "")}
+          onUpload={async (f) => {
+            try {
+              return await uploadAvatar(f);
+            } catch {
+              toast.error("Ошибка загрузки изображения");
+              throw new Error("Upload failed");
+            }
+          }}
+        />
       </div>
 
       <FormCard>

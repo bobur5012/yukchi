@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,10 +28,14 @@ async function cropToSquare(file: File): Promise<Blob> {
   });
 }
 
-async function processImage(file: File): Promise<string> {
+async function processImageToFile(file: File): Promise<File> {
   const cropped = await cropToSquare(file);
   const croppedFile = new File([cropped], file.name, { type: "image/jpeg" });
-  const compressed = await imageCompression(croppedFile, { maxSizeMB: 0.2, maxWidthOrHeight: 400, useWebWorker: true });
+  return imageCompression(croppedFile, { maxSizeMB: 0.2, maxWidthOrHeight: 400, useWebWorker: true });
+}
+
+async function processImageToBase64(file: File): Promise<string> {
+  const compressed = await processImageToFile(file);
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
@@ -45,23 +49,39 @@ interface AvatarPickerProps {
   onChange: (value: string | null) => void;
   placeholder?: string;
   className?: string;
+  /** When provided, uploads file to storage and passes URL instead of base64 */
+  onUpload?: (file: File) => Promise<string>;
 }
 
-export function AvatarPicker({ value, onChange, placeholder = "?", className }: AvatarPickerProps) {
+export function AvatarPicker({ value, onChange, placeholder = "?", className, onUpload }: AvatarPickerProps) {
   const galleryRef = useRef<HTMLInputElement>(null);
   const cameraRef  = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !file.type.startsWith("image/")) return;
-    try { onChange(await processImage(file)); } catch { onChange(null); }
+    try {
+      if (onUpload) {
+        setUploading(true);
+        const processed = await processImageToFile(file);
+        const url = await onUpload(processed);
+        onChange(url);
+      } else {
+        onChange(await processImageToBase64(file));
+      }
+    } catch {
+      onChange(null);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
     <div className={cn("flex flex-col items-center gap-3", className)}>
       {/* Avatar preview — tap to open gallery */}
-      <button type="button" onClick={() => galleryRef.current?.click()} className="relative group">
+      <button type="button" onClick={() => !uploading && galleryRef.current?.click()} className="relative group" disabled={uploading}>
         <Avatar className="size-[80px]">
           {value ? <AvatarImage src={value} alt="Аватар" /> : null}
           <AvatarFallback className="text-[22px] font-semibold bg-muted text-muted-foreground">
@@ -69,7 +89,11 @@ export function AvatarPicker({ value, onChange, placeholder = "?", className }: 
           </AvatarFallback>
         </Avatar>
         <div className="absolute inset-0 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex items-center justify-center">
-          <ImagePlus className="size-5 text-white" />
+          {uploading ? (
+            <span className="text-white text-xs">...</span>
+          ) : (
+            <ImagePlus className="size-5 text-white" />
+          )}
         </div>
       </button>
 
@@ -78,10 +102,10 @@ export function AvatarPicker({ value, onChange, placeholder = "?", className }: 
         <input ref={galleryRef} type="file" accept="image/*" className="sr-only" onChange={handleFile} />
         <input ref={cameraRef}  type="file" accept="image/*" capture="environment" className="sr-only" onChange={handleFile} />
 
-        <Button type="button" variant="secondary" size="sm" className="h-[36px] rounded-[10px] text-[13px]" onClick={() => galleryRef.current?.click()}>
+        <Button type="button" variant="secondary" size="sm" className="h-[36px] rounded-[10px] text-[13px]" onClick={() => galleryRef.current?.click()} disabled={uploading}>
           <ImagePlus className="size-3.5" />Галерея
         </Button>
-        <Button type="button" variant="secondary" size="sm" className="h-[36px] rounded-[10px] text-[13px]" onClick={() => cameraRef.current?.click()}>
+        <Button type="button" variant="secondary" size="sm" className="h-[36px] rounded-[10px] text-[13px]" onClick={() => cameraRef.current?.click()} disabled={uploading}>
           <Camera className="size-3.5" />Камера
         </Button>
         {value && (

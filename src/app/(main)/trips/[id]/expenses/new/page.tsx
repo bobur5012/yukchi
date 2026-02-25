@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EXPENSE_CATEGORIES, CURRENCIES } from "@/lib/constants";
-import { getTrip, addExpense } from "@/lib/api/trips";
-import { useAuthStore } from "@/stores/auth";
+import { EXPENSE_CATEGORIES } from "@/lib/constants";
+import { addExpense } from "@/lib/api/trips";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
 
@@ -24,18 +23,11 @@ export default function AddExpensePage() {
   const router   = useRouter();
   const params   = useParams();
   const tripId   = params.id as string;
-  const userName = useAuthStore((s) => s.user?.name);
 
-  const [tripCurrency, setTripCurrency]         = useState("");
-  const [expenseCurrency, setExpenseCurrency]   = useState("");
   const [category, setCategory]                 = useState("");
   const [customCategory, setCustomCategory]     = useState("");
   const [amount, setAmount]                     = useState("");
   const [loading, setLoading]                   = useState(false);
-
-  useEffect(() => {
-    getTrip(tripId).then((t) => { setTripCurrency(t.currency); setExpenseCurrency(t.currency); });
-  }, [tripId]);
 
   const resolvedCategory = category === CUSTOM ? customCategory.trim() : category;
   const isValid = resolvedCategory && amount && parseFloat(amount) > 0;
@@ -51,7 +43,7 @@ export default function AddExpensePage() {
       await addExpense(tripId, {
         description: resolvedCategory,
         amount: amount,
-        currency: expenseCurrency || tripCurrency,
+        currency: "USD",
       });
       toast.success("Расход добавлен");
       router.back();
@@ -85,23 +77,9 @@ export default function AddExpensePage() {
               />
             )}
           </FormRow>
-          <div className="px-4 py-3 flex gap-3">
-            <div className="flex-1">
-              <label className="text-[13px] font-semibold text-muted-foreground uppercase tracking-[0.06em] block mb-1.5">Сумма</label>
-              <Input type="number" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            </div>
-            <div className="w-24">
-              <label className="text-[13px] font-semibold text-muted-foreground uppercase tracking-[0.06em] block mb-1.5">Валюта</label>
-              <Select value={expenseCurrency} onValueChange={setExpenseCurrency}>
-                <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <FormRow label="Сумма (USD)">
+            <Input type="number" step="0.01" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          </FormRow>
         </FormSection>
       </FormCard>
 

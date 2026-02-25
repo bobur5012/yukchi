@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { AvatarPicker } from "@/components/ui/avatar-picker";
 import { getCourier, updateCourier } from "@/lib/api/couriers";
+import { uploadAvatar } from "@/lib/api/storage";
 import { getPhoneDigits } from "@/lib/phone-utils";
 import { useTranslations } from "@/lib/useTranslations";
 import type { Courier } from "@/types";
@@ -82,6 +83,14 @@ export function EditCourierForm() {
           value={avatar || null}
           onChange={(v) => setAvatar(v ?? "")}
           placeholder={getInitials(name)}
+          onUpload={async (f) => {
+            try {
+              return await uploadAvatar(f);
+            } catch {
+              toast.error("Ошибка загрузки изображения");
+              throw new Error("Upload failed");
+            }
+          }}
         />
       </div>
 

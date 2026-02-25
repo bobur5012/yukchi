@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { createTrip } from "@/lib/api/trips";
 import { getCouriers } from "@/lib/api/couriers";
-import { CURRENCIES, TURKEY_CITIES } from "@/lib/constants";
+import { TURKEY_CITIES } from "@/lib/constants";
 import { CourierSelectList } from "@/components/couriers/CourierSelectList";
 import { useTranslations } from "@/lib/useTranslations";
 import type { Courier } from "@/types";
@@ -30,7 +30,6 @@ export function AddTripForm() {
   const [dateDeparture, setDateDeparture] = useState(today);
   const [dateReturn, setDateReturn] = useState(today);
   const [budget, setBudget] = useState("");
-  const [currency, setCurrency] = useState("USD");
   const [city, setCity] = useState("");
   const [cityOther, setCityOther] = useState("");
   const [courierIds, setCourierIds] = useState<string[]>([]);
@@ -55,7 +54,7 @@ export function AddTripForm() {
         returnDate: dateReturn,
         budget: budget,
         oldDebt: "0",
-        currency,
+        currency: "USD",
         regionId,
         courierIds: courierIds.length > 0 ? courierIds : undefined,
       });
@@ -126,22 +125,8 @@ export function AddTripForm() {
           )}
         </FormSection>
 
-        <FormSection title={t("trips.budget")}>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <Input type="number" placeholder="5 000" value={budget} onChange={(e) => setBudget(e.target.value)} />
-            </div>
-            <div className="w-28">
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+        <FormSection title={`${t("trips.budget")} (USD)`}>
+          <Input type="number" step="0.01" placeholder="5 000" value={budget} onChange={(e) => setBudget(e.target.value)} />
         </FormSection>
       </FormCard>
 

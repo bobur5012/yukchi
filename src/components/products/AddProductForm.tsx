@@ -19,12 +19,22 @@ import type { Trip } from "@/types";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
 
+const UNITS_DISPLAY: Record<string, string> = {
+  шт: "ШТ",
+  кг: "КГ",
+  м: "М",
+  л: "Л",
+  упак: "УПАК",
+};
+
 export function AddProductForm() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [unit, setUnit] = useState<string>(PRODUCT_UNITS[0]);
-  const [pricePerUnit, setPricePerUnit] = useState("");
+  const [costPrice, setCostPrice] = useState("");
+  const [salePrice, setSalePrice] = useState("");
+  const [pricePerKg, setPricePerKg] = useState("");
   const [tripId, setTripId] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -40,23 +50,36 @@ export function AddProductForm() {
     e.target.value = "";
   };
 
-  useEffect(() => { getTrips(1, 50).then((r) => setTrips(r.trips)); }, []);
+  useEffect(() => {
+    getTrips(1, 50).then((r) => setTrips(r.trips));
+  }, []);
 
   const q = parseInt(quantity, 10) || 1;
-  const ppu = parseFloat(pricePerUnit) || 0;
-  const costPrice = (q * ppu).toFixed(2);
+  const cp = parseFloat(costPrice) || 0;
+  const sp = parseFloat(salePrice) || 0;
+  const ppk = parseFloat(pricePerKg) || 0;
+
+  const totalCostPrice = (q * cp).toFixed(2);
+  const totalSalePrice = sp > 0 ? (q * sp).toFixed(2) : null;
+  const totalPricePerKg = ppk > 0 && (unit === "кг" || unit === "л") ? (q * ppk).toFixed(2) : null;
+  const margin = sp > 0 && cp > 0 ? (sp - cp).toFixed(2) : null;
+
   const activeTrips = trips.filter((t) => t.status === "active" || t.status === "planned");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || ppu <= 0 || q <= 0 || !tripId) {
-      toast.error("Заполните все поля"); return;
+    if (!name.trim() || cp <= 0 || q <= 0 || !tripId) {
+      toast.error("Заполните название, количество, цену себестоимости и поездку");
+      return;
     }
     try {
       await createProduct({
-        name,
+        name: name.trim(),
         quantity: q,
-        costPrice,
+        unit: unit,
+        costPrice: cp.toFixed(2),
+        salePrice: sp > 0 ? sp.toFixed(2) : undefined,
+        pricePerKg: ppk > 0 ? ppk.toFixed(2) : undefined,
         tripId,
         imageUrl: image || undefined,
       });
@@ -106,39 +129,34 @@ export function AddProductForm() {
           <FormRow label="Название">
             <Input placeholder="Кожаная сумка" value={name} onChange={(e) => setName(e.target.value)} />
           </FormRow>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 px-4 py-3">
             <div>
-              <p className="text-xs text-muted-foreground mb-1.5">Количество</p>
-              <Input type="number" min="1" placeholder="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+              <p className="text-[13px] font-semibold text-muted-foreground uppercase tracking-[0.06em] mb-1.5">Количество</p>
+              <Input type="number" min={1} placeholder="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1.5">Единица</p>
+              <p className="text-[13px] font-semibold text-muted-foreground uppercase tracking-[0.06em] mb-1.5">Единица</p>
               <Select value={unit} onValueChange={setUnit}>
                 <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {PRODUCT_UNITS.map((u) => (
-                    <SelectItem key={u} value={u}>{u}</SelectItem>
+                    <SelectItem key={u} value={u}>{UNITS_DISPLAY[u] ?? u}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
-          <FormRow label={`Цена за ${unit} ($)`}>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="45"
-              value={pricePerUnit}
-              onChange={(e) => setPricePerUnit(e.target.value)}
-            />
+          <FormRow label="Цена себестоимости ($)">
+            <Input type="number" step="0.01" placeholder="45" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} />
           </FormRow>
-          {ppu > 0 && q > 0 && (
-            <p className="text-xs text-muted-foreground">
-              Итого: {costPrice} $
-            </p>
-          )}
+          <FormRow label="Цена продажи ($)">
+            <Input type="number" step="0.01" placeholder="60" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
+          </FormRow>
+          <FormRow label="Цена за кг ($)">
+            <Input type="number" step="0.01" placeholder="5" value={pricePerKg} onChange={(e) => setPricePerKg(e.target.value)} />
+          </FormRow>
         </FormSection>
       </FormCard>
 
@@ -151,14 +169,48 @@ export function AddProductForm() {
                 <SelectValue placeholder="Выберите поездку" />
               </SelectTrigger>
               <SelectContent>
-                {activeTrips.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                {activeTrips.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </FormRow>
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full" disabled={!name || ppu <= 0 || q <= 0 || !tripId}>
+      {/* Calculations */}
+      {(cp > 0 || sp > 0 || ppk > 0) && q > 0 && (
+        <FormCard>
+          <FormSection title="Расчёты">
+            <div className="space-y-2 text-[15px]">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Общая стоимость товара</span>
+                <span className="font-semibold tabular-nums">{totalCostPrice} $</span>
+              </div>
+              {totalSalePrice && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Общая цена продажи</span>
+                  <span className="font-semibold tabular-nums text-emerald-500">{totalSalePrice} $</span>
+                </div>
+              )}
+              {totalPricePerKg && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Общая цена за {unit}</span>
+                  <span className="font-semibold tabular-nums">{totalPricePerKg} $</span>
+                </div>
+              )}
+              {margin && (
+                <div className="flex justify-between pt-2 border-t border-border/30">
+                  <span className="text-muted-foreground">Маржа (за ед.)</span>
+                  <span className="font-semibold tabular-nums text-primary">{margin} $</span>
+                </div>
+              )}
+            </div>
+          </FormSection>
+        </FormCard>
+      )}
+
+      <Button type="submit" className="w-full" disabled={!name.trim() || cp <= 0 || q <= 0 || !tripId}>
         Добавить товар
       </Button>
     </form>

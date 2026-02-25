@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { getDashboard } from "@/lib/api/dashboard";
 import type { DashboardData } from "@/lib/api/dashboard";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { useTranslations } from "@/lib/useTranslations";
 import {
   AlertTriangle,
@@ -90,7 +91,7 @@ function MetricCard({
 
 function HeroCard({
   label,
-  amount,
+  formattedAmount,
   subtitle,
   href,
   icon: Icon,
@@ -98,7 +99,7 @@ function HeroCard({
   warning,
 }: {
   label: string;
-  amount: string;
+  formattedAmount: string;
   subtitle?: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -125,7 +126,7 @@ function HeroCard({
                 <p className="text-[13px] text-white/75 font-medium">{label}</p>
               </div>
               <p className="text-[34px] font-bold text-white tracking-[-0.04em] leading-none tabular-nums">
-                <AnimatedNumber value={amount} /> $
+                {formattedAmount}
               </p>
               {subtitle && (
                 <p className={cn("text-[13px] mt-1.5 font-medium", warning ? "text-amber-200" : "text-white/70")}>
@@ -177,6 +178,7 @@ function ActivityRow({
 
 export function Dashboard() {
   const { t, locale } = useTranslations();
+  const { formatAmount, formatAmountFromUzs } = useFormattedAmount();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -212,8 +214,8 @@ export function Dashboard() {
     <div className="space-y-4">
       <HeroCard
         label={t("dashboard.totalDebt")}
-        amount={m.totalDebt}
-        subtitle={totalDebt > 0 ? `${t("dashboard.debt")}: ${parseFloat(m.totalDebt).toLocaleString()} $` : undefined}
+        formattedAmount={formatAmountFromUzs(totalDebt)}
+        subtitle={totalDebt > 0 ? `${t("dashboard.debt")}: ${formatAmountFromUzs(totalDebt)}` : undefined}
         href="/shops"
         icon={Banknote}
         gradient={heroGradient}
@@ -244,7 +246,7 @@ export function Dashboard() {
 
       <div className="grid grid-cols-2 gap-3">
         <MetricCard
-          title={t("dashboard.debt")} value={`${parseFloat(m.totalDebt).toLocaleString()} $`}
+          title={t("dashboard.debt")} value={formatAmountFromUzs(parseFloat(m.totalDebt || "0"))}
           href="/shops" icon={AlertTriangle}
           iconBg="bg-amber-500/15" iconColor="text-amber-400" delay={0.1}
         />
@@ -254,12 +256,12 @@ export function Dashboard() {
           iconBg="bg-emerald-500/15" iconColor="text-emerald-400" delay={0.13}
         />
         <MetricCard
-          title={t("dashboard.remainingBudget")} value={`${parseFloat(m.remainingUsd).toLocaleString()} $`}
+          title={t("dashboard.remainingBudget")} value={formatAmount(parseFloat(m.remainingUsd || "0"))}
           href="/trips" icon={PiggyBank}
           iconBg="bg-violet-500/15" iconColor="text-violet-400" delay={0.16}
         />
         <MetricCard
-          title={t("dashboard.totalBudget")} value={`${parseFloat(m.totalBudgetUsd).toLocaleString()} $`}
+          title={t("dashboard.totalBudget")} value={formatAmount(parseFloat(m.totalBudgetUsd || "0"))}
           href="/trips" icon={TrendingUp}
           iconBg="bg-indigo-500/15" iconColor="text-indigo-400" delay={0.19}
         />

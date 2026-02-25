@@ -44,8 +44,13 @@ export interface Product {
   tripId: string;
   name: string;
   quantity: number;
+  unit?: string;
   costPrice: string;
   costPriceUsd: string;
+  salePrice?: string;
+  salePriceUsd?: string;
+  pricePerKg?: string;
+  pricePerKgUsd?: string;
   imageUrl?: string;
   createdAt?: string;
 }

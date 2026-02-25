@@ -10,6 +10,7 @@ export interface CBURate {
 
 export interface CurrencyRates {
   usdUzs: number;
+  usdTry: number;
   tryUzs: number;
   tryUsd: number;
   date: string;
@@ -26,9 +27,11 @@ export async function fetchCBURates(): Promise<CurrencyRates> {
   const usdUzs = usd ? parseFloat(usd.Rate) / parseFloat(usd.Nominal || "1") : 0;
   const tryUzs = try_ ? parseFloat(try_.Rate) / parseFloat(try_.Nominal || "1") : 0;
   const tryUsd = usdUzs > 0 && tryUzs > 0 ? tryUzs / usdUzs : 0;
+  const usdTry = tryUsd > 0 ? 1 / tryUsd : 0;
 
   return {
     usdUzs,
+    usdTry,
     tryUzs,
     tryUsd,
     date: usd?.Date || "",

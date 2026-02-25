@@ -7,6 +7,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { useTranslations } from "@/lib/useTranslations";
 import type { Payment } from "@/types";
 
@@ -24,6 +25,7 @@ export function PaymentDetailSheet({
   currency,
 }: PaymentDetailSheetProps) {
   const { locale } = useTranslations();
+  const { formatAmountFromUzs } = useFormattedAmount();
   if (!payment) return null;
 
   return (
@@ -36,7 +38,7 @@ export function PaymentDetailSheet({
           <div>
             <p className="text-[13px] text-muted-foreground">Сумма</p>
             <p className="text-[20px] font-semibold tabular-nums tracking-[-0.03em]">
-              {payment.amount} {currency}
+              {formatAmountFromUzs(Math.abs(parseFloat(payment.amount || "0")))}
             </p>
           </div>
           <div>

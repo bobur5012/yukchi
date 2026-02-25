@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useAuthStore } from "@/stores/auth";
 import { getDashboard } from "@/lib/api/dashboard";
 import type { DashboardData } from "@/lib/api/dashboard";
+import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import {
   Wallet,
   AlertTriangle,
@@ -17,28 +18,28 @@ import {
 const metricCards = [
   {
     title: "Общий долг",
-    getValue: (d: DashboardData) => `${parseFloat(d.metrics.totalDebt || "0").toLocaleString()} $`,
+    getValue: (d: DashboardData, fa: (n: number) => string, fau: (n: number) => string) => fau(parseFloat(d.metrics.totalDebt || "0")),
     href: "/shops",
     icon: Wallet,
     gradient: "from-indigo-500/20 to-blue-500/20 dark:from-indigo-500/30 dark:to-blue-500/30",
   },
   {
     title: "Активные поездки",
-    getValue: (d: DashboardData) => String(d.metrics.tripsCount ?? 0),
+    getValue: (d: DashboardData, _fa?: (n: number) => string, _fau?: (n: number) => string) => String(d.metrics.tripsCount ?? 0),
     href: "/trips",
     icon: Plane,
     gradient: "from-emerald-500/20 to-teal-500/20 dark:from-emerald-500/30 dark:to-teal-500/30",
   },
   {
     title: "Остаток бюджета",
-    getValue: (d: DashboardData) => `${parseFloat(d.metrics.remainingUsd || "0").toLocaleString()} $`,
+    getValue: (d: DashboardData, fa: (n: number) => string, _fau: (n: number) => string) => fa(parseFloat(d.metrics.remainingUsd || "0")),
     href: "/trips",
     icon: PiggyBank,
     gradient: "from-violet-500/20 to-purple-500/20 dark:from-violet-500/30 dark:to-purple-500/30",
   },
   {
     title: "Магазины",
-    getValue: (d: DashboardData) => String(d.metrics.shopsCount ?? 0),
+    getValue: (d: DashboardData, _fa?: (n: number) => string, _fau?: (n: number) => string) => String(d.metrics.shopsCount ?? 0),
     href: "/shops",
     icon: AlertTriangle,
     gradient: "from-amber-500/20 to-orange-500/20 dark:from-amber-500/30 dark:to-orange-500/30",
@@ -47,6 +48,7 @@ const metricCards = [
 
 export function DashboardCards() {
   const role = useAuthStore((s) => s.user?.role);
+  const { formatAmount, formatAmountFromUzs } = useFormattedAmount();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -89,7 +91,9 @@ export function DashboardCards() {
                   </div>
                 </CardHeader>
                 <CardContent className="px-3 pb-3 pt-0">
-                  <p className="text-[20px] font-bold tracking-[-0.03em]">{getValue(data)}</p>
+                  <p className="text-[20px] font-bold tracking-[-0.03em]">
+                    {getValue(data, formatAmount, formatAmountFromUzs)}
+                  </p>
                 </CardContent>
               </Card>
             </Link>

@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { useTranslations } from "@/lib/useTranslations";
 import {
   MessageCircle,
@@ -32,6 +33,7 @@ interface ShopDetailProps {
 
 export function ShopDetail({ shopId }: ShopDetailProps) {
   const { t, locale } = useTranslations();
+  const { formatAmountFromUzs } = useFormattedAmount();
   const role = useAuthStore((s) => s.user?.role);
   const [shop, setShop] = useState<Shop | null>(null);
   const [entryDetail, setEntryDetail] = useState<ShopDebtEntry | null>(null);
@@ -78,7 +80,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
               <div>
                 <p className="text-sm text-muted-foreground">Общая сумма долга</p>
                 <p className="text-[26px] font-bold tabular-nums tracking-[-0.03em]">
-                  {parseFloat(shop.debt || "0").toLocaleString()} UZS
+                  {formatAmountFromUzs(parseFloat(shop.debt || "0"))}
                 </p>
                 <span
                   className={cn(
@@ -151,7 +153,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                               "font-semibold text-[15px] tabular-nums",
                               isDebt ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
                             )}>
-                              {isDebt ? "+" : "−"}{parseFloat(entry.amount).toLocaleString()} UZS
+                              {isDebt ? "+" : "−"}{formatAmountFromUzs(Math.abs(parseFloat(entry.amount)))}
                             </p>
                             <p className="text-xs text-muted-foreground truncate">
                               {formatDateSafe(entry.createdAt, "d MMM yyyy, HH:mm", locale)}

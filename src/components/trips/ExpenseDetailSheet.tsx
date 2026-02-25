@@ -7,6 +7,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { formatDateSafe } from "@/lib/date-utils";
+import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { useTranslations } from "@/lib/useTranslations";
 import type { Expense } from "@/types";
 
@@ -24,6 +25,7 @@ export function ExpenseDetailSheet({
   tripCurrency,
 }: ExpenseDetailSheetProps) {
   const { locale } = useTranslations();
+  const { formatAmount } = useFormattedAmount();
   if (!expense) return null;
 
   return (
@@ -40,7 +42,7 @@ export function ExpenseDetailSheet({
           <div>
             <p className="text-[13px] text-muted-foreground">Сумма</p>
             <p className="text-[20px] font-semibold tabular-nums tracking-[-0.03em]">
-              {expense.amount} {expense.currency || tripCurrency}
+              {formatAmount(parseFloat(expense.amountUsd || expense.amount || "0"))}
             </p>
           </div>
           <div>

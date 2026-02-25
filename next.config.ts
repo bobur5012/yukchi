@@ -1,9 +1,19 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 import withPWA from "@ducanh2912/next-pwa";
 
 const nextConfig: NextConfig = {
   turbopack: {},
   allowedDevOrigins: ["192.168.68.107", "localhost"],
+  // Fix Netlify: avoid wrong root from parent lockfiles; ensure correct module resolution
+  outputFileTracingRoot: path.join(__dirname),
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...(config.resolve.alias ?? {}),
+      "@": path.resolve(__dirname, "src"),
+    };
+    return config;
+  },
 };
 
 export default withPWA({

@@ -15,12 +15,14 @@ import {
   MessageCircle,
   Phone,
   MapPin,
-  Plus,
   Wallet,
   ArrowDownCircle,
   ArrowUpCircle,
+  Bell,
+  Package,
 } from "lucide-react";
 import { PaymentDetailSheet } from "./PaymentDetailSheet";
+import { ShopReminders } from "./ShopReminders";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { VirtualList } from "@/components/ui/virtual-list";
@@ -33,7 +35,7 @@ interface ShopDetailProps {
 
 export function ShopDetail({ shopId }: ShopDetailProps) {
   const { t, locale } = useTranslations();
-  const { formatAmountFromUzs } = useFormattedAmount();
+  const { formatAmount } = useFormattedAmount();
   const role = useAuthStore((s) => s.user?.role);
   const [shop, setShop] = useState<Shop | null>(null);
   const [entryDetail, setEntryDetail] = useState<ShopDebtEntry | null>(null);
@@ -65,10 +67,16 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
   return (
     <div className="space-y-4 pb-20">
       <Tabs defaultValue="debt" className="w-full">
-        <TabsList className="w-full grid grid-cols-3 rounded-2xl">
+        <TabsList className={cn(
+          "w-full grid rounded-2xl",
+          role === "admin" ? "grid-cols-4" : "grid-cols-3"
+        )}>
           <TabsTrigger value="debt">Долг</TabsTrigger>
           <TabsTrigger value="products">Товары</TabsTrigger>
           <TabsTrigger value="contacts">Контакты</TabsTrigger>
+          {role === "admin" && (
+            <TabsTrigger value="reminders">Напоминания</TabsTrigger>
+          )}
         </TabsList>
 
         {/* ── DEBT TAB ─────────────────────────────────────── */}
@@ -80,7 +88,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
               <div>
                 <p className="text-sm text-muted-foreground">Общая сумма долга</p>
                 <p className="text-[26px] font-bold tabular-nums tracking-[-0.03em]">
-                  {formatAmountFromUzs(parseFloat(shop.debt || "0"))}
+                  {formatAmount(parseFloat(shop.debt || "0"))}
                 </p>
                 <span
                   className={cn(
@@ -102,7 +110,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                     Внести оплату
                   </Link>
                 </Button>
-                {role === "admin" && (
+                {(role === "admin" || role === "courier") && (
                   <Button asChild variant="outline" className="h-11 rounded-xl gap-2">
                     <Link href={`/shops/${shopId}/debt/new`}>
                       <ArrowDownCircle className="h-4 w-4" />
@@ -153,11 +161,12 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                               "font-semibold text-[15px] tabular-nums",
                               isDebt ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
                             )}>
-                              {isDebt ? "+" : "−"}{formatAmountFromUzs(Math.abs(parseFloat(entry.amount)))}
+                              {isDebt ? "+" : "−"}{formatAmount(Math.abs(parseFloat(entry.amount)))}
                             </p>
                             <p className="text-xs text-muted-foreground truncate">
                               {formatDateSafe(entry.createdAt, "d MMM yyyy, HH:mm", locale)}
                               {entry.description && ` · ${entry.description}`}
+                              {role === "admin" && entry.createdByUser?.name && ` · ${entry.createdByUser.name}`}
                             </p>
                           </div>
                         </div>
@@ -173,11 +182,40 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
         {/* ── PRODUCTS TAB ─────────────────────────────────── */}
         <TabsContent value="products" className="mt-4">
           <Card className="rounded-2xl card-premium">
-            <CardContent className="py-8 text-center text-muted-foreground">
-              Товары (необязательно)
+            <CardContent className="p-4">
+              <p className="section-title mb-3">Привязанные товары</p>
+              {(shop.products?.length ?? 0) === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Нет привязанных товаров. Привяжите товар в разделе «Товары».
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {shop.products?.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center gap-3 py-3 px-4 rounded-xl bg-muted/50"
+                    >
+                      <Package className="h-5 w-5 text-muted-foreground shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-[15px] truncate">{p.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {p.quantity} {p.unit ?? "шт"} · ${p.costPriceUsd}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* ── REMINDERS TAB (admin only) ─────────────────────── */}
+        {role === "admin" && (
+          <TabsContent value="reminders" className="mt-4">
+            <ShopReminders shopId={shopId} />
+          </TabsContent>
+        )}
 
         {/* ── CONTACTS TAB ─────────────────────────────────── */}
         <TabsContent value="contacts" className="mt-4">
@@ -265,10 +303,11 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                 amount: entryDetail.amount,
                 date: entryDetail.createdAt,
                 comment: entryDetail.description,
+                createdBy: entryDetail.createdByUser?.name,
               }
             : null
         }
-        currency="UZS"
+        currency="USD"
       />
     </div>
   );

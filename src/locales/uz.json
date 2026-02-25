@@ -50,6 +50,7 @@
     "ok": "OK",
     "optional": "Ixtiyoriy",
     "amount": "Summa",
+    "amountUsd": "Summa (USD)",
     "comment": "Izoh",
     "user": "Foydalanuvchi",
     "admin": "Administrator",
@@ -127,11 +128,15 @@
     "pending": "Kod kutilmoqda",
     "notAuthorized": "Avtorizatsiya qilinmagan",
     "messageTemplates": "Xabar shablonlari",
-    "logout": "Hisobdan chiqish"
+    "logout": "Hisobdan chiqish",
+    "save": "Saqlash",
+    "saved": "Saqlandi",
+    "saveError": "Saqlab bo'lmadi"
   },
   "quickActions": {
     "title": "Tezkor harakatlar",
     "newTrip": "Yangi sayohat",
+    "addShop": "Do'kon qo'shish",
     "addDebt": "Qarz qo'shish",
     "makePayment": "To'lov kiritish",
     "addProduct": "Mahsulot qo'shish"

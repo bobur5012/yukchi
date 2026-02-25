@@ -18,7 +18,7 @@ import {
 const metricCards = [
   {
     title: "Общий долг",
-    getValue: (d: DashboardData, fa: (n: number) => string, fau: (n: number) => string) => fau(parseFloat(d.metrics.totalDebt || "0")),
+    getValue: (d: DashboardData, fa: (n: number) => string, _fau: (n: number) => string) => fa(parseFloat(d.metrics.totalDebt || "0")),
     href: "/shops",
     icon: Wallet,
     gradient: "from-indigo-500/20 to-blue-500/20 dark:from-indigo-500/30 dark:to-blue-500/30",

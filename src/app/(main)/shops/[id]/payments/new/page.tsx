@@ -35,8 +35,8 @@ export default function AddPaymentPage() {
     <form onSubmit={handleSubmit} className="space-y-4 pb-8">
       <FormCard>
         <FormSection>
-          <FormRow label="Сумма">
-            <Input type="number" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <FormRow label="Сумма (USD)">
+            <Input type="number" step="0.01" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
           </FormRow>
           <FormRow label="Комментарий">
             <Input placeholder="Опционально" value={comment} onChange={(e) => setComment(e.target.value)} />

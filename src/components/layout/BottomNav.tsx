@@ -34,9 +34,10 @@ const adminMainNavItems = (t: (k: string) => string) => [
 ];
 
 const courierMainNavItems = (t: (k: string) => string) => [
-  { href: "/dashboard", label: t("nav.home"),  icon: LayoutDashboard },
-  { href: "/trips",     label: t("nav.trips"),  icon: Plane },
-  { href: "/products",  label: t("nav.products"),   icon: Package },
+  { href: "/dashboard", label: t("nav.home"),     icon: LayoutDashboard },
+  { href: "/trips",     label: t("nav.trips"),    icon: Plane },
+  { href: "/shops",     label: t("nav.shops"),    icon: Store },
+  { href: "/products",  label: t("nav.products"), icon: Package },
   { href: "/profile",   label: t("nav.profile"),  icon: User },
 ];
 
@@ -82,7 +83,11 @@ function getFABHref(pathname: string, role: "admin" | "courier" | undefined): st
     if (pathname.startsWith("/products")) return "/products/new";
     if (pathname.startsWith("/couriers")) return "/couriers/new";
   }
-  if (role === "courier" && pathname.startsWith("/products")) return "/products/new";
+  if (role === "courier") {
+    if (pathname.startsWith("/trips"))    return "/trips/new";
+    if (pathname.startsWith("/shops"))    return "/shops/new";
+    if (pathname.startsWith("/products")) return "/products/new";
+  }
   return null;
 }
 

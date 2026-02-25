@@ -15,7 +15,8 @@ export function ProductsList() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [productDetail, setProductDetail] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
+
+  const loadProducts = () => {
     getTrips(1, 50).then(async (r) => {
       setTrips(r.trips);
       const allProducts: Product[] = [];
@@ -25,6 +26,10 @@ export function ProductsList() {
       }
       setProducts(allProducts);
     }).finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadProducts();
   }, []);
 
   if (loading) {
@@ -78,6 +83,9 @@ export function ProductsList() {
                       Себестоимость: {prod.costPrice} $
                     </p>
                     <p className="text-xs">{trip?.name ?? "-"}</p>
+                    {prod.shop && (
+                      <p className="text-xs text-primary">→ {prod.shop.name}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -91,6 +99,12 @@ export function ProductsList() {
         product={productDetail}
         trip={productDetail ? trips.find((t) => t.id === productDetail.tripId) ?? null : null}
         courierName={undefined}
+        onProductUpdated={(updated) => {
+          setProducts((prev) =>
+            prev.map((p) => (p.id === updated.id ? updated : p))
+          );
+          setProductDetail(updated);
+        }}
       />
     </>
   );

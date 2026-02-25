@@ -42,3 +42,50 @@ export async function addDebtEntry(
     data
   );
 }
+
+export interface ShopReminder {
+  id: string;
+  shopId: string;
+  type: "monthly" | "one_time";
+  dayOfMonth?: number;
+  reminderAt?: string;
+  enabled: boolean;
+  lastSentAt?: string;
+  createdAt: string;
+}
+
+export async function getReminders(shopId: string): Promise<ShopReminder[]> {
+  return api.get<ShopReminder[]>(`/shops/${shopId}/reminders`);
+}
+
+export async function createReminder(
+  shopId: string,
+  data: {
+    type: "monthly" | "one_time";
+    dayOfMonth?: number;
+    reminderAt?: string;
+    enabled?: boolean;
+  }
+): Promise<ShopReminder> {
+  return api.post<ShopReminder>(`/shops/${shopId}/reminders`, data);
+}
+
+export async function updateReminder(
+  shopId: string,
+  id: string,
+  data: Partial<{
+    type: "monthly" | "one_time";
+    dayOfMonth?: number;
+    reminderAt?: string;
+    enabled?: boolean;
+  }>
+): Promise<ShopReminder> {
+  return api.patch<ShopReminder>(`/shops/${shopId}/reminders/${id}`, data);
+}
+
+export async function deleteReminder(
+  shopId: string,
+  id: string
+): Promise<void> {
+  await api.delete<void>(`/shops/${shopId}/reminders/${id}`);
+}

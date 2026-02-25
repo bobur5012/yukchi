@@ -26,10 +26,10 @@ export function QuickActionsSheet({ open, onOpenChange }: QuickActionsSheetProps
   const router = useRouter();
   const role = useAuthStore((s) => s.user?.role);
   const [shops, setShops] = useState<Shop[]>([]);
-  const [view, setView] = useState<"actions" | "shops">("actions");
+  const [view, setView] = useState<"actions" | "shops_for_payment" | "shops_for_debt">("actions");
 
   useEffect(() => {
-    if (open && role === "admin") {
+    if (open && (role === "admin" || role === "courier")) {
       getShops(1, 100).then((r) => setShops(r.shops));
     }
   }, [open, role]);
@@ -44,7 +44,13 @@ export function QuickActionsSheet({ open, onOpenChange }: QuickActionsSheetProps
     handleClose();
   };
 
+  const handleDebt = (shopId: string) => {
+    router.push(`/shops/${shopId}/debt/new`);
+    handleClose();
+  };
+
   const isAdmin = role === "admin";
+  const isCourier = role === "courier";
 
   const actionItems = [
     {
@@ -52,17 +58,24 @@ export function QuickActionsSheet({ open, onOpenChange }: QuickActionsSheetProps
       href: "/trips/new",
       icon: Plane,
     },
-    ...(isAdmin
+    ...(isAdmin || isCourier
       ? [
-          { label: t("quickActions.addDebt"), href: "/shops/new", icon: Wallet },
+          { label: t("quickActions.addShop"), href: "/shops/new", icon: Store },
+          {
+            label: t("quickActions.addDebt"),
+            icon: Wallet,
+            hasSubmenu: true,
+            submenuView: "shops_for_debt" as const,
+          },
           {
             label: t("quickActions.makePayment"),
             icon: CreditCard,
             hasSubmenu: true,
+            submenuView: "shops_for_payment" as const,
           },
         ]
       : []),
-    ...(role === "courier"
+    ...(isCourier
       ? [{ label: t("quickActions.addProduct"), href: "/products/new", icon: Package }]
       : []),
   ];
@@ -75,7 +88,7 @@ export function QuickActionsSheet({ open, onOpenChange }: QuickActionsSheetProps
         showCloseButton
       >
         <SheetHeader className="pb-2">
-          {view === "shops" ? (
+          {view !== "actions" ? (
             <button
               type="button"
               onClick={() => setView("actions")}
@@ -101,12 +114,12 @@ export function QuickActionsSheet({ open, onOpenChange }: QuickActionsSheetProps
               className="flex flex-col gap-1 pt-2"
             >
               {actionItems.map((item) => {
-                if ("hasSubmenu" in item && item.hasSubmenu) {
+                if ("hasSubmenu" in item && item.hasSubmenu && "submenuView" in item) {
                   return (
                     <button
                       key={item.label}
                       type="button"
-                      onClick={() => setView("shops")}
+                      onClick={() => setView(item.submenuView)}
                       className="flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-foreground hover:bg-muted/60 active:bg-muted transition-colors w-full text-left"
                     >
                       <item.icon className="h-5 w-5 text-primary shrink-0" />
@@ -144,7 +157,11 @@ export function QuickActionsSheet({ open, onOpenChange }: QuickActionsSheetProps
                   <button
                     key={shop.id}
                     type="button"
-                    onClick={() => handlePayment(shop.id)}
+                    onClick={() =>
+                      view === "shops_for_payment"
+                        ? handlePayment(shop.id)
+                        : handleDebt(shop.id)
+                    }
                     className="flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-foreground hover:bg-muted/60 active:bg-muted transition-colors w-full text-left"
                   >
                     <Store className="h-5 w-5 text-primary shrink-0" />

@@ -52,6 +52,8 @@ export interface Product {
   pricePerKg?: string;
   pricePerKgUsd?: string;
   imageUrl?: string;
+  shopId?: string | null;
+  shop?: { id: string; name: string };
   createdAt?: string;
 }
 
@@ -80,6 +82,7 @@ export interface ShopDebtEntry {
   description?: string;
   type: "debt" | "payment";
   createdAt: string;
+  createdByUser?: { name: string };
 }
 
 export interface Shop {
@@ -91,6 +94,7 @@ export interface Shop {
   debt: string;
   status: ShopStatus;
   debtEntries?: ShopDebtEntry[];
+  products?: Product[];
 }
 
 export interface Payment {
@@ -98,6 +102,7 @@ export interface Payment {
   amount: string;
   date: string;
   comment?: string;
+  createdBy?: string;
 }
 
 export interface ExchangeRate {

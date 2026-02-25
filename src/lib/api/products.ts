@@ -17,3 +17,23 @@ export async function createProduct(data: {
 }): Promise<Product> {
   return api.post<Product>("/products", data);
 }
+
+export async function updateProduct(
+  id: string,
+  data: Partial<{
+    name: string;
+    quantity: number;
+    unit: string;
+    costPrice: string;
+    salePrice: string;
+    pricePerKg: string;
+    imageUrl: string;
+    shopId: string | null;
+  }>
+): Promise<Product> {
+  return api.patch<Product>(`/products/${id}`, data);
+}
+
+export async function getProduct(id: string): Promise<Product> {
+  return api.get<Product>(`/products/${id}`);
+}

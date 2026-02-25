@@ -1,9 +1,9 @@
 import { api } from "./client";
 
 export interface TelegramSettings {
-  token: string;
-  chatId: string;
-  status: "connected" | "disconnected" | "error";
+  token?: string;
+  chatId?: string;
+  status: "configured" | "not_configured";
 }
 
 export async function getTelegramSettings(): Promise<TelegramSettings> {
@@ -11,7 +11,13 @@ export async function getTelegramSettings(): Promise<TelegramSettings> {
 }
 
 export async function updateTelegramSettings(
-  data: Partial<TelegramSettings>
+  data: { token?: string; chatId?: string }
 ): Promise<TelegramSettings> {
   return api.put<TelegramSettings>("/settings/telegram", data);
+}
+
+export async function checkTelegramConnection(
+  data?: { token?: string; chatId?: string }
+): Promise<{ success: boolean; error?: string }> {
+  return api.post<{ success: boolean; error?: string }>("/settings/telegram/check", data ?? {});
 }

@@ -1,14 +1,26 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Package } from "lucide-react";
+import { Package, Store } from "lucide-react";
 import type { Product } from "@/types";
 import type { Trip } from "@/types";
+import { getShops } from "@/lib/api/shops";
+import { updateProduct } from "@/lib/api/products";
+import type { Shop } from "@/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 interface ProductDetailSheetProps {
   open: boolean;
@@ -16,6 +28,7 @@ interface ProductDetailSheetProps {
   product: Product | null;
   trip?: Trip | null;
   courierName?: string;
+  onProductUpdated?: (product: Product) => void;
 }
 
 export function ProductDetailSheet({
@@ -24,7 +37,31 @@ export function ProductDetailSheet({
   product,
   trip,
   courierName,
+  onProductUpdated,
 }: ProductDetailSheetProps) {
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [shopId, setShopId] = useState<string | null>(product?.shopId ?? product?.shop?.id ?? null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      getShops(1, 100).then((r) => setShops(r.shops));
+      setShopId(product?.shopId ?? product?.shop?.id ?? null);
+    }
+  }, [open, product]);
+
+  const handleAttachShop = async () => {
+    if (!product) return;
+    setSaving(true);
+    try {
+      const updated = await updateProduct(product.id, { shopId: shopId || null });
+      onProductUpdated?.(updated);
+      onOpenChange(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!product) return null;
 
   return (
@@ -69,6 +106,34 @@ export function ProductDetailSheet({
               <p className="text-[15px] font-medium">{courierName}</p>
             </div>
           )}
+          <div>
+            <p className="text-[13px] text-muted-foreground mb-2">Привязать к магазину</p>
+            <div className="flex gap-2">
+              <Select
+                value={shopId ?? "none"}
+                onValueChange={(v) => setShopId(v === "none" ? null : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите магазин" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Не привязан</SelectItem>
+                  {shops.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                onClick={handleAttachShop}
+                disabled={saving || (shopId ?? "none") === (product.shopId ?? product.shop?.id ?? "none")}
+              >
+                {saving ? "Сохраняем…" : "Сохранить"}
+              </Button>
+            </div>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

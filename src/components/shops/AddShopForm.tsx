@@ -127,9 +127,10 @@ export function AddShopForm() {
 
       <FormCard>
         <FormSection title={t("shops.initialDebt")}>
-          <FormRow label={t("common.amount")}>
+          <FormRow label={t("common.amountUsd")}>
             <Input
               type="number"
+              step="0.01"
               placeholder="0"
               min="0"
               value={initialDebt}

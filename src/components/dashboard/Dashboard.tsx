@@ -178,7 +178,7 @@ function ActivityRow({
 
 export function Dashboard() {
   const { t, locale } = useTranslations();
-  const { formatAmount, formatAmountFromUzs } = useFormattedAmount();
+  const { formatAmount } = useFormattedAmount();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -214,8 +214,8 @@ export function Dashboard() {
     <div className="space-y-4">
       <HeroCard
         label={t("dashboard.totalDebt")}
-        formattedAmount={formatAmountFromUzs(totalDebt)}
-        subtitle={totalDebt > 0 ? `${t("dashboard.debt")}: ${formatAmountFromUzs(totalDebt)}` : undefined}
+        formattedAmount={formatAmount(totalDebt)}
+        subtitle={totalDebt > 0 ? `${t("dashboard.debt")}: ${formatAmount(totalDebt)}` : undefined}
         href="/shops"
         icon={Banknote}
         gradient={heroGradient}
@@ -246,7 +246,7 @@ export function Dashboard() {
 
       <div className="grid grid-cols-2 gap-3">
         <MetricCard
-          title={t("dashboard.debt")} value={formatAmountFromUzs(parseFloat(m.totalDebt || "0"))}
+          title={t("dashboard.debt")} value={formatAmount(parseFloat(m.totalDebt || "0"))}
           href="/shops" icon={AlertTriangle}
           iconBg="bg-amber-500/15" iconColor="text-amber-400" delay={0.1}
         />

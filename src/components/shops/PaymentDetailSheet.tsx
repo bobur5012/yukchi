@@ -25,7 +25,7 @@ export function PaymentDetailSheet({
   currency,
 }: PaymentDetailSheetProps) {
   const { locale } = useTranslations();
-  const { formatAmountFromUzs } = useFormattedAmount();
+  const { formatAmount } = useFormattedAmount();
   if (!payment) return null;
 
   return (
@@ -38,7 +38,7 @@ export function PaymentDetailSheet({
           <div>
             <p className="text-[13px] text-muted-foreground">Сумма</p>
             <p className="text-[20px] font-semibold tabular-nums tracking-[-0.03em]">
-              {formatAmountFromUzs(Math.abs(parseFloat(payment.amount || "0")))}
+              {formatAmount(Math.abs(parseFloat(payment.amount || "0")))}
             </p>
           </div>
           <div>
@@ -49,6 +49,12 @@ export function PaymentDetailSheet({
             <div>
               <p className="text-sm text-muted-foreground">Комментарий</p>
               <p className="font-medium">{payment.comment}</p>
+            </div>
+          )}
+          {payment.createdBy && (
+            <div>
+              <p className="text-sm text-muted-foreground">Кто внёс</p>
+              <p className="font-medium">{payment.createdBy}</p>
             </div>
           )}
         </div>

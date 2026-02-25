@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "@/lib/useTranslations";
@@ -8,7 +9,9 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { Switch } from "@/components/ui/switch";
 import { useSettingsStore } from "@/stores/settings";
 import { useAuthStore } from "@/stores/auth";
+import { getTelegramSettings, updateTelegramSettings, checkTelegramConnection } from "@/lib/api/settings";
 import { CheckCircle, XCircle, LogOut } from "lucide-react";
+import { toast } from "sonner";
 
 interface SettingsContentProps { role?: "admin" | "courier" }
 
@@ -40,8 +43,49 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
     telegramBot, telegramClient, notifications, messageTemplates,
     setTelegramBot, setTelegramClient, setNotifications, setMessageTemplate,
   } = useSettingsStore();
+  const [checking, setChecking] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (role === "admin") {
+      getTelegramSettings()
+        .then((r) => setTelegramBot({ token: r.token ?? "", chatId: r.chatId ?? "", status: r.status === "configured" ? "connected" : "disconnected" }))
+        .catch(() => {});
+    }
+  }, [role, setTelegramBot]);
 
   const handleLogout = () => { logout(); router.replace("/login"); };
+
+  const handleSaveTelegramBot = async () => {
+    setSaving(true);
+    try {
+      await updateTelegramSettings({ token: telegramBot.token || undefined, chatId: telegramBot.chatId || undefined });
+      setTelegramBot({ status: telegramBot.token && telegramBot.chatId ? "connected" : "disconnected" });
+      toast.success(t("settings.saved"));
+    } catch {
+      toast.error(t("settings.saveError"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCheckConnection = async () => {
+    setChecking(true);
+    setTelegramBot({ status: "disconnected" });
+    try {
+      const res = await checkTelegramConnection(
+        telegramBot.token && telegramBot.chatId ? { token: telegramBot.token, chatId: telegramBot.chatId } : undefined
+      );
+      setTelegramBot({ status: res.success ? "connected" : "error" });
+      if (res.success) toast.success(t("settings.connected"));
+      else toast.error(res.error ?? t("settings.error"));
+    } catch {
+      setTelegramBot({ status: "error" });
+      toast.error(t("settings.error"));
+    } finally {
+      setChecking(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -68,7 +112,14 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
             <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.chatId")}</label>
             <Input placeholder="-1001234567890" value={telegramBot.chatId} onChange={(e) => setTelegramBot({ chatId: e.target.value })} />
           </div>
-          <Button variant="outline" className="w-full h-[44px] rounded-[13px]">{t("settings.checkConnection")}</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1 h-[44px] rounded-[13px]" onClick={handleSaveTelegramBot} disabled={saving}>
+              {saving ? "..." : t("settings.save")}
+            </Button>
+            <Button variant="outline" className="flex-1 h-[44px] rounded-[13px]" onClick={handleCheckConnection} disabled={checking}>
+              {checking ? "..." : t("settings.checkConnection")}
+            </Button>
+          </div>
           <div className="flex items-center gap-2">
             {telegramBot.status === "connected"
               ? <CheckCircle className="size-4 text-emerald-500" />

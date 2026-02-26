@@ -25,7 +25,7 @@ export function EditTripForm() {
   const params = useParams();
   const id = params.id as string;
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(id));
   const [name, setName] = useState("");
   const [dateDeparture, setDateDeparture] = useState("");
   const [dateReturn, setDateReturn] = useState("");
@@ -35,10 +35,7 @@ export function EditTripForm() {
   const [status, setStatus] = useState<string>("planned");
 
   useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
+    if (!id) return;
     getTrip(id)
       .then((tr) => {
         setName(tr.name);
@@ -110,7 +107,7 @@ export function EditTripForm() {
         </FormSection>
 
         <FormSection title={t("trips.dates")}>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="px-4 py-3 grid grid-cols-2 gap-3">
             <div>
               <p className="text-xs text-muted-foreground mb-1.5">{t("trips.departureDate")}</p>
               <Input
@@ -131,39 +128,41 @@ export function EditTripForm() {
           </div>
         </FormSection>
 
-        <FormSection title="Город Турции">
-          <Select value={city} onValueChange={setCity}>
-            <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-              <SelectValue placeholder="Выберите город" />
-            </SelectTrigger>
-            <SelectContent position="popper" className="z-[100]">
-              {TURKEY_CITIES.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {showCityOther && (
-            <div className="mt-3">
-              <Input
-                placeholder="Укажите город"
-                value={cityOther}
-                onChange={(e) => setCityOther(e.target.value)}
-                className="h-[44px] rounded-xl"
-              />
-            </div>
-          )}
-        </FormSection>
+        <FormSection>
+          <FormRow label="Город Турции">
+            <Select value={city} onValueChange={setCity}>
+              <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
+                <SelectValue placeholder="Выберите город" />
+              </SelectTrigger>
+              <SelectContent position="popper" className="z-[100]">
+                {TURKEY_CITIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {showCityOther && (
+              <div className="mt-3">
+                <Input
+                  placeholder="Укажите город"
+                  value={cityOther}
+                  onChange={(e) => setCityOther(e.target.value)}
+                  className="h-[44px] rounded-xl"
+                />
+              </div>
+            )}
+          </FormRow>
 
-        <FormSection title={`${t("trips.budget")} (USD)`}>
-          <Input
-            type="number"
-            step="0.01"
-            placeholder="5 000"
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
-          />
+          <FormRow label={`${t("trips.budget")} (USD)`}>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="5 000"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+            />
+          </FormRow>
         </FormSection>
 
         <FormRow label="Статус">

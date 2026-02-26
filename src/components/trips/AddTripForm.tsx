@@ -85,48 +85,51 @@ export function AddTripForm() {
         </FormSection>
 
         <FormSection title={t("trips.dates")}>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-xs text-muted-foreground mb-1.5">{t("trips.departureDate")}</p>
-              <Input type="date" value={dateDeparture} onChange={(e) => setDateDeparture(e.target.value)} />
+          <div className="px-4 py-3 space-y-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1.5">{t("trips.departureDate")}</p>
+                <Input type="date" value={dateDeparture} onChange={(e) => setDateDeparture(e.target.value)} />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1.5">{t("trips.returnDate")}</p>
+                <Input type="date" value={dateReturn} onChange={(e) => setDateReturn(e.target.value)} min={dateDeparture} />
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1.5">{t("trips.returnDate")}</p>
-              <Input type="date" value={dateReturn} onChange={(e) => setDateReturn(e.target.value)} min={dateDeparture} />
-            </div>
+            {durationDays > 0 && (
+              <FieldHint>
+                {durationDays} {durationDays === 1 ? t("trips.day") : durationDays < 5 ? t("trips.daysFew") : t("trips.daysMany")}
+              </FieldHint>
+            )}
           </div>
-          {durationDays > 0 && (
-            <FieldHint>
-              {durationDays} {durationDays === 1 ? t("trips.day") : durationDays < 5 ? t("trips.daysFew") : t("trips.daysMany")}
-            </FieldHint>
-          )}
         </FormSection>
 
-        <FormSection title="Город Турции">
-          <Select value={city} onValueChange={setCity}>
-            <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-              <SelectValue placeholder="Выберите город" />
-            </SelectTrigger>
-            <SelectContent position="popper" className="z-[100]">
-              {TURKEY_CITIES.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {showCityOther && (
-            <div className="mt-3">
-              <Input
-                placeholder="Укажите город"
-                value={cityOther}
-                onChange={(e) => setCityOther(e.target.value)}
-                className="h-[44px] rounded-xl"
-              />
-            </div>
-          )}
-        </FormSection>
-
-        <FormSection title={`${t("trips.budget")} (USD)`}>
-          <Input type="number" step="0.01" placeholder="5 000" value={budget} onChange={(e) => setBudget(e.target.value)} />
+        <FormSection>
+          <FormRow label="Город Турции">
+            <Select value={city} onValueChange={setCity}>
+              <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
+                <SelectValue placeholder="Выберите город" />
+              </SelectTrigger>
+              <SelectContent position="popper" className="z-[100]">
+                {TURKEY_CITIES.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {showCityOther && (
+              <div className="mt-3">
+                <Input
+                  placeholder="Укажите город"
+                  value={cityOther}
+                  onChange={(e) => setCityOther(e.target.value)}
+                  className="h-[44px] rounded-xl"
+                />
+              </div>
+            )}
+          </FormRow>
+          <FormRow label={`${t("trips.budget")} (USD)`}>
+            <Input type="number" step="0.01" placeholder="5 000" value={budget} onChange={(e) => setBudget(e.target.value)} />
+          </FormRow>
         </FormSection>
       </FormCard>
 

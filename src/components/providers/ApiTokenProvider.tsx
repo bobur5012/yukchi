@@ -21,6 +21,14 @@ export function ApiTokenProvider({ children }: { children: React.ReactNode }) {
       toast.error("Сессия истекла. Войдите снова");
       router.replace("/login");
     });
+
+    // Fallback: если persist не вызвал onRehydrateStorage, разблокируем через 500ms
+    const t = setTimeout(() => {
+      if (!useAuthStore.getState()._hasHydrated) {
+        useAuthStore.getState().setHasHydrated(true);
+      }
+    }, 500);
+    return () => clearTimeout(t);
   }, [router]);
   return <>{children}</>;
 }

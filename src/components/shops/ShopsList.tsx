@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { ListSkeleton } from "@/components/ui/skeleton";
+import { DataErrorState } from "@/components/ui/data-error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { VirtualList } from "@/components/ui/virtual-list";
 import {
@@ -48,12 +49,18 @@ export function ShopsList() {
 
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const loadShops = useCallback(() => {
-    getShops(1, 100).then((r) => setShops(r.shops)).finally(() => setLoading(false));
+    setLoading(true);
+    setError(null);
+    getShops(1, 100)
+      .then((r) => setShops(r.shops))
+      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -86,6 +93,14 @@ export function ShopsList() {
 
   if (loading) {
     return <ListSkeleton count={4} />;
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
+        <DataErrorState message={error} onRetry={loadShops} />
+      </div>
+    );
   }
 
   return (

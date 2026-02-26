@@ -2,6 +2,8 @@
 
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
+import { OfflineBanner } from "@/components/layout/OfflineBanner";
+import { SyncProcessor } from "@/components/providers/SyncProcessor";
 import { RouteGuard } from "@/components/auth/RouteGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { motion } from "framer-motion";
@@ -14,8 +16,10 @@ export default function MainLayout({
   return (
     <ErrorBoundary>
       <RouteGuard>
+        <SyncProcessor />
         <div className="mobile-container bg-background">
           <Header />
+          <OfflineBanner />
           <main className="px-4 pt-5 pb-24 min-h-[calc(100dvh-8rem)]">
             <motion.div
               initial={{ opacity: 0, y: 12 }}

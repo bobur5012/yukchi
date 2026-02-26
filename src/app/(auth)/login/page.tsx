@@ -19,9 +19,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showForm, setShowForm] = useState(false);
 
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+
   useEffect(() => {
+    if (!hasHydrated) return;
     if (isAuthenticated) router.replace("/dashboard");
-  }, [isAuthenticated, router]);
+  }, [hasHydrated, isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +41,14 @@ export default function LoginPage() {
       toast.error(e?.code === "INVALID_CREDENTIALS" ? t("auth.invalidCredentials") : (e?.message || t("auth.loginError")));
     }
   };
+
+  if (!hasHydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground text-sm">Загрузка...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-[360px] px-2">

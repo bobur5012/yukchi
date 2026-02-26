@@ -21,6 +21,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DataErrorState } from "@/components/ui/data-error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 import { TopCouriers } from "./TopCouriers";
@@ -181,9 +182,19 @@ export function Dashboard() {
   const { formatAmount } = useFormattedAmount();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = () => {
+    setLoading(true);
+    setError(null);
+    getDashboard()
+      .then(setData)
+      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    getDashboard().then(setData).finally(() => setLoading(false));
+    load();
   }, []);
 
   if (loading) {
@@ -200,6 +211,10 @@ export function Dashboard() {
         <Skeleton className="h-[160px]" />
       </div>
     );
+  }
+
+  if (error) {
+    return <DataErrorState message={error} onRetry={load} />;
   }
 
   if (!data) return null;

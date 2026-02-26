@@ -1,17 +1,16 @@
+import { getApiToken } from "./api-token";
+import { handleUnauthorized } from "./on-unauthorized";
+import { getCacheKey, getCached, setCached } from "@/lib/cache/api-cache";
+
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ||
   (typeof window !== "undefined" ? "" : "http://localhost:3000") + "/api/v1";
-
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("yukchi_token");
-}
 
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = getToken();
+  const token = getApiToken();
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -28,9 +27,7 @@ export async function apiFetch<T>(
 
   if (res.status === 401) {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("yukchi_token");
-      localStorage.removeItem("yukchi_auth");
-      window.location.href = "/login";
+      handleUnauthorized();
     }
     throw new Error("Unauthorized");
   }
@@ -47,22 +44,44 @@ export async function apiFetch<T>(
     : json;
 }
 
+async function cachedGet<T>(path: string): Promise<T> {
+  const key = getCacheKey(path);
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    const cached = await getCached<T>(key);
+    if (cached !== null) return cached;
+    throw new Error("Нет соединения. Данные недоступны офлайн.");
+  }
+  const data = await apiFetch<T>(path, { method: "GET" });
+  await setCached(key, data);
+  return data;
+}
+
+async function mutateWithOfflineQueue<T>(
+  method: "POST" | "PATCH" | "DELETE",
+  path: string,
+  body?: unknown
+): Promise<T> {
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    const { useSyncQueue } = await import("@/stores/sync-queue");
+    await useSyncQueue.getState().enqueue({ method, path, body });
+    throw new Error("Действие сохранено. Будет выполнено при подключении к интернету.");
+  }
+  return apiFetch<T>(path, {
+    method,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+
 export const api = {
-  get: <T>(path: string) => apiFetch<T>(path, { method: "GET" }),
+  get: <T>(path: string) => cachedGet<T>(path),
   post: <T>(path: string, body?: unknown) =>
-    apiFetch<T>(path, {
-      method: "POST",
-      body: body ? JSON.stringify(body) : undefined,
-    }),
+    mutateWithOfflineQueue<T>("POST", path, body),
   put: <T>(path: string, body?: unknown) =>
     apiFetch<T>(path, {
       method: "PUT",
       body: body ? JSON.stringify(body) : undefined,
     }),
   patch: <T>(path: string, body?: unknown) =>
-    apiFetch<T>(path, {
-      method: "PATCH",
-      body: body ? JSON.stringify(body) : undefined,
-    }),
-  delete: <T>(path: string) => apiFetch<T>(path, { method: "DELETE" }),
+    mutateWithOfflineQueue<T>("PATCH", path, body),
+  delete: <T>(path: string) => mutateWithOfflineQueue<T>("DELETE", path),
 };

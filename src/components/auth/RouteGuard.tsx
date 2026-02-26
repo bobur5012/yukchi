@@ -14,9 +14,11 @@ function isAdminOnly(pathname: string): boolean {
 export function RouteGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, _hasHydrated } = useAuthStore();
 
   useEffect(() => {
+    if (!_hasHydrated) return;
+
     if (pathname === AUTH_PATH) {
       if (isAuthenticated) {
         router.replace("/dashboard");
@@ -32,7 +34,15 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     if (user?.role === "courier" && isAdminOnly(pathname)) {
       router.replace("/dashboard");
     }
-  }, [isAuthenticated, user?.role, pathname, router]);
+  }, [_hasHydrated, isAuthenticated, user?.role, pathname, router]);
+
+  if (!_hasHydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground">Загрузка...</p>
+      </div>
+    );
+  }
 
   if (pathname === AUTH_PATH) {
     return <>{children}</>;

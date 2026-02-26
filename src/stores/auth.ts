@@ -8,10 +8,11 @@ interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  _hasHydrated: boolean;
   login: (phone: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   setAuth: (user: AuthUser, token: string) => void;
-  initFromStorage: () => void;
+  setHasHydrated: (value: boolean) => void;
 }
 
 const AUTH_KEY = "yukchi_auth";
@@ -23,14 +24,12 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       isAuthenticated: false,
       isLoading: false,
+      _hasHydrated: false,
 
       login: async (phone, password) => {
         set({ isLoading: true });
         try {
           const res = await apiLogin(phone, password);
-          if (typeof window !== "undefined") {
-            localStorage.setItem("yukchi_token", res.accessToken);
-          }
           set({
             user: res.user,
             accessToken: res.accessToken,
@@ -62,9 +61,6 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setAuth: (user, token) => {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("yukchi_token", token);
-        }
         set({
           user,
           accessToken: token,
@@ -72,25 +68,7 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      initFromStorage: () => {
-        if (typeof window === "undefined") return;
-        const token = localStorage.getItem("yukchi_token");
-        const stored = localStorage.getItem(AUTH_KEY);
-        if (token && stored) {
-          try {
-            const { state } = JSON.parse(stored);
-            if (state?.user) {
-              set({
-                user: state.user,
-                accessToken: token,
-                isAuthenticated: true,
-              });
-            }
-          } catch {
-            // ignore
-          }
-        }
-      },
+      setHasHydrated: (value) => set({ _hasHydrated: value }),
     }),
     {
       name: AUTH_KEY,
@@ -99,6 +77,14 @@ export const useAuthStore = create<AuthState>()(
         accessToken: s.accessToken,
         isAuthenticated: s.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (typeof window !== "undefined") {
+          if (state?.accessToken) {
+            localStorage.setItem("yukchi_token", state.accessToken);
+          }
+          useAuthStore.getState().setHasHydrated(true);
+        }
+      },
     }
   )
 );

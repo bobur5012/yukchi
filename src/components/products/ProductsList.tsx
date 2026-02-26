@@ -6,6 +6,7 @@ import { getTrips } from "@/lib/api/trips";
 import type { Product, Trip } from "@/types";
 import { Package } from "lucide-react";
 import { ListSkeleton } from "@/components/ui/skeleton";
+import { DataErrorState } from "@/components/ui/data-error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProductDetailSheet } from "@/components/trips/ProductDetailSheet";
 import { VirtualList } from "@/components/ui/virtual-list";
@@ -15,17 +16,23 @@ export function ProductsList() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [productDetail, setProductDetail] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadProducts = () => {
-    getTrips(1, 50).then(async (r) => {
-      setTrips(r.trips);
-      const allProducts: Product[] = [];
-      for (const t of r.trips) {
-        const prods = await getProducts(t.id);
-        allProducts.push(...prods);
-      }
-      setProducts(allProducts);
-    }).finally(() => setLoading(false));
+    setLoading(true);
+    setError(null);
+    getTrips(1, 50)
+      .then(async (r) => {
+        setTrips(r.trips);
+        const allProducts: Product[] = [];
+        for (const t of r.trips) {
+          const prods = await getProducts(t.id);
+          allProducts.push(...prods);
+        }
+        setProducts(allProducts);
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -34,6 +41,14 @@ export function ProductsList() {
 
   if (loading) {
     return <ListSkeleton count={4} />;
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
+        <DataErrorState message={error} onRetry={loadProducts} />
+      </div>
+    );
   }
 
   if (products.length === 0) {

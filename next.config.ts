@@ -19,4 +19,19 @@ const nextConfig: NextConfig = {
 export default withPWA({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
+  extendDefaultRuntimeCaching: true,
+  workboxOptions: {
+    runtimeCaching: [
+      {
+        urlPattern: /^https?:\/\/[^/]+\/api\/.*/i,
+        handler: "NetworkFirst",
+        options: {
+          cacheName: "yukchi-api-cache",
+          expiration: { maxEntries: 100, maxAgeSeconds: 10 * 60 },
+          networkTimeoutSeconds: 10,
+          cacheableResponse: { statuses: [0, 200] },
+        },
+      },
+    ],
+  },
 })(nextConfig);

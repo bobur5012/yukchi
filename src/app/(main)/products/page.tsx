@@ -1,8 +1,13 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { ProductsList } from "@/components/products/ProductsList";
-import { ProductsReport } from "@/components/products/ProductsReport";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const ProductsReport = dynamic(
+  () => import("@/components/products/ProductsReport").then((m) => ({ default: m.ProductsReport })),
+  { loading: () => <div className="h-32 rounded-2xl bg-muted/60 animate-pulse" /> }
+);
 
 export default function ProductsPage() {
   return (

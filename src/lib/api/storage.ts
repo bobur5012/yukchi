@@ -1,14 +1,12 @@
+import { getApiToken } from "./api-token";
+import { handleUnauthorized } from "./on-unauthorized";
+
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ||
   (typeof window !== "undefined" ? "" : "http://localhost:3000") + "/api/v1";
 
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("yukchi_token");
-}
-
 export async function uploadAvatar(file: File): Promise<string> {
-  const token = getToken();
+  const token = getApiToken();
   const formData = new FormData();
   formData.append("file", file);
 
@@ -26,9 +24,7 @@ export async function uploadAvatar(file: File): Promise<string> {
 
   if (res.status === 401) {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("yukchi_token");
-      localStorage.removeItem("yukchi_auth");
-      window.location.href = "/login";
+      handleUnauthorized();
     }
     throw new Error("Unauthorized");
   }

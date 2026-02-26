@@ -11,6 +11,7 @@ import { formatDateSafe } from "@/lib/date-utils";
 import { useTranslations } from "@/lib/useTranslations";
 import { ChevronRight, Plane, Pencil, Trash2 } from "lucide-react";
 import { ListSkeleton } from "@/components/ui/skeleton";
+import { DataErrorState } from "@/components/ui/data-error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { VirtualList } from "@/components/ui/virtual-list";
 import {
@@ -35,12 +36,16 @@ export function TripsList() {
   const isAdmin = role === "admin";
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const loadTrips = () => {
+    setLoading(true);
+    setError(null);
     getTrips(1, 50)
       .then((r) => setTrips(r.trips))
+      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
       .finally(() => setLoading(false));
   };
 
@@ -65,6 +70,14 @@ export function TripsList() {
 
   if (loading) {
     return <ListSkeleton count={4} />;
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
+        <DataErrorState message={error} onRetry={loadTrips} />
+      </div>
+    );
   }
 
   return (

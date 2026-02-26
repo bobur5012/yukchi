@@ -1,9 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { ShopsList } from "@/components/shops/ShopsList";
-import { ShopsReport } from "@/components/shops/ShopsReport";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const ShopsReport = dynamic(
+  () => import("@/components/shops/ShopsReport").then((m) => ({ default: m.ShopsReport })),
+  { loading: () => <div className="h-32 rounded-2xl bg-muted/60 animate-pulse" /> }
+);
 
 export default function ShopsPage() {
   return (

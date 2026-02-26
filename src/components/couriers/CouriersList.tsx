@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Pencil, Users, Crown, Star, Plus, Minus, Trash2 } from "lucide-react";
 import { ListSkeleton } from "@/components/ui/skeleton";
+import { DataErrorState } from "@/components/ui/data-error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { VirtualList } from "@/components/ui/virtual-list";
 import { cn } from "@/lib/utils";
@@ -60,11 +61,14 @@ export function CouriersList() {
 
   const [couriers, setCouriers] = useState<CourierWithPoints[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [awardingId, setAwardingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const loadCouriers = useCallback(() => {
+    setLoading(true);
+    setError(null);
     const pts = loadPoints();
     getCouriers()
       .then((list) => {
@@ -75,6 +79,7 @@ export function CouriersList() {
         withPts.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
         setCouriers(withPts);
       })
+      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -109,6 +114,14 @@ export function CouriersList() {
 
   if (loading) {
     return <ListSkeleton count={4} />;
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
+        <DataErrorState message={error} onRetry={loadCouriers} />
+      </div>
+    );
   }
 
   if (couriers.length === 0) {

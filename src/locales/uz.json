@@ -106,6 +106,28 @@
     "russian": "Ruscha",
     "uzbek": "O'zbekcha"
   },
+  "push": {
+    "title": "Push-bildirishnomalar",
+    "enable": "Yoqish",
+    "disable": "O'chirish",
+    "permissionDenied": "Bildirishnomalar brauzerda o'chirilgan",
+    "error": "Obuna xatosi",
+    "retry": "Qayta urinish",
+    "enabled": "Bildirishnomalar yoqildi",
+    "disabled": "Bildirishnomalar o'chirildi"
+  },
+  "notify": {
+    "newTrip": "Yangi sayohat",
+    "tripUpdated": "Sayohat yangilandi",
+    "newExpense": "Xarajat qo'shildi",
+    "newProduct": "Yangi mahsulot",
+    "newShop": "Yangi do'kon",
+    "newDebt": "Yangi qarz",
+    "paymentReceived": "To'lov qabul qilindi",
+    "newCourier": "Kuryer qo'shildi",
+    "courierAssigned": "Kuryer sayohatga tayinlandi",
+    "tripReminder": "Sayohat eslatmasi"
+  },
   "settings": {
     "notifications": "Bildirishnomalar",
     "newDebt": "Yangi qarz",

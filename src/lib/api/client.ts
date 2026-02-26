@@ -83,5 +83,6 @@ export const api = {
     }),
   patch: <T>(path: string, body?: unknown) =>
     mutateWithOfflineQueue<T>("PATCH", path, body),
-  delete: <T>(path: string) => mutateWithOfflineQueue<T>("DELETE", path),
+  delete: <T>(path: string, body?: unknown) =>
+    mutateWithOfflineQueue<T>("DELETE", path, body),
 };

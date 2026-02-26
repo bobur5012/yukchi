@@ -9,8 +9,15 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { Switch } from "@/components/ui/switch";
 import { useSettingsStore } from "@/stores/settings";
 import { useAuthStore } from "@/stores/auth";
-import { getTelegramSettings, updateTelegramSettings, checkTelegramConnection } from "@/lib/api/settings";
-import { CheckCircle, XCircle, LogOut } from "lucide-react";
+import {
+  getTelegramSettings,
+  updateTelegramSettings,
+  checkTelegramConnection,
+  getNotificationSettings,
+  updateNotificationSettings,
+} from "@/lib/api/settings";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { CheckCircle, XCircle, LogOut, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 
 interface SettingsContentProps { role?: "admin" | "courier" }
@@ -35,24 +42,70 @@ function SettingRow({ label, children }: { label: string; children: React.ReactN
   );
 }
 
+const NOTIFICATION_KEYS = [
+  "newTrip",
+  "tripUpdated",
+  "newExpense",
+  "newProduct",
+  "newShop",
+  "newDebt",
+  "paymentReceived",
+  "newCourier",
+  "courierAssigned",
+  "tripReminder",
+] as const;
+
 export function SettingsContent({ role = "admin" }: SettingsContentProps) {
   const { t } = useTranslations();
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
   const {
-    telegramBot, telegramClient, notifications, messageTemplates,
-    setTelegramBot, setTelegramClient, setNotifications, setMessageTemplate,
+    telegramBot,
+    telegramClient,
+    notifications,
+    messageTemplates,
+    setTelegramBot,
+    setTelegramClient,
+    setNotifications,
+    setMessageTemplate,
   } = useSettingsStore();
   const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingNotifications, setSavingNotifications] = useState(false);
+  const push = usePushNotifications();
 
   useEffect(() => {
     if (role === "admin") {
       getTelegramSettings()
-        .then((r) => setTelegramBot({ token: r.token ?? "", chatId: r.chatId ?? "", status: r.status === "configured" ? "connected" : "disconnected" }))
+        .then((r) =>
+          setTelegramBot({
+            token: r.token ?? "",
+            chatId: r.chatId ?? "",
+            status: r.status === "configured" ? "connected" : "disconnected",
+          })
+        )
         .catch(() => {});
     }
   }, [role, setTelegramBot]);
+
+  useEffect(() => {
+    getNotificationSettings()
+      .then((r) =>
+        setNotifications({
+          newTrip: r.newTrip,
+          tripUpdated: r.tripUpdated,
+          newExpense: r.newExpense,
+          newProduct: r.newProduct,
+          newShop: r.newShop,
+          newDebt: r.newDebt,
+          paymentReceived: r.paymentReceived,
+          newCourier: r.newCourier,
+          courierAssigned: r.courierAssigned,
+          tripReminder: r.tripReminder,
+        })
+      )
+      .catch(() => {});
+  }, [setNotifications]);
 
   const handleLogout = () => { logout(); router.replace("/login"); };
 
@@ -66,6 +119,34 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
       toast.error(t("settings.saveError"));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleEnablePush = async () => {
+    const ok = await push.subscribe();
+    if (ok) toast.success(t("push.enabled"));
+    else if (push.permission === "denied") toast.error(t("push.permissionDenied"));
+    else toast.error(t("push.error"));
+  };
+
+  const handleDisablePush = async () => {
+    const ok = await push.unsubscribe();
+    if (ok) toast.success(t("push.disabled"));
+    else toast.error(t("push.error"));
+  };
+
+  const handleNotificationToggle = async (
+    key: (typeof NOTIFICATION_KEYS)[number],
+    value: boolean
+  ) => {
+    setNotifications({ [key]: value });
+    setSavingNotifications(true);
+    try {
+      await updateNotificationSettings({ [key]: value });
+    } catch {
+      toast.error(t("settings.saveError"));
+    } finally {
+      setSavingNotifications(false);
     }
   };
 
@@ -89,17 +170,52 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
 
   return (
     <div className="space-y-4">
-      {/* Notifications */}
+      {/* Push & Notifications */}
       <SectionCard title={t("settings.notifications")}>
-        <SettingRow label={t("settings.newDebt")}>
-          <Switch checked={notifications.newDebt} onCheckedChange={(v) => setNotifications({ newDebt: v })} />
-        </SettingRow>
-        <SettingRow label={t("settings.paymentReceived")}>
-          <Switch checked={notifications.paymentReceived} onCheckedChange={(v) => setNotifications({ paymentReceived: v })} />
-        </SettingRow>
-        <SettingRow label={t("settings.tripReminder")}>
-          <Switch checked={notifications.tripReminder} onCheckedChange={(v) => setNotifications({ tripReminder: v })} />
-        </SettingRow>
+        {push.isSupported && (
+          <>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[16px]">{t("push.title")}</span>
+              <div className="flex gap-2">
+                {push.isSubscribed ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 rounded-xl"
+                    onClick={handleDisablePush}
+                    disabled={push.loading}
+                  >
+                    <BellOff className="size-4 mr-1" />
+                    {t("push.disable")}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 rounded-xl"
+                    onClick={handleEnablePush}
+                    disabled={push.loading}
+                  >
+                    <Bell className="size-4 mr-1" />
+                    {t("push.enable")}
+                  </Button>
+                )}
+              </div>
+            </div>
+            {push.permission === "denied" && (
+              <p className="text-[13px] text-muted-foreground">{t("push.permissionDenied")}</p>
+            )}
+          </>
+        )}
+        {NOTIFICATION_KEYS.map((key) => (
+          <SettingRow key={key} label={t(`notify.${key}`)}>
+            <Switch
+              checked={notifications[key]}
+              onCheckedChange={(v) => handleNotificationToggle(key, v)}
+              disabled={savingNotifications}
+            />
+          </SettingRow>
+        ))}
       </SectionCard>
 
       {role === "admin" && (

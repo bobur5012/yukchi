@@ -106,6 +106,28 @@
     "russian": "Русский",
     "uzbek": "O'zbekcha"
   },
+  "push": {
+    "title": "Push-уведомления",
+    "enable": "Включить",
+    "disable": "Отключить",
+    "permissionDenied": "Уведомления отключены в браузере",
+    "error": "Ошибка подписки",
+    "retry": "Повторить",
+    "enabled": "Уведомления включены",
+    "disabled": "Уведомления отключены"
+  },
+  "notify": {
+    "newTrip": "Новая поездка",
+    "tripUpdated": "Поездка обновлена",
+    "newExpense": "Добавлен расход",
+    "newProduct": "Новый товар",
+    "newShop": "Новый магазин",
+    "newDebt": "Новый долг",
+    "paymentReceived": "Получена оплата",
+    "newCourier": "Добавлен курьер",
+    "courierAssigned": "Курьер назначен на поездку",
+    "tripReminder": "Напоминание о поездке"
+  },
   "settings": {
     "notifications": "Уведомления",
     "newDebt": "Новый долг",

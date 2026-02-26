@@ -15,8 +15,15 @@ interface TelegramClientConfig {
 }
 
 interface NotificationSettings {
+  newTrip: boolean;
+  tripUpdated: boolean;
+  newExpense: boolean;
+  newProduct: boolean;
+  newShop: boolean;
   newDebt: boolean;
   paymentReceived: boolean;
+  newCourier: boolean;
+  courierAssigned: boolean;
   tripReminder: boolean;
 }
 
@@ -45,8 +52,15 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     status: "unauthorized",
   },
   notifications: {
+    newTrip: true,
+    tripUpdated: true,
+    newExpense: true,
+    newProduct: true,
+    newShop: true,
     newDebt: true,
     paymentReceived: true,
+    newCourier: true,
+    courierAssigned: true,
     tripReminder: true,
   },
   messageTemplates: {

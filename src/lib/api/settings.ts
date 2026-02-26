@@ -1,5 +1,28 @@
 import { api } from "./client";
 
+export interface NotificationSettingsResponse {
+  newTrip: boolean;
+  tripUpdated: boolean;
+  newExpense: boolean;
+  newProduct: boolean;
+  newShop: boolean;
+  newDebt: boolean;
+  paymentReceived: boolean;
+  newCourier: boolean;
+  courierAssigned: boolean;
+  tripReminder: boolean;
+}
+
+export async function getNotificationSettings(): Promise<NotificationSettingsResponse> {
+  return api.get<NotificationSettingsResponse>("/settings/notifications");
+}
+
+export async function updateNotificationSettings(
+  data: Partial<NotificationSettingsResponse>
+): Promise<NotificationSettingsResponse> {
+  return api.put<NotificationSettingsResponse>("/settings/notifications", data);
+}
+
 export interface TelegramSettings {
   token?: string;
   chatId?: string;

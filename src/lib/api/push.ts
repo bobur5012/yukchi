@@ -24,3 +24,7 @@ export async function subscribePush(subscription: PushSubscriptionPayload): Prom
 export async function unsubscribePush(endpoint: string): Promise<void> {
   await api.delete("/push/subscribe", { endpoint });
 }
+
+export async function sendTestPush(): Promise<void> {
+  await api.post("/push/test");
+}

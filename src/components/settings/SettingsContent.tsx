@@ -17,6 +17,7 @@ import {
   updateNotificationSettings,
 } from "@/lib/api/settings";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { sendTestPush } from "@/lib/api/push";
 import { CheckCircle, XCircle, LogOut, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 
@@ -72,6 +73,7 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
   const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingNotifications, setSavingNotifications] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
   const push = usePushNotifications();
 
   useEffect(() => {
@@ -135,6 +137,18 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
     else toast.error(t("push.error"));
   };
 
+  const handleSendTestPush = async () => {
+    setSendingTest(true);
+    try {
+      await sendTestPush();
+      toast.success(t("push.testSent"));
+    } catch {
+      toast.error(t("push.error"));
+    } finally {
+      setSendingTest(false);
+    }
+  };
+
   const handleNotificationToggle = async (
     key: (typeof NOTIFICATION_KEYS)[number],
     value: boolean
@@ -178,16 +192,27 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
               <span className="text-[16px]">{t("push.title")}</span>
               <div className="flex gap-2">
                 {push.isSubscribed ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 rounded-xl"
-                    onClick={handleDisablePush}
-                    disabled={push.loading}
-                  >
-                    <BellOff className="size-4 mr-1" />
-                    {t("push.disable")}
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 rounded-xl"
+                      onClick={handleSendTestPush}
+                      disabled={sendingTest}
+                    >
+                      {sendingTest ? "..." : t("push.sendTest")}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 rounded-xl"
+                      onClick={handleDisablePush}
+                      disabled={push.loading}
+                    >
+                      <BellOff className="size-4 mr-1" />
+                      {t("push.disable")}
+                    </Button>
+                  </>
                 ) : (
                   <Button
                     variant="outline"

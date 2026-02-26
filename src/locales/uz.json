@@ -110,6 +110,8 @@
     "title": "Push-bildirishnomalar",
     "enable": "Yoqish",
     "disable": "O'chirish",
+    "sendTest": "Test",
+    "testSent": "Test bildirishnomasi yuborildi",
     "permissionDenied": "Bildirishnomalar brauzerda o'chirilgan",
     "error": "Obuna xatosi",
     "retry": "Qayta urinish",

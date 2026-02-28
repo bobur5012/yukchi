@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { getDashboard } from "@/lib/api/dashboard";
@@ -9,14 +9,13 @@ import { formatDateSafe } from "@/lib/date-utils";
 import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { useTranslations } from "@/lib/useTranslations";
 import {
-  AlertTriangle,
   Banknote,
   ChevronRight,
-  Package,
   PiggyBank,
   Plane,
   Plus,
   Receipt,
+  Store,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -184,18 +183,18 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     setError(null);
     getDashboard()
       .then(setData)
       .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
       .finally(() => setLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   if (loading) {
     return (
@@ -261,14 +260,14 @@ export function Dashboard() {
 
       <div className="grid grid-cols-2 gap-3">
         <MetricCard
-          title={t("dashboard.debt")} value={formatAmount(parseFloat(m.totalDebt || "0"))}
-          href="/shops" icon={AlertTriangle}
-          iconBg="bg-amber-500/15" iconColor="text-amber-400" delay={0.1}
-        />
-        <MetricCard
           title={t("dashboard.activeTrips")} value={m.tripsCount.toString()}
           href="/trips" icon={Plane}
-          iconBg="bg-emerald-500/15" iconColor="text-emerald-400" delay={0.13}
+          iconBg="bg-emerald-500/15" iconColor="text-emerald-400" delay={0.1}
+        />
+        <MetricCard
+          title="Магазины" value={m.shopsCount.toString()}
+          href="/shops" icon={Store}
+          iconBg="bg-sky-500/15" iconColor="text-sky-400" delay={0.13}
         />
         <MetricCard
           title={t("dashboard.remainingBudget")} value={formatAmount(parseFloat(m.remainingUsd || "0"))}

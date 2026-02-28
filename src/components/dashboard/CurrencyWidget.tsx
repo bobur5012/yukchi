@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { RefreshCw, TrendingUp } from "lucide-react";
 import { fetchCBURates, type CurrencyRates } from "@/lib/api/cbu-rates";
@@ -50,18 +50,18 @@ export function CurrencyWidget() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     setError(null);
     fetchCBURates()
       .then(setRates)
       .catch(() => setError("Ошибка загрузки"))
       .finally(() => setLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   const formattedDate = rates?.date
     ? (() => {

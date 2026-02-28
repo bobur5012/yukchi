@@ -11,7 +11,7 @@ const ProductsReport = dynamic(
 
 export default function ProductsPage() {
   return (
-    <div className="space-y-4 pb-20">
+    <div className="space-y-4">
       <Tabs defaultValue="list" className="w-full">
         <TabsList className="w-full grid grid-cols-2 rounded-2xl">
           <TabsTrigger value="list">Список</TabsTrigger>

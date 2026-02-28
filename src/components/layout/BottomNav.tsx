@@ -106,8 +106,9 @@ function NavItem({
   return (
     <Link
       href={href}
+      style={{ WebkitTapHighlightColor: "transparent" }}
       className="relative flex flex-col items-center justify-center flex-1 pt-2 pb-1 gap-[3px]
-        min-w-0 transition-colors duration-150 -webkit-tap-highlight-color-transparent"
+        min-w-0 transition-colors duration-150"
     >
       <Icon
         className={cn(
@@ -227,8 +228,8 @@ export function BottomNav() {
             <SheetTrigger asChild>
               <button
                 type="button"
-                className="relative flex flex-col items-center justify-center flex-1 pt-2 pb-1 gap-[3px]
-                  min-w-0 -webkit-tap-highlight-color-transparent"
+                style={{ WebkitTapHighlightColor: "transparent" }}
+                className="relative flex flex-col items-center justify-center flex-1 pt-2 pb-1 gap-[3px] min-w-0"
               >
                 {isMoreActive && (
                   <motion.div

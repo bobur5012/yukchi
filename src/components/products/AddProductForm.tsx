@@ -38,6 +38,7 @@ export function AddProductForm() {
   const [tripId, setTripId] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,6 +73,7 @@ export function AddProductForm() {
       toast.error("Заполните название, количество, цену себестоимости и поездку");
       return;
     }
+    setIsSubmitting(true);
     try {
       await createProduct({
         name: name.trim(),
@@ -87,6 +89,8 @@ export function AddProductForm() {
       router.push("/products");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Ошибка");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -210,8 +214,8 @@ export function AddProductForm() {
         </FormCard>
       )}
 
-      <Button type="submit" className="w-full" disabled={!name.trim() || cp <= 0 || q <= 0 || !tripId}>
-        Добавить товар
+      <Button type="submit" className="w-full" disabled={isSubmitting || !name.trim() || cp <= 0 || q <= 0 || !tripId}>
+        {isSubmitting ? "Сохранение…" : "Добавить товар"}
       </Button>
     </form>
   );

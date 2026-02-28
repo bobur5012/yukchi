@@ -188,7 +188,7 @@
   min-height: 100vh;
   padding-left: env(safe-area-inset-left, 0);
   padding-right: env(safe-area-inset-right, 0);
-  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0));
+  /* Bottom clearance is handled by <main> pb-safe-nav — no double padding */
 }
 
 .dark .mobile-container {

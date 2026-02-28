@@ -34,6 +34,7 @@ export function AddTripForm() {
   const [cityOther, setCityOther] = useState("");
   const [courierIds, setCourierIds] = useState<string[]>([]);
   const [couriers, setCouriers] = useState<Courier[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => { getCouriers().then(setCouriers); }, []);
 
@@ -47,6 +48,7 @@ export function AddTripForm() {
     if (dateReturn < dateDeparture) {
       toast.error(t("trips.returnBeforeDeparture")); return;
     }
+    setIsSubmitting(true);
     try {
       await createTrip({
         name,
@@ -62,6 +64,8 @@ export function AddTripForm() {
       router.push("/trips");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -136,7 +140,9 @@ export function AddTripForm() {
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full">{t("trips.create")}</Button>
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? "Сохранение…" : t("trips.create")}
+      </Button>
     </form>
   );
 }

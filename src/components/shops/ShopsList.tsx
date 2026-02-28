@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { getShops, deleteShop } from "@/lib/api/shops";
 import type { Shop } from "@/types";
@@ -67,14 +67,17 @@ export function ShopsList() {
     loadShops();
   }, [loadShops]);
 
-  const filteredShops = shops.filter(
-    (s) =>
-      !search.trim() ||
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.ownerName?.toLowerCase().includes(search.toLowerCase()) ||
-      s.phone?.includes(search) ||
-      s.address?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredShops = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return shops;
+    return shops.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.ownerName?.toLowerCase().includes(q) ||
+        s.phone?.includes(search.trim()) ||
+        s.address?.toLowerCase().includes(q)
+    );
+  }, [shops, search]);
 
   const handleDelete = async () => {
     if (!deleteId) return;

@@ -28,6 +28,7 @@ export function EditShopForm() {
   const id = params.id as string;
 
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [address, setAddress] = useState("");
@@ -77,6 +78,7 @@ export function EditShopForm() {
     }
     if (!id) return;
 
+    setIsSubmitting(true);
     try {
       await updateShop(id, {
         name: name.trim(),
@@ -90,12 +92,14 @@ export function EditShopForm() {
       router.push("/shops");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="pb-20 space-y-4">
+      <div className="space-y-4">
         <div className="h-[100px] rounded-2xl bg-muted/50 animate-pulse" />
         <div className="h-[200px] rounded-2xl bg-muted/50 animate-pulse" />
       </div>
@@ -171,8 +175,8 @@ export function EditShopForm() {
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full" disabled={!name.trim() || !ownerName.trim()}>
-        Сохранить
+      <Button type="submit" className="w-full" disabled={isSubmitting || !name.trim() || !ownerName.trim()}>
+        {isSubmitting ? "Сохранение…" : "Сохранить"}
       </Button>
     </form>
   );

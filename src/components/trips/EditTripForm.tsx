@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ export function EditTripForm() {
   const id = params.id as string;
 
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState("");
   const [dateDeparture, setDateDeparture] = useState("");
   const [dateReturn, setDateReturn] = useState("");
@@ -69,6 +70,7 @@ export function EditTripForm() {
     }
     if (!id) return;
 
+    setIsSubmitting(true);
     try {
       await updateTrip(id, {
         name: name.trim(),
@@ -82,12 +84,14 @@ export function EditTripForm() {
       router.push("/trips");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="pb-20 space-y-4">
+      <div className="space-y-4">
         <div className="h-[100px] rounded-2xl bg-muted/50 animate-pulse" />
         <div className="h-[200px] rounded-2xl bg-muted/50 animate-pulse" />
       </div>
@@ -181,8 +185,8 @@ export function EditTripForm() {
         </FormRow>
       </FormCard>
 
-      <Button type="submit" className="w-full">
-        Сохранить
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? "Сохранение…" : "Сохранить"}
       </Button>
     </form>
   );

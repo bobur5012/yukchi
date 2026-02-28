@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { getTrip } from "@/lib/api/trips";
 import { getProducts } from "@/lib/api/products";
@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus, Receipt, Package } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
+import { DataErrorState } from "@/components/ui/data-error-state";
 import { ExpenseDetailSheet } from "./ExpenseDetailSheet";
 import { ProductDetailSheet } from "./ProductDetailSheet";
 import { VirtualList } from "@/components/ui/virtual-list";
@@ -34,26 +35,38 @@ export function TripDetail({ tripId }: TripDetailProps) {
   const [courierNames, setCourierNames] = useState<Record<string, string>>({});
   const [expenseDetail, setExpenseDetail] = useState<Expense | null>(null);
   const [productDetail, setProductDetail] = useState<Product | null>(null);
-  const showAddedBy = role === "admin";
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    getTrip(tripId).then(setTrip);
+  const load = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    Promise.all([
+      getTrip(tripId),
+      getProducts(tripId),
+      getCouriers(),
+    ])
+      .then(([tripData, productsData, couriersData]) => {
+        setTrip(tripData ?? null);
+        setProducts(productsData);
+        const map: Record<string, string> = {};
+        couriersData.forEach((c) => { map[String(c.id)] = c.name; });
+        setCourierNames(map);
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .finally(() => setLoading(false));
   }, [tripId]);
 
   useEffect(() => {
-    if (tripId) getProducts(tripId).then(setProducts);
-  }, [tripId]);
+    load();
+  }, [load]);
 
-  useEffect(() => {
-    getCouriers().then((list) => {
-      const map: Record<string, string> = {};
-      list.forEach((c) => { map[String(c.id)] = c.name; });
-      setCourierNames(map);
-    });
-  }, []);
-
-  if (trip === null) {
+  if (loading) {
     return <ListSkeleton count={3} />;
+  }
+
+  if (error) {
+    return <DataErrorState message={error} onRetry={load} />;
   }
 
   if (!trip) {
@@ -70,7 +83,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
   const remaining = budget - spent;
 
   return (
-    <div className="space-y-4 pb-20">
+    <div className="space-y-4">
       <Tabs defaultValue="info" className="w-full">
         <TabsList className="w-full grid grid-cols-3 rounded-2xl">
           <TabsTrigger value="info">{t("tripsDetail.info")}</TabsTrigger>

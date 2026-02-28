@@ -22,6 +22,7 @@ export function AddCourierForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [avatar, setAvatar]     = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +32,7 @@ export function AddCourierForm() {
     if (!password.trim() || password.length < 6) {
       toast.error("Пароль должен содержать минимум 6 символов"); return;
     }
+    setIsSubmitting(true);
     try {
       const digits = getPhoneDigits(phone);
       const phoneE164 = digits.length >= 12 ? `+${digits}` : phone;
@@ -44,6 +46,8 @@ export function AddCourierForm() {
       router.push("/couriers");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -94,7 +98,9 @@ export function AddCourierForm() {
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full">{t("couriers.create")}</Button>
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? "Сохранение…" : t("couriers.create")}
+      </Button>
     </form>
   );
 }

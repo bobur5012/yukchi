@@ -33,6 +33,7 @@ export function AddShopForm() {
   const [phone, setPhone] = useState("");
   const [initialDebt, setInitialDebt] = useState("");
   const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +63,7 @@ export function AddShopForm() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const shop = await createShop({
         name: name.trim(),
@@ -79,6 +81,8 @@ export function AddShopForm() {
       router.push("/shops");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -147,6 +151,7 @@ export function AddShopForm() {
         type="submit"
         className="w-full"
         disabled={
+          isSubmitting ||
           !name.trim() ||
           !ownerName.trim() ||
           !region ||
@@ -155,7 +160,7 @@ export function AddShopForm() {
           parseFloat(initialDebt) < 0
         }
       >
-        {t("shops.add")}
+        {isSubmitting ? "Сохранение…" : t("shops.add")}
       </Button>
     </form>
   );

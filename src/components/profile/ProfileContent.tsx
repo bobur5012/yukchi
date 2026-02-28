@@ -49,7 +49,7 @@ export function ProfileContent() {
   };
 
   return (
-    <div className="space-y-4 pb-20">
+    <div className="space-y-4">
       {/* Profile hero */}
       <div className="bg-card rounded-2xl border border-border/30 p-6 flex flex-col items-center gap-3">
         <Avatar className="size-[76px]">

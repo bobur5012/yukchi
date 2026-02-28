@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { getShop } from "@/lib/api/shops";
 import type { Shop } from "@/types";
@@ -25,6 +25,7 @@ import { PaymentDetailSheet } from "./PaymentDetailSheet";
 import { ShopReminders } from "./ShopReminders";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
+import { DataErrorState } from "@/components/ui/data-error-state";
 import { VirtualList } from "@/components/ui/virtual-list";
 import type { ShopDebtEntry } from "@/types";
 import { cn } from "@/lib/utils";
@@ -38,14 +39,29 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
   const { formatAmount } = useFormattedAmount();
   const role = useAuthStore((s) => s.user?.role);
   const [shop, setShop] = useState<Shop | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [entryDetail, setEntryDetail] = useState<ShopDebtEntry | null>(null);
 
-  useEffect(() => {
-    getShop(shopId).then(setShop);
+  const load = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    getShop(shopId)
+      .then((data) => setShop(data ?? null))
+      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .finally(() => setLoading(false));
   }, [shopId]);
 
-  if (shop === null) {
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (loading) {
     return <ListSkeleton count={3} />;
+  }
+
+  if (error) {
+    return <DataErrorState message={error} onRetry={load} />;
   }
 
   if (!shop) {
@@ -65,7 +81,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
   );
 
   return (
-    <div className="space-y-4 pb-20">
+    <div className="space-y-4">
       <Tabs defaultValue="debt" className="w-full">
         <TabsList className={cn(
           "w-full grid rounded-2xl",

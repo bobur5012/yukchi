@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { getTrips, deleteTrip } from "@/lib/api/trips";
 import { useAuthStore } from "@/stores/auth";
@@ -40,18 +40,18 @@ export function TripsList() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const loadTrips = () => {
+  const loadTrips = useCallback(() => {
     setLoading(true);
     setError(null);
     getTrips(1, 50)
       .then((r) => setTrips(r.trips))
       .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
       .finally(() => setLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
     loadTrips();
-  }, []);
+  }, [loadTrips]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -139,7 +139,7 @@ export function TripsList() {
                     <span>{trip.budget} {trip.currency}</span>
                   </div>
                   <div className="flex justify-between text-sm mt-1">
-                    <span className="text-muted-foreground">Остаток:</span>
+                    <span className="text-muted-foreground">{t("tripsDetail.remaining")}:</span>
                     <span
                       className={
                         remaining < 0 ? "text-destructive font-medium" : ""

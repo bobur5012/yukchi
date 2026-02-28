@@ -20,7 +20,10 @@ export default function MainLayout({
         <div className="mobile-container bg-background">
           <Header />
           <OfflineBanner />
-          <main className="px-4 pt-5 pb-24 min-h-[calc(100dvh-8rem)]">
+          <main
+            className="px-4 pt-5 min-h-[calc(100dvh-8rem)]"
+            style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))" }}
+          >
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}

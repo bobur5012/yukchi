@@ -33,6 +33,7 @@ export function EditCourierForm() {
   const params = useParams();
   const id = params.id as string;
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName]       = useState("");
   const [phone, setPhone]     = useState("");
   const [avatar, setAvatar]   = useState("");
@@ -54,6 +55,7 @@ export function EditCourierForm() {
     e.preventDefault();
     if (!name.trim() || !phone.trim()) { toast.error(t("common.fillRequiredFields")); return; }
     if (!id) return;
+    setIsSubmitting(true);
     try {
       const digits = getPhoneDigits(phone);
       const phoneE164 = digits.length >= 12 ? `+${digits}` : phone;
@@ -64,12 +66,14 @@ export function EditCourierForm() {
       router.push("/couriers");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="pb-20 space-y-4">
+      <div className="space-y-4">
         <div className="h-[100px] rounded-2xl bg-muted/50 animate-pulse" />
         <div className="h-[200px] rounded-2xl bg-muted/50 animate-pulse" />
       </div>
@@ -116,7 +120,9 @@ export function EditCourierForm() {
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full">{t("common.save")}</Button>
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? "Сохранение…" : t("common.save")}
+      </Button>
     </form>
   );
 }

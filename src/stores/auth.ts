@@ -72,14 +72,19 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: AUTH_KEY,
+      version: 1,
       partialize: (s) => ({
         user: s.user,
         accessToken: s.accessToken,
         isAuthenticated: s.isAuthenticated,
       }),
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => (state, error) => {
         if (typeof window !== "undefined") {
-          if (state?.accessToken) {
+          if (error) {
+            console.warn("[auth] rehydration error, clearing storage", error);
+            localStorage.removeItem(AUTH_KEY);
+            localStorage.removeItem("yukchi_token");
+          } else if (state?.accessToken) {
             localStorage.setItem("yukchi_token", state.accessToken);
           }
           useAuthStore.getState().setHasHydrated(true);

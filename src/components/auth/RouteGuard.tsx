@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/auth";
 
-const ADMIN_ONLY_PATHS = ["/shops", "/couriers"];
+const ADMIN_ONLY_PATHS = ["/couriers"];
 const AUTH_PATH = "/login";
 
 function isAdminOnly(pathname: string): boolean {

@@ -13,7 +13,7 @@ import { ListSkeleton } from "@/components/ui/skeleton";
 import { DataErrorState } from "@/components/ui/data-error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { VirtualList } from "@/components/ui/virtual-list";
-import { cn } from "@/lib/utils";
+import { cn, getAvatarUrl } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -166,9 +166,7 @@ export function CouriersList() {
               </div>
 
               <Avatar className={cn("size-10 shrink-0 border-2", index < 3 ? rankStyle.border : "border-transparent")}>
-                {courier.avatarUrl ? (
-                  <AvatarImage src={courier.avatarUrl} alt={courier.name} />
-                ) : null}
+                <AvatarImage src={getAvatarUrl(courier.avatarUrl)} alt={courier.name} />
                 <AvatarFallback className={cn("text-sm font-semibold", index < 3 ? rankStyle.bg : "")}>
                   {getInitials(courier.name)}
                 </AvatarFallback>

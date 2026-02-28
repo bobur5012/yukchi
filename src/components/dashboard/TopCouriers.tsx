@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Crown, Star, Users, ChevronRight, Plus, Minus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getAvatarUrl } from "@/lib/utils";
 import type { Courier } from "@/types";
 
 const POINTS_KEY = "yukchi_courier_points";
@@ -144,9 +144,7 @@ export function TopCouriers() {
               </div>
 
               <Avatar className={cn("size-10 shrink-0 border-2", index < 3 ? rankStyle.border : "border-transparent")}>
-                {courier.avatarUrl ? (
-                  <AvatarImage src={courier.avatarUrl} alt={courier.name} />
-                ) : null}
+                <AvatarImage src={getAvatarUrl(courier.avatarUrl)} alt={courier.name} />
                 <AvatarFallback className={cn("text-sm font-semibold", index < 3 ? rankStyle.bg : "")}>
                   {getInitials(courier.name)}
                 </AvatarFallback>

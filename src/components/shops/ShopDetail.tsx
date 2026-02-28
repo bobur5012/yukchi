@@ -20,6 +20,7 @@ import {
   ArrowUpCircle,
   Bell,
   Package,
+  CreditCard,
 } from "lucide-react";
 import { PaymentDetailSheet } from "./PaymentDetailSheet";
 import { ShopReminders } from "./ShopReminders";
@@ -87,11 +88,23 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
           "w-full grid rounded-2xl",
           role === "admin" ? "grid-cols-4" : "grid-cols-3"
         )}>
-          <TabsTrigger value="debt">Долг</TabsTrigger>
-          <TabsTrigger value="products">Товары</TabsTrigger>
-          <TabsTrigger value="contacts">Контакты</TabsTrigger>
+          <TabsTrigger value="debt" className="flex items-center gap-1.5 min-w-0">
+            <CreditCard className="size-4 shrink-0" />
+            <span className="hidden sm:inline truncate">Долг</span>
+          </TabsTrigger>
+          <TabsTrigger value="products" className="flex items-center gap-1.5 min-w-0">
+            <Package className="size-4 shrink-0" />
+            <span className="hidden sm:inline truncate">Товары</span>
+          </TabsTrigger>
+          <TabsTrigger value="contacts" className="flex items-center gap-1.5 min-w-0">
+            <Phone className="size-4 shrink-0" />
+            <span className="hidden sm:inline truncate">Контакты</span>
+          </TabsTrigger>
           {role === "admin" && (
-            <TabsTrigger value="reminders">Напоминания</TabsTrigger>
+            <TabsTrigger value="reminders" className="flex items-center gap-1.5 min-w-0">
+              <Bell className="size-4 shrink-0" />
+              <span className="hidden sm:inline truncate">Напомин.</span>
+            </TabsTrigger>
           )}
         </TabsList>
 
@@ -150,14 +163,13 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                     items={allEntries}
                     estimateSize={72}
                     gap={8}
-                    height="min(380px, 50vh)"
                     renderItem={(entry) => {
-                      const isDebt = entry.type === "debt";
+                      const isPayment = entry.type === "payment";
                       return (
                         <div
                           className={cn(
                             "flex items-center gap-3 py-3 px-4 rounded-xl cursor-pointer transition-colors active:scale-[0.99]",
-                            isDebt
+                            isPayment
                               ? "bg-emerald-500/8 hover:bg-emerald-500/12 border border-emerald-500/20"
                               : "bg-red-500/8 hover:bg-red-500/12 border border-red-500/20"
                           )}
@@ -165,9 +177,9 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                         >
                           <div className={cn(
                             "size-9 rounded-xl flex items-center justify-center shrink-0",
-                            isDebt ? "bg-emerald-500/15" : "bg-red-500/15"
+                            isPayment ? "bg-emerald-500/15" : "bg-red-500/15"
                           )}>
-                            {isDebt
+                            {isPayment
                               ? <ArrowDownCircle className="size-5 text-emerald-500" />
                               : <ArrowUpCircle className="size-5 text-red-500" />
                             }
@@ -175,14 +187,14 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                           <div className="flex-1 min-w-0">
                             <p className={cn(
                               "font-semibold text-[15px] tabular-nums",
-                              isDebt ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                              isPayment ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
                             )}>
-                              {isDebt ? "+" : "−"}{formatAmount(Math.abs(parseFloat(entry.amount)))}
+                              {isPayment ? "+" : "−"}{formatAmount(Math.abs(parseFloat(entry.amount)))}
                             </p>
                             <p className="text-xs text-muted-foreground truncate">
                               {formatDateSafe(entry.createdAt, "d MMM yyyy, HH:mm", locale)}
                               {entry.description && ` · ${entry.description}`}
-                              {role === "admin" && entry.createdByUser?.name && ` · ${entry.createdByUser.name}`}
+                              {entry.createdByUser?.name && ` · ${entry.createdByUser.name}`}
                             </p>
                           </div>
                         </div>

@@ -20,6 +20,7 @@ export interface Courier {
   phone: string;
   avatarUrl?: string;
   status: CourierStatus;
+  points?: number;
 }
 
 export interface TripCourier {
@@ -36,7 +37,9 @@ export interface Expense {
   amount: string;
   amountUsd: string;
   currency: string;
+  type?: "expense" | "income";
   createdAt: string;
+  createdByUser?: { name: string };
 }
 
 export interface Product {

@@ -36,3 +36,10 @@ export async function updateCourier(
 export async function deleteCourier(id: string): Promise<void> {
   await api.delete<void>(`/couriers/${id}`);
 }
+
+export async function updateCourierPoints(
+  id: string,
+  delta: number
+): Promise<Courier> {
+  return api.patch<Courier>(`/couriers/${id}/points`, { delta });
+}

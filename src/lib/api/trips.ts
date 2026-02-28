@@ -55,12 +55,13 @@ export async function deleteTrip(id: string): Promise<void> {
 
 export async function addExpense(
   tripId: string,
-  data: { description: string; amount: string; currency: string }
+  data: { description: string; amount: string; currency: string; type?: "expense" | "income" }
 ): Promise<Expense> {
   return api.post<Expense>("/expenses", {
     tripId,
     description: data.description,
     amount: data.amount,
     currency: data.currency,
+    type: data.type ?? "expense",
   });
 }

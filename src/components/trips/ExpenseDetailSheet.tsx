@@ -49,6 +49,12 @@ export function ExpenseDetailSheet({
             <p className="text-[13px] text-muted-foreground">Дата</p>
             <p className="text-[15px] font-medium">{expense.createdAt ? formatDateSafe(expense.createdAt, "d MMMM yyyy", locale) : "—"}</p>
           </div>
+          {expense.createdByUser && (
+            <div>
+              <p className="text-[13px] text-muted-foreground">Кто внёс</p>
+              <p className="text-[15px] font-medium">{expense.createdByUser.name}</p>
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

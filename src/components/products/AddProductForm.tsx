@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import imageCompression from "browser-image-compression";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImagePlus, Camera, X } from "lucide-react";
@@ -14,8 +15,10 @@ import {
 } from "@/components/ui/select";
 import { createProduct } from "@/lib/api/products";
 import { getTrips } from "@/lib/api/trips";
+import { uploadProductImage } from "@/lib/api/storage";
+import { getShops } from "@/lib/api/shops";
 import { PRODUCT_UNITS } from "@/lib/constants";
-import type { Trip } from "@/types";
+import type { Trip, Shop } from "@/types";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
 
@@ -32,12 +35,15 @@ export function AddProductForm() {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [unit, setUnit] = useState<string>(PRODUCT_UNITS[0]);
-  const [costPrice, setCostPrice] = useState("");
   const [salePrice, setSalePrice] = useState("");
   const [pricePerKg, setPricePerKg] = useState("");
   const [tripId, setTripId] = useState("");
-  const [image, setImage] = useState<string | null>(null);
+  const [shopId, setShopId] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [shopSearch, setShopSearch] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -45,45 +51,60 @@ export function AddProductForm() {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = () => setImage(reader.result as string);
-    reader.readAsDataURL(file);
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
     e.target.value = "";
+  };
+
+  const clearImage = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   useEffect(() => {
     getTrips(1, 50).then((r) => setTrips(r.trips));
+    getShops(1, 100).then((r) => setShops(r.shops));
   }, []);
 
   const q = parseInt(quantity, 10) || 1;
-  const cp = parseFloat(costPrice) || 0;
   const sp = parseFloat(salePrice) || 0;
   const ppk = parseFloat(pricePerKg) || 0;
 
-  const totalCostPrice = (q * cp).toFixed(2);
   const totalSalePrice = sp > 0 ? (q * sp).toFixed(2) : null;
   const totalPricePerKg = ppk > 0 && (unit === "кг" || unit === "л") ? (q * ppk).toFixed(2) : null;
-  const margin = sp > 0 && cp > 0 ? (sp - cp).toFixed(2) : null;
 
   const activeTrips = trips.filter((t) => t.status === "active" || t.status === "planned");
+  const filteredShops = shops.filter((s) =>
+    s.name.toLowerCase().includes(shopSearch.toLowerCase())
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || cp <= 0 || q <= 0 || !tripId) {
-      toast.error("Заполните название, количество, цену себестоимости и поездку");
+    if (!name.trim() || q <= 0 || !tripId) {
+      toast.error("Заполните название, количество и поездку");
       return;
     }
     setIsSubmitting(true);
     try {
+      let imageUrl: string | undefined;
+      if (imageFile) {
+        const compressed = await imageCompression(imageFile, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        });
+        imageUrl = await uploadProductImage(compressed);
+      }
       await createProduct({
         name: name.trim(),
         quantity: q,
         unit: unit,
-        costPrice: cp.toFixed(2),
         salePrice: sp > 0 ? sp.toFixed(2) : undefined,
         pricePerKg: ppk > 0 ? ppk.toFixed(2) : undefined,
         tripId,
-        imageUrl: image || undefined,
+        shopId: shopId || undefined,
+        imageUrl,
       });
       toast.success("Товар добавлен");
       router.push("/products");
@@ -100,12 +121,12 @@ export function AddProductForm() {
       <FormCard>
         <FormSection title="Фото">
           <div className="px-4 pb-4">
-            {image ? (
+            {imagePreview ? (
               <div className="relative rounded-xl overflow-hidden">
-                <img src={image} alt="Превью" className="w-full h-40 object-cover" />
+                <img src={imagePreview} alt="Превью" className="w-full h-40 object-cover" />
                 <button
                   type="button"
-                  onClick={() => setImage(null)}
+                  onClick={clearImage}
                   className="absolute top-2 right-2 size-7 rounded-full bg-black/50 flex items-center justify-center"
                 >
                   <X className="size-3.5 text-white" />
@@ -152,9 +173,6 @@ export function AddProductForm() {
               </Select>
             </div>
           </div>
-          <FormRow label="Цена себестоимости ($)">
-            <Input type="number" step="0.01" placeholder="45" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} />
-          </FormRow>
           <FormRow label="Цена продажи ($)">
             <Input type="number" step="0.01" placeholder="60" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
           </FormRow>
@@ -164,7 +182,7 @@ export function AddProductForm() {
         </FormSection>
       </FormCard>
 
-      {/* Trip */}
+      {/* Trip & Shop */}
       <FormCard>
         <FormSection>
           <FormRow label="Поездка">
@@ -179,18 +197,35 @@ export function AddProductForm() {
               </SelectContent>
             </Select>
           </FormRow>
+          <FormRow label="Магазин (необязательно)">
+            <div className="space-y-2">
+              <Input
+                placeholder="Поиск магазина..."
+                value={shopSearch}
+                onChange={(e) => setShopSearch(e.target.value)}
+                className="rounded-xl"
+              />
+              <Select value={shopId} onValueChange={setShopId}>
+                <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
+                  <SelectValue placeholder="Выберите магазин" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Не привязан</SelectItem>
+                  {filteredShops.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </FormRow>
         </FormSection>
       </FormCard>
 
       {/* Calculations */}
-      {(cp > 0 || sp > 0 || ppk > 0) && q > 0 && (
+      {(sp > 0 || ppk > 0) && q > 0 && (
         <FormCard>
           <FormSection title="Расчёты">
             <div className="space-y-2 text-[15px]">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Общая стоимость товара</span>
-                <span className="font-semibold tabular-nums">{totalCostPrice} $</span>
-              </div>
               {totalSalePrice && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Общая цена продажи</span>
@@ -203,18 +238,12 @@ export function AddProductForm() {
                   <span className="font-semibold tabular-nums">{totalPricePerKg} $</span>
                 </div>
               )}
-              {margin && (
-                <div className="flex justify-between pt-2 border-t border-border/30">
-                  <span className="text-muted-foreground">Маржа (за ед.)</span>
-                  <span className="font-semibold tabular-nums text-primary">{margin} $</span>
-                </div>
-              )}
             </div>
           </FormSection>
         </FormCard>
       )}
 
-      <Button type="submit" className="w-full" disabled={isSubmitting || !name.trim() || cp <= 0 || q <= 0 || !tripId}>
+      <Button type="submit" className="w-full" disabled={isSubmitting || !name.trim() || q <= 0 || !tripId}>
         {isSubmitting ? "Сохранение…" : "Добавить товар"}
       </Button>
     </form>

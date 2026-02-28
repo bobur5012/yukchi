@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +22,13 @@ const CUSTOM = "__custom__";
 export default function AddExpensePage() {
   const router   = useRouter();
   const params   = useParams();
+  const searchParams = useSearchParams();
   const tripId   = params.id as string;
 
+  const [type, setType] = useState<"expense" | "income">("expense");
+  useEffect(() => {
+    if (searchParams.get("type") === "income") setType("income");
+  }, [searchParams]);
   const [category, setCategory]                 = useState("");
   const [customCategory, setCustomCategory]     = useState("");
   const [amount, setAmount]                     = useState("");
@@ -44,8 +49,9 @@ export default function AddExpensePage() {
         description: resolvedCategory,
         amount: amount,
         currency: "USD",
+        type,
       });
-      toast.success("Расход добавлен");
+      toast.success(type === "income" ? "Приход добавлен" : "Расход добавлен");
       router.back();
     } catch {
       toast.error("Не удалось добавить расход");
@@ -58,6 +64,17 @@ export default function AddExpensePage() {
     <form onSubmit={handleSubmit} className="space-y-4 pb-8">
       <FormCard>
         <FormSection>
+          <FormRow label="Тип">
+            <Select value={type} onValueChange={(v) => setType(v as "expense" | "income")}>
+              <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="expense">Расход</SelectItem>
+                <SelectItem value="income">Приход</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormRow>
           <FormRow label="Категория">
             <Select value={category} onValueChange={(v) => { setCategory(v); if (v !== CUSTOM) setCustomCategory(""); }}>
               <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
@@ -84,7 +101,7 @@ export default function AddExpensePage() {
       </FormCard>
 
       <Button type="submit" className="w-full" disabled={!isValid || loading}>
-        {loading ? "Сохранение…" : "Добавить"}
+        {loading ? "Сохранение…" : type === "income" ? "Добавить приход" : "Добавить расход"}
       </Button>
       <Button type="button" variant="ghost" asChild className="w-full h-[44px] rounded-[14px]">
         <Link href={`/trips/${tripId}`}>Отмена</Link>

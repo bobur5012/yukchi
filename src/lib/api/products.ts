@@ -10,10 +10,11 @@ export async function createProduct(data: {
   name: string;
   quantity: number;
   unit?: string;
-  costPrice: string;
+  costPrice?: string;
   salePrice?: string;
   pricePerKg?: string;
   imageUrl?: string;
+  shopId?: string;
 }): Promise<Product> {
   return api.post<Product>("/products", data);
 }

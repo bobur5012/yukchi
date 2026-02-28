@@ -14,7 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Receipt, Package } from "lucide-react";
+import { Plus, Receipt, Package, Store, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { getAvatarUrl } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { DataErrorState } from "@/components/ui/data-error-state";
@@ -78,9 +80,12 @@ export function TripDetail({ tripId }: TripDetailProps) {
   }
 
   const expenses = trip.expenses ?? [];
-  const spent = expenses.reduce((s, e) => s + parseFloat(e.amountUsd || e.amount || "0"), 0);
+  const expenseItems = expenses.filter((e) => (e as Expense & { type?: string }).type !== "income");
+  const incomeItems = expenses.filter((e) => (e as Expense & { type?: string }).type === "income");
+  const spent = expenseItems.reduce((s, e) => s + parseFloat(e.amountUsd || e.amount || "0"), 0);
+  const income = incomeItems.reduce((s, e) => s + parseFloat(e.amountUsd || e.amount || "0"), 0);
   const budget = parseFloat(trip.budgetUsd || trip.budget || "0");
-  const remaining = budget - spent;
+  const remaining = budget - spent + income;
 
   return (
     <div className="space-y-4">
@@ -145,14 +150,20 @@ export function TripDetail({ tripId }: TripDetailProps) {
 
         <TabsContent value="expenses" className="mt-4">
           <div className="space-y-4">
-            {expenses.length > 0 && (
-              <Button asChild className="w-full">
+            <div className="flex gap-2">
+              <Button asChild className="flex-1">
                 <Link href={`/trips/${tripId}/expenses/new`} className="inline-flex items-center justify-center gap-2">
-                  <Plus className="h-4 w-4" />
+                  <ArrowDownCircle className="h-4 w-4" />
                   {t("tripsDetail.addExpense")}
                 </Link>
               </Button>
-            )}
+              <Button asChild variant="outline" className="flex-1 border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10">
+                <Link href={`/trips/${tripId}/expenses/new?type=income`} className="inline-flex items-center justify-center gap-2">
+                  <ArrowUpCircle className="h-4 w-4" />
+                  Добавить приход
+                </Link>
+              </Button>
+            </div>
             <div className="space-y-2">
               {expenses.length === 0 ? (
                 <Card className="rounded-2xl card-premium">
@@ -178,29 +189,37 @@ export function TripDetail({ tripId }: TripDetailProps) {
                   estimateSize={88}
                   gap={8}
                   height="min(400px, 50vh)"
-                  renderItem={(exp) => (
-                    <Card
-                      className="rounded-2xl card-premium cursor-pointer active:scale-[0.99]"
-                      onClick={() => setExpenseDetail(exp)}
-                    >
-                      <CardContent className="p-4 flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="h-12 w-12 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Receipt className="h-6 w-6 text-primary" />
+                  renderItem={(exp) => {
+                    const isIncome = (exp as Expense & { type?: string }).type === "income";
+                    return (
+                      <Card
+                        className={`rounded-2xl card-premium cursor-pointer active:scale-[0.99] ${isIncome ? "border-emerald-500/30" : ""}`}
+                        onClick={() => setExpenseDetail(exp)}
+                      >
+                        <CardContent className="p-4 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className={`h-12 w-12 shrink-0 rounded-full flex items-center justify-center ${isIncome ? "bg-emerald-500/10" : "bg-primary/10"}`}>
+                              {isIncome ? (
+                                <ArrowUpCircle className="h-6 w-6 text-emerald-500" />
+                              ) : (
+                                <Receipt className="h-6 w-6 text-primary" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-base">{exp.description}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatDateSafe(exp.createdAt ?? "", "d MMM yyyy", locale)}
+                                {exp.createdByUser && ` · ${exp.createdByUser.name}`}
+                              </p>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-base">{exp.description}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {formatDateSafe(exp.createdAt ?? "", "d MMM yyyy", locale)}
-                            </p>
-                          </div>
-                        </div>
-                        <p className="font-semibold text-lg shrink-0">
-                          {formatAmount(parseFloat(exp.amountUsd || exp.amount || "0"))}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
+                          <p className={`font-semibold text-lg shrink-0 ${isIncome ? "text-emerald-600" : ""}`}>
+                            {isIncome ? "+" : ""}{formatAmount(parseFloat(exp.amountUsd || exp.amount || "0"))}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    );
+                  }}
                 />
               )}
             </div>
@@ -222,19 +241,48 @@ export function TripDetail({ tripId }: TripDetailProps) {
             ) : (
               <VirtualList
                 items={products}
-                estimateSize={88}
+                estimateSize={120}
                 gap={8}
                 height="min(400px, 50vh)"
                 renderItem={(prod) => (
                   <Card
-                    className="rounded-2xl card-premium cursor-pointer active:scale-[0.99]"
+                    className="rounded-2xl card-premium cursor-pointer active:scale-[0.99] overflow-hidden"
                     onClick={() => setProductDetail(prod)}
                   >
-                    <CardContent className="p-4">
-                      <p className="font-medium">{prod.name}</p>
-                      <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                        <span>Кол-во: {prod.quantity}</span>
-                        <span>Себестоимость: {prod.costPrice} $</span>
+                    <CardContent className="p-0">
+                      <div className="flex gap-4 p-4">
+                        <div className="w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-muted">
+                          {prod.imageUrl ? (
+                            <img
+                              src={getAvatarUrl(prod.imageUrl)}
+                              alt={prod.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="h-8 w-8 text-muted-foreground/40" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-[15px] truncate">{prod.name}</p>
+                          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                            <span className="text-sm text-muted-foreground">
+                              {prod.quantity} {prod.unit ?? "шт"}
+                            </span>
+                            {prod.shop && (
+                              <Badge variant="secondary" className="text-xs font-normal gap-1">
+                                <Store className="h-3 w-3" />
+                                {prod.shop.name}
+                              </Badge>
+                            )}
+                          </div>
+                          {prod.salePrice && (
+                            <p className="text-sm font-semibold text-emerald-600 mt-1">
+                              {formatAmount(parseFloat(prod.salePrice))}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

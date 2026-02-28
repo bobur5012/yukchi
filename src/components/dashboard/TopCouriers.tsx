@@ -3,29 +3,15 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { getCouriers } from "@/lib/api/couriers";
+import { getCouriers, updateCourierPoints } from "@/lib/api/couriers";
 import { useAuthStore } from "@/stores/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Crown, Star, Users, ChevronRight, Plus, Minus } from "lucide-react";
 import { cn, getAvatarUrl } from "@/lib/utils";
+import { toast } from "sonner";
 import type { Courier } from "@/types";
-
-const POINTS_KEY = "yukchi_courier_points";
-
-function loadPoints(): Record<string, number> {
-  if (typeof window === "undefined") return {};
-  try {
-    return JSON.parse(localStorage.getItem(POINTS_KEY) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function savePoints(points: Record<string, number>) {
-  localStorage.setItem(POINTS_KEY, JSON.stringify(points));
-}
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -39,44 +25,37 @@ const RANK_STYLES = [
   { border: "border-orange-400/60", bg: "bg-orange-700/10", text: "text-orange-500", label: "🥉" },
 ];
 
-interface CourierWithPoints extends Courier {
-  points: number;
-}
-
 export function TopCouriers() {
   const role = useAuthStore((s) => s.user?.role);
   const isAdmin = role === "admin";
 
-  const [couriers, setCouriers] = useState<CourierWithPoints[]>([]);
+  const [couriers, setCouriers] = useState<Courier[]>([]);
   const [loading, setLoading] = useState(true);
   const [awardingId, setAwardingId] = useState<string | null>(null);
 
   const loadCouriers = useCallback(() => {
-    const pts = loadPoints();
     getCouriers()
       .then((list) => {
         const active = list.filter((c) => c.status === "active");
-        const withPts: CourierWithPoints[] = active.map((c) => ({
-          ...c,
-          points: pts[c.id] ?? 0,
-        }));
-        withPts.sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
-        setCouriers(withPts.slice(0, 5));
+        active.sort((a, b) => (b.points ?? 0) - (a.points ?? 0) || a.name.localeCompare(b.name));
+        setCouriers(active.slice(0, 5));
       })
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => { loadCouriers(); }, [loadCouriers]);
 
-  const adjustPoints = (courierId: string, delta: number) => {
-    const pts = loadPoints();
-    pts[courierId] = Math.max(0, (pts[courierId] ?? 0) + delta);
-    savePoints(pts);
-    setCouriers((prev) =>
-      prev
-        .map((c) => (c.id === courierId ? { ...c, points: pts[courierId] } : c))
-        .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name))
-    );
+  const adjustPoints = async (courierId: string, delta: number) => {
+    try {
+      const updated = await updateCourierPoints(courierId, delta);
+      setCouriers((prev) =>
+        prev
+          .map((c) => (c.id === courierId ? { ...c, points: updated.points ?? c.points ?? 0 } : c))
+          .sort((a, b) => (b.points ?? 0) - (a.points ?? 0) || a.name.localeCompare(b.name))
+      );
+    } catch {
+      toast.error("Не удалось обновить баллы");
+    }
   };
 
   if (loading) {
@@ -155,7 +134,7 @@ export function TopCouriers() {
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <Star className="size-3 text-amber-400 fill-amber-400" />
                   <span className="text-[13px] text-muted-foreground">
-                    {courier.points} {courier.points === 1 ? "балл" : courier.points < 5 ? "балла" : "баллов"}
+                    {(courier.points ?? 0)} {(courier.points ?? 0) === 1 ? "балл" : (courier.points ?? 0) < 5 ? "балла" : "баллов"}
                   </span>
                 </div>
               </div>
@@ -179,7 +158,7 @@ export function TopCouriers() {
                         <Minus className="size-4" />
                       </Button>
                       <Badge variant="secondary" className="px-2 min-w-[32px] justify-center tabular-nums">
-                        {courier.points}
+                        {courier.points ?? 0}
                       </Badge>
                       <Button
                         size="icon"
@@ -211,13 +190,13 @@ export function TopCouriers() {
                 </AnimatePresence>
               )}
 
-              {!isAdmin && courier.points > 0 && (
+              {!isAdmin && (courier.points ?? 0) > 0 && (
                 <div className={cn(
                   "size-8 rounded-lg flex items-center justify-center text-[13px] font-bold shrink-0",
                   index < 3 ? rankStyle.bg : "bg-muted/50"
                 )}>
                   <span className={index < 3 ? rankStyle.text : "text-muted-foreground"}>
-                    {courier.points}
+                    {courier.points ?? 0}
                   </span>
                 </div>
               )}

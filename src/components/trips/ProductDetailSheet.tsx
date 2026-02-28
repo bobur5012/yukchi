@@ -8,6 +8,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Package, Store } from "lucide-react";
+import { getAvatarUrl } from "@/lib/utils";
 import type { Product } from "@/types";
 import type { Trip } from "@/types";
 import { getShops } from "@/lib/api/shops";
@@ -71,10 +72,16 @@ export function ProductDetailSheet({
           <SheetTitle>{product.name}</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 px-4 pb-6">
+          {product.shop && (
+            <div className="flex items-center gap-2">
+              <Store className="h-4 w-4 text-muted-foreground" />
+              <span className="text-[15px] font-medium">Магазин: {product.shop.name}</span>
+            </div>
+          )}
           {product.imageUrl ? (
             <div className="rounded-xl overflow-hidden border border-border/50">
               <img
-                src={product.imageUrl}
+                src={getAvatarUrl(product.imageUrl) ?? product.imageUrl}
                 alt={product.name}
                 className="w-full h-48 object-cover"
               />
@@ -88,12 +95,14 @@ export function ProductDetailSheet({
             <p className="text-[13px] text-muted-foreground">Количество</p>
             <p className="text-[15px] font-medium">{product.quantity}</p>
           </div>
-          <div>
-            <p className="text-[13px] text-muted-foreground">Себестоимость</p>
-            <p className="text-[20px] font-semibold tabular-nums tracking-[-0.03em]">
-              {product.costPrice} $
-            </p>
-          </div>
+          {(product.salePrice || product.pricePerKg) && (
+            <div>
+              <p className="text-[13px] text-muted-foreground">Цена</p>
+              <p className="text-[20px] font-semibold tabular-nums tracking-[-0.03em] text-emerald-600">
+                {product.salePrice ? `${product.salePrice} $` : product.pricePerKg ? `${product.pricePerKg} $ / ${product.unit ?? "шт"}` : "—"}
+              </p>
+            </div>
+          )}
           {trip && (
             <div>
               <p className="text-[13px] text-muted-foreground">Поездка</p>

@@ -24,7 +24,7 @@ export function ExpenseDetailSheet({
   expense,
   tripCurrency,
 }: ExpenseDetailSheetProps) {
-  const { locale } = useTranslations();
+  const { t, locale } = useTranslations();
   const { formatAmount } = useFormattedAmount();
   if (!expense) return null;
 
@@ -49,7 +49,7 @@ export function ExpenseDetailSheet({
           </div>
           {spenderName && (
             <div>
-              <p className="text-[13px] text-muted-foreground">Кто потратил</p>
+              <p className="text-[13px] text-muted-foreground">{t("tripsDetail.spentBy")}</p>
               <p className="text-[15px] font-medium">{spenderName}</p>
             </div>
           )}

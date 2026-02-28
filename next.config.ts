@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.68.107", "localhost"],
   // Fix Netlify: avoid wrong root from parent lockfiles; ensure correct module resolution
   outputFileTracingRoot: path.join(__dirname),
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "t3.storageapi.dev" },
+      { protocol: "https", hostname: "**.storageapi.dev" },
+      { protocol: "https", hostname: "**.supabase.co" },
+      { protocol: "https", hostname: "**.tigris.dev" },
+    ],
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias ?? {}),

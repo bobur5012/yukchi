@@ -30,6 +30,9 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const res = await apiLogin(phone, password);
+          if (typeof document !== "undefined") {
+            document.cookie = `yukchi_token=${res.accessToken}; path=/; SameSite=Lax; max-age=86400`;
+          }
           set({
             user: res.user,
             accessToken: res.accessToken,
@@ -52,6 +55,7 @@ export const useAuthStore = create<AuthState>()(
         }
         if (typeof window !== "undefined") {
           localStorage.removeItem("yukchi_token");
+          document.cookie = "yukchi_token=; path=/; max-age=0";
         }
         set({
           user: null,
@@ -61,6 +65,9 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setAuth: (user, token) => {
+        if (typeof document !== "undefined") {
+          document.cookie = `yukchi_token=${token}; path=/; SameSite=Lax; max-age=86400`;
+        }
         set({
           user,
           accessToken: token,
@@ -84,8 +91,10 @@ export const useAuthStore = create<AuthState>()(
             console.warn("[auth] rehydration error, clearing storage", error);
             localStorage.removeItem(AUTH_KEY);
             localStorage.removeItem("yukchi_token");
+            document.cookie = "yukchi_token=; path=/; max-age=0";
           } else if (state?.accessToken) {
             localStorage.setItem("yukchi_token", state.accessToken);
+            document.cookie = `yukchi_token=${state.accessToken}; path=/; SameSite=Lax; max-age=86400`;
           }
           useAuthStore.getState().setHasHydrated(true);
         }

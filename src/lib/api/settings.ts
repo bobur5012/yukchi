@@ -44,3 +44,15 @@ export async function checkTelegramConnection(
 ): Promise<{ success: boolean; error?: string }> {
   return api.post<{ success: boolean; error?: string }>("/settings/telegram/check", data ?? {});
 }
+
+export type MessageTemplatesResponse = Record<string, string>;
+
+export async function getMessageTemplates(): Promise<MessageTemplatesResponse> {
+  return api.get<MessageTemplatesResponse>("/settings/templates");
+}
+
+export async function updateMessageTemplates(
+  templates: Record<string, string>
+): Promise<MessageTemplatesResponse> {
+  return api.put<MessageTemplatesResponse>("/settings/templates", templates);
+}

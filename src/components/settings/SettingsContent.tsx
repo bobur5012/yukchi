@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "@/lib/useTranslations";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Switch } from "@/components/ui/switch";
-import { useSettingsStore } from "@/stores/settings";
+import { useSettingsStore, DEFAULT_TEMPLATES, type MessageTemplates } from "@/stores/settings";
 import { useAuthStore } from "@/stores/auth";
 import {
   getTelegramSettings,
@@ -15,10 +16,12 @@ import {
   checkTelegramConnection,
   getNotificationSettings,
   updateNotificationSettings,
+  getMessageTemplates,
+  updateMessageTemplates,
 } from "@/lib/api/settings";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { sendTestPush } from "@/lib/api/push";
-import { CheckCircle, XCircle, LogOut, Bell, BellOff } from "lucide-react";
+import { CheckCircle, XCircle, LogOut, Bell, BellOff, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 interface SettingsContentProps { role?: "admin" | "courier" }
@@ -56,6 +59,63 @@ const NOTIFICATION_KEYS = [
   "tripReminder",
 ] as const;
 
+const TEMPLATE_META: Array<{
+  key: keyof MessageTemplates;
+  label: string;
+  vars: string;
+}> = [
+  {
+    key: "newDebt",
+    label: "🔴 Новый долг",
+    vars: "{shop}, {amount}, {currency}, {courier}, {description}, {totalDebt}, {date}",
+  },
+  {
+    key: "paymentReceived",
+    label: "✅ Оплата получена",
+    vars: "{shop}, {amount}, {currency}, {courier}, {remainingDebt}, {date}",
+  },
+  {
+    key: "newTrip",
+    label: "✈️ Новая поездка",
+    vars: "{name}, {region}, {budget}, {currency}, {couriers}, {departureDate}",
+  },
+  {
+    key: "tripUpdated",
+    label: "✏️ Поездка обновлена",
+    vars: "{name}, {status}, {courier}",
+  },
+  {
+    key: "newExpense",
+    label: "💸 Новый расход",
+    vars: "{trip}, {description}, {amount}, {currency}, {courier}",
+  },
+  {
+    key: "newProduct",
+    label: "📦 Новый товар",
+    vars: "{trip}, {name}, {quantity}, {unit}, {costPrice}, {currency}",
+  },
+  {
+    key: "newShop",
+    label: "🏪 Новый магазин",
+    vars: "{name}, {owner}, {phone}, {address}",
+  },
+  {
+    key: "newCourier",
+    label: "🚀 Новый курьер",
+    vars: "{name}, {phone}",
+  },
+  {
+    key: "courierAssigned",
+    label: "🔗 Курьер назначен",
+    vars: "{trip}, {courier}",
+  },
+  {
+    key: "tripReminder",
+    label: "⏰ Напоминание о поездке",
+    vars: "{trip}, {departureDate}, {days}",
+  },
+];
+
 export function SettingsContent({ role = "admin" }: SettingsContentProps) {
   const { t } = useTranslations();
   const router = useRouter();
@@ -69,9 +129,11 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
     setTelegramClient,
     setNotifications,
     setMessageTemplate,
+    setMessageTemplates,
   } = useSettingsStore();
   const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingTemplates, setSavingTemplates] = useState(false);
   const [savingNotifications, setSavingNotifications] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
   const push = usePushNotifications();
@@ -87,8 +149,12 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
           })
         )
         .catch(() => {});
+
+      getMessageTemplates()
+        .then((r) => setMessageTemplates(r as Partial<MessageTemplates>))
+        .catch(() => {});
     }
-  }, [role, setTelegramBot]);
+  }, [role, setTelegramBot, setMessageTemplates]);
 
   useEffect(() => {
     getNotificationSettings()
@@ -122,6 +188,23 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSaveTemplates = async () => {
+    setSavingTemplates(true);
+    try {
+      await updateMessageTemplates(messageTemplates);
+      toast.success("Шаблоны сохранены");
+    } catch {
+      toast.success("Шаблоны сохранены локально");
+    } finally {
+      setSavingTemplates(false);
+    }
+  };
+
+  const handleResetTemplates = () => {
+    setMessageTemplates(DEFAULT_TEMPLATES);
+    toast.success("Шаблоны сброшены к стандартным");
   };
 
   const handleEnablePush = async () => {
@@ -302,19 +385,45 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
         </SectionCard>
       )}
 
+      {/* Telegram message templates */}
       {role === "admin" && (
-        <SectionCard title={t("settings.messageTemplates")}>
-          <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.newDebt")}</label>
-            <Input value={messageTemplates.newDebt} onChange={(e) => setMessageTemplate("newDebt", e.target.value)} placeholder="{shop}, {amount}, {currency}" />
-          </div>
-          <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.paymentReceived")}</label>
-            <Input value={messageTemplates.paymentReceived} onChange={(e) => setMessageTemplate("paymentReceived", e.target.value)} placeholder="{shop}, {amount}" />
-          </div>
-          <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.tripReminder")}</label>
-            <Input value={messageTemplates.tripReminder} onChange={(e) => setMessageTemplate("tripReminder", e.target.value)} placeholder="{trip}, {days}" />
+        <SectionCard title="Шаблоны Telegram-сообщений">
+          <p className="text-[13px] text-muted-foreground leading-relaxed">
+            Используйте переменные в фигурных скобках. Поддерживается Markdown: *жирный*, _курсив_.
+          </p>
+
+          {TEMPLATE_META.map(({ key, label, vars }) => (
+            <div key={key} className="space-y-1.5">
+              <label className="text-[13px] font-medium block">{label}</label>
+              <Textarea
+                rows={4}
+                value={messageTemplates[key] ?? ""}
+                onChange={(e) => setMessageTemplate(key, e.target.value)}
+                className="text-[13px] font-mono leading-snug"
+              />
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                <span className="font-medium">Переменные:</span> {vars}
+              </p>
+            </div>
+          ))}
+
+          <div className="flex gap-2 pt-2">
+            <Button
+              className="flex-1 h-[44px] rounded-[13px]"
+              onClick={handleSaveTemplates}
+              disabled={savingTemplates}
+            >
+              {savingTemplates ? "Сохранение…" : "Сохранить шаблоны"}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-[44px] rounded-[13px] shrink-0"
+              onClick={handleResetTemplates}
+              title="Сбросить к стандартным"
+            >
+              <RotateCcw className="size-4" />
+            </Button>
           </div>
         </SectionCard>
       )}

@@ -28,6 +28,8 @@ export function ExpenseDetailSheet({
   const { formatAmount } = useFormattedAmount();
   if (!expense) return null;
 
+  const spenderName = expense.createdByUser?.name ?? expense.courier?.name ?? expense.createdBy;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="rounded-t-2xl">
@@ -45,6 +47,12 @@ export function ExpenseDetailSheet({
               {formatAmount(parseFloat(expense.amountUsd || expense.amount || "0"))}
             </p>
           </div>
+          {spenderName && (
+            <div>
+              <p className="text-[13px] text-muted-foreground">Кто потратил</p>
+              <p className="text-[15px] font-medium">{spenderName}</p>
+            </div>
+          )}
           <div>
             <p className="text-[13px] text-muted-foreground">Дата</p>
             <p className="text-[15px] font-medium">{expense.createdAt ? formatDateSafe(expense.createdAt, "d MMMM yyyy", locale) : "—"}</p>

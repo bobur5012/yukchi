@@ -37,6 +37,9 @@ export interface Expense {
   amountUsd: string;
   currency: string;
   createdAt: string;
+  createdBy?: string;
+  createdByUser?: { name: string };
+  courier?: { name: string };
 }
 
 export interface Product {

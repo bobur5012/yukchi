@@ -175,32 +175,41 @@ export function TripDetail({ tripId }: TripDetailProps) {
               ) : (
                 <VirtualList
                   items={expenses}
-                  estimateSize={88}
+                  estimateSize={100}
                   gap={8}
                   height="min(400px, 50vh)"
-                  renderItem={(exp) => (
-                    <Card
-                      className="rounded-2xl card-premium cursor-pointer active:scale-[0.99]"
-                      onClick={() => setExpenseDetail(exp)}
-                    >
-                      <CardContent className="p-4 flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="h-12 w-12 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Receipt className="h-6 w-6 text-primary" />
+                  renderItem={(exp) => {
+                    const spenderName = exp.createdByUser?.name ?? exp.courier?.name ?? exp.createdBy;
+
+                    return (
+                      <Card
+                        className="rounded-2xl card-premium cursor-pointer active:scale-[0.99]"
+                        onClick={() => setExpenseDetail(exp)}
+                      >
+                        <CardContent className="p-4 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="h-12 w-12 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Receipt className="h-6 w-6 text-primary" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-base truncate">{exp.description}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatDateSafe(exp.createdAt ?? "", "d MMM yyyy", locale)}
+                              </p>
+                              {spenderName && (
+                                <p className="text-xs text-primary/90 mt-0.5 truncate">
+                                  {t("tripsDetail.spentBy")}: {spenderName}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-base">{exp.description}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {formatDateSafe(exp.createdAt ?? "", "d MMM yyyy", locale)}
-                            </p>
-                          </div>
-                        </div>
-                        <p className="font-semibold text-lg shrink-0">
-                          {formatAmount(parseFloat(exp.amountUsd || exp.amount || "0"))}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
+                          <p className="font-semibold text-lg shrink-0 tabular-nums tracking-[-0.02em]">
+                            {formatAmount(parseFloat(exp.amountUsd || exp.amount || "0"))}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    );
+                  }}
                 />
               )}
             </div>

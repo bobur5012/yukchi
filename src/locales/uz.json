@@ -183,7 +183,8 @@
     "active": "Faol",
     "completed": "Tugallangan",
     "planned": "Rejalashtirilgan",
-    "couriersCount": "kuryer(lar)"
+    "couriersCount": "kuryer(lar)",
+    "spentBy": "Kim sarfladi"
   },
   "dashboard": {
     "totalDebt": "Umumiy qarz",

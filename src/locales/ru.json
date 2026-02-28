@@ -183,7 +183,8 @@
     "active": "Активна",
     "completed": "Завершена",
     "planned": "Запланирована",
-    "couriersCount": "курьер(ов)"
+    "couriersCount": "курьер(ов)",
+    "spentBy": "Потратил"
   },
   "dashboard": {
     "totalDebt": "Общий долг",

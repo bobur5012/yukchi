@@ -34,7 +34,7 @@ export const TURKEY_CITIES = [
   "Другое",
 ] as const;
 
-export const PRODUCT_UNITS = ["шт", "кг", "м", "л", "упак"] as const;
+export const PRODUCT_UNITS = ["шт", "кг", "грамм", "упаковка", "коробка", "пачка"] as const;
 
 export const EXPENSE_CATEGORIES = [
   "Транспорт",

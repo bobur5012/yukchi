@@ -40,7 +40,7 @@ export async function uploadAvatar(file: File): Promise<string> {
   throw new Error("Invalid response: missing url");
 }
 
-export async function uploadProductImage(file: File): Promise<string> {
+export async function uploadProductImage(file: File | Blob): Promise<string> {
   const token = getApiToken();
   const formData = new FormData();
   formData.append("file", file);

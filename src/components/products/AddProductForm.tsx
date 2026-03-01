@@ -22,18 +22,20 @@ import { createProduct } from "@/lib/api/products";
 import { getTrips } from "@/lib/api/trips";
 import { getShops } from "@/lib/api/shops";
 import { uploadProductImage } from "@/lib/api/storage";
-import { PRODUCT_UNITS } from "@/lib/constants";
 import type { Shop, Trip } from "@/types";
 
 const NO_SHOP_VALUE = "none";
 
-const UNITS_DISPLAY: Record<string, string> = {
-  "С€С‚": "ШТ",
-  "РєРі": "КГ",
-  "Рј": "М",
-  "Р»": "Л",
-  "СѓРїР°Рє": "УПАК",
-};
+const UNIT_OPTIONS = [
+  { value: "шт", label: "ШТ" },
+  { value: "кг", label: "КГ" },
+  { value: "грамм", label: "ГРАММ" },
+  { value: "упаковка", label: "УПАКОВКА" },
+  { value: "коробка", label: "КОРОБКА" },
+  { value: "пачка", label: "ПАЧКА" },
+] as const;
+
+type DeliveryMode = "per_kg" | "fixed";
 
 function formatMoney(value: number | null): string {
   return value === null ? "—" : `${value.toFixed(2)} $`;
@@ -69,9 +71,10 @@ export function AddProductForm() {
 
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("1");
-  const [unit, setUnit] = useState<string>(PRODUCT_UNITS[0]);
+  const [unit, setUnit] = useState<string>(UNIT_OPTIONS[0].value);
   const [salePrice, setSalePrice] = useState("");
-  const [pricePerKg, setPricePerKg] = useState("");
+  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("per_kg");
+  const [deliveryPrice, setDeliveryPrice] = useState("");
   const [description, setDescription] = useState("");
   const [tripId, setTripId] = useState(tripIdFromUrl);
   const [shopId, setShopId] = useState(shopIdFromUrl || NO_SHOP_VALUE);
@@ -81,7 +84,6 @@ export function AddProductForm() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [dataError, setDataError] = useState<string | null>(null);
@@ -121,10 +123,25 @@ export function AddProductForm() {
   const qty = Number.isFinite(qRaw) && qRaw > 0 ? qRaw : 0;
   const qtyInt = Number.isInteger(qRaw) ? qRaw : Math.trunc(qRaw);
   const sale = Number.parseFloat(salePrice) || 0;
-  const perKg = Number.parseFloat(pricePerKg) || 0;
+  const delivery = Number.parseFloat(deliveryPrice) || 0;
 
   const totalSale = sale > 0 && qty > 0 ? sale * qty : null;
-  const totalByKg = perKg > 0 && qty > 0 ? perKg * qty : null;
+  const totalDelivery =
+    delivery > 0
+      ? deliveryMode === "per_kg"
+        ? qty > 0
+          ? delivery * qty
+          : null
+        : delivery
+      : null;
+  const totalFinal =
+    totalSale !== null && totalDelivery !== null
+      ? totalSale + totalDelivery
+      : totalSale !== null
+        ? totalSale
+        : totalDelivery !== null
+          ? totalDelivery
+          : null;
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -154,23 +171,38 @@ export function AddProductForm() {
 
     setIsSubmitting(true);
     try {
-      const compressed = await imageCompression(imageFile, {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
-      });
-      const imageUrl = await uploadProductImage(compressed);
+      let fileForUpload: File | Blob = imageFile;
+      try {
+        fileForUpload = await imageCompression(imageFile, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        });
+      } catch {
+        // Keep original file if compression fails.
+      }
+
+      const imageUrl = await uploadProductImage(fileForUpload);
+      const deliveryNote =
+        delivery > 0
+          ? deliveryMode === "per_kg"
+            ? `Доставка: ${delivery.toFixed(2)} $/кг`
+            : `Доставка: фикс ${delivery.toFixed(2)} $`
+          : "";
 
       await createProduct({
         name: name.trim(),
         quantity: qtyInt,
         unit,
         salePrice: sale > 0 ? sale.toFixed(2) : undefined,
-        pricePerKg: perKg > 0 ? perKg.toFixed(2) : undefined,
+        // Reuse existing backend fields:
+        // per_kg -> pricePerKg, fixed -> costPrice.
+        pricePerKg: deliveryMode === "per_kg" && delivery > 0 ? delivery.toFixed(2) : undefined,
+        costPrice: deliveryMode === "fixed" && delivery > 0 ? delivery.toFixed(2) : undefined,
         tripId,
         shopId: shopId !== NO_SHOP_VALUE ? shopId : undefined,
         imageUrl,
-        description: description.trim() || undefined,
+        description: [description.trim(), deliveryNote].filter(Boolean).join("\n"),
       });
 
       toast.success("Товар добавлен");
@@ -237,7 +269,7 @@ export function AddProductForm() {
       <FormCard>
         <FormSection>
           <FormRow label="Название">
-            <Input placeholder="Кожаная сумка" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input placeholder="Название товара" value={name} onChange={(e) => setName(e.target.value)} />
           </FormRow>
 
           <FormRow label="Описание (необязательно)">
@@ -262,9 +294,9 @@ export function AddProductForm() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {PRODUCT_UNITS.map((u) => (
-                    <SelectItem key={u} value={u}>
-                      {UNITS_DISPLAY[u] ?? u}
+                  {UNIT_OPTIONS.map((u) => (
+                    <SelectItem key={u.value} value={u.value}>
+                      {u.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -276,9 +308,26 @@ export function AddProductForm() {
             <Input type="number" step="0.01" placeholder="60" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
           </FormRow>
 
-          <FormRow label="Цена за кг ($)">
-            <Input type="number" step="0.01" placeholder="8" value={pricePerKg} onChange={(e) => setPricePerKg(e.target.value)} />
-            <p className="mt-1 text-xs text-muted-foreground">Итого по кг считается всегда: количество × цена за кг</p>
+          <FormRow label="Тип цены доставки">
+            <Select value={deliveryMode} onValueChange={(v) => setDeliveryMode(v as DeliveryMode)}>
+              <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="per_kg">За кг</SelectItem>
+                <SelectItem value="fixed">Фиксированная цена</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormRow>
+
+          <FormRow label={deliveryMode === "per_kg" ? "Цена доставки за кг ($)" : "Фиксированная цена доставки ($)"}>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder={deliveryMode === "per_kg" ? "8" : "25"}
+              value={deliveryPrice}
+              onChange={(e) => setDeliveryPrice(e.target.value)}
+            />
           </FormRow>
         </FormSection>
       </FormCard>
@@ -339,7 +388,7 @@ export function AddProductForm() {
       <FormCard>
         <FormSection title="Расчеты">
           <div className="overflow-hidden rounded-xl border border-border/60 bg-muted/20">
-            <div className="px-3">
+            <div className="px-3 pb-2">
               <CalcRow label="Количество" value={qty > 0 ? `${qty} ${unit}` : "—"} />
               <CalcRow label="Цена продажи за 1 ед" value={sale > 0 ? `${sale.toFixed(2)} $` : "—"} />
               <CalcRow
@@ -349,12 +398,21 @@ export function AddProductForm() {
                 highlight
               />
               <div className="border-t border-border/60" />
-              <CalcRow label="Цена за кг" value={perKg > 0 ? `${perKg.toFixed(2)} $` : "—"} />
               <CalcRow
-                label="Итого по кг"
-                formula={`Количество × Цена за кг = ${qty > 0 ? qty : "—"} × ${perKg > 0 ? perKg.toFixed(2) : "—"}`}
-                value={formatMoney(totalByKg)}
+                label={deliveryMode === "per_kg" ? "Цена доставки за кг" : "Фиксированная цена доставки"}
+                value={delivery > 0 ? `${delivery.toFixed(2)} $` : "—"}
               />
+              <CalcRow
+                label="Итого доставка"
+                formula={
+                  deliveryMode === "per_kg"
+                    ? `Количество × Цена за кг = ${qty > 0 ? qty : "—"} × ${delivery > 0 ? delivery.toFixed(2) : "—"}`
+                    : "Фиксированная стоимость"
+                }
+                value={formatMoney(totalDelivery)}
+              />
+              <div className="border-t border-border/60" />
+              <CalcRow label="Общий итог" value={formatMoney(totalFinal)} highlight />
             </div>
           </div>
         </FormSection>

@@ -128,7 +128,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
                       >
                         <Avatar className="size-10 shrink-0">
                           {tc.courier?.avatarUrl ? (
-                            <AvatarImage src={tc.courier.avatarUrl} alt={name} />
+                            <AvatarImage src={getAvatarUrl(tc.courier.avatarUrl) ?? tc.courier.avatarUrl} alt={name} />
                           ) : null}
                           <AvatarFallback className="text-sm font-medium bg-primary/15 text-primary">
                             {initials}
@@ -151,16 +151,16 @@ export function TripDetail({ tripId }: TripDetailProps) {
         <TabsContent value="expenses" className="mt-4">
           <div className="space-y-4">
             <div className="flex gap-2">
-              <Button asChild className="flex-1">
-                <Link href={`/trips/${tripId}/expenses/new`} className="inline-flex items-center justify-center gap-2">
-                  <ArrowDownCircle className="h-4 w-4" />
-                  {t("tripsDetail.addExpense")}
+              <Button asChild className="flex-1 min-w-0">
+                <Link href={`/trips/${tripId}/expenses/new`} className="inline-flex items-center justify-center gap-2 min-w-0 truncate">
+                  <ArrowDownCircle className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{t("tripsDetail.addExpense")}</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="flex-1 border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10">
-                <Link href={`/trips/${tripId}/expenses/new?type=income`} className="inline-flex items-center justify-center gap-2">
-                  <ArrowUpCircle className="h-4 w-4" />
-                  Добавить приход
+              <Button asChild variant="outline" className="flex-1 min-w-0 border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10">
+                <Link href={`/trips/${tripId}/expenses/new?type=income`} className="inline-flex items-center justify-center gap-2 min-w-0 truncate">
+                  <ArrowUpCircle className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{t("tripsDetail.addIncome")}</span>
                 </Link>
               </Button>
             </div>
@@ -228,13 +228,29 @@ export function TripDetail({ tripId }: TripDetailProps) {
 
         <TabsContent value="products" className="mt-4">
           <div className="space-y-2">
+            {(role === "admin" || role === "courier") && (
+              <Button asChild className="w-full">
+                <Link href={`/products/new?tripId=${tripId}`} className="inline-flex items-center justify-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  {t("tripsDetail.addProduct")}
+                </Link>
+              </Button>
+            )}
             {products.length === 0 ? (
               <Card className="rounded-2xl card-premium">
                 <CardContent className="py-8">
                   <EmptyState
                     icon={Package}
-                    title="Нет товаров"
-                    description="В этой поездке пока нет товаров"
+                    title={t("tripsDetail.noProducts")}
+                    description={t("tripsDetail.noProductsDesc")}
+                    action={(role === "admin" || role === "courier") ? (
+                      <Button asChild>
+                        <Link href={`/products/new?tripId=${tripId}`} className="inline-flex items-center justify-center gap-2">
+                          <Plus className="h-4 w-4" />
+                          {t("tripsDetail.addProduct")}
+                        </Link>
+                      </Button>
+                    ) : undefined}
                   />
                 </CardContent>
               </Card>
@@ -305,6 +321,11 @@ export function TripDetail({ tripId }: TripDetailProps) {
         product={productDetail}
         trip={trip}
         courierName={undefined}
+        canEdit={role === "admin" || role === "courier"}
+        onProductDeleted={() => {
+          setProducts((p) => p.filter((x) => x.id !== productDetail?.id));
+          setProductDetail(null);
+        }}
       />
     </div>
   );

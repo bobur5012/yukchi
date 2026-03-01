@@ -80,7 +80,7 @@ export function AddTripForm() {
   const showCityOther = city === OTHER_VALUE;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pb-20">
+    <form onSubmit={handleSubmit} className="space-y-4 pb-20 max-w-md mx-auto">
       <FormCard>
         <FormSection>
           <FormRow label={t("trips.name")}>
@@ -106,10 +106,10 @@ export function AddTripForm() {
           )}
         </FormSection>
 
-        <FormSection title="Город Турции">
+        <FormSection title={t("trips.region")}>
           <Select value={city} onValueChange={setCity}>
             <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-              <SelectValue placeholder="Выберите город" />
+              <SelectValue placeholder={t("trips.selectRegion")} />
             </SelectTrigger>
             <SelectContent position="popper" className="z-[100]">
               {TURKEY_CITIES.map((c) => (

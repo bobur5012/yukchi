@@ -148,6 +148,7 @@
     "code": "Kod",
     "codePlaceholder": "Telegramdan kod",
     "signIn": "Kirish",
+    "verifyCode": "Kodni tasdiqlash",
     "authorized": "Avtorizatsiya qilingan",
     "pending": "Kod kutilmoqda",
     "notAuthorized": "Avtorizatsiya qilinmagan",
@@ -175,6 +176,7 @@
     "departure": "Uchish",
     "return": "Qaytish",
     "addExpense": "Xarajat qo'shish",
+    "addIncome": "Daromad qo'shish",
     "noExpenses": "Xarajatlar yo'q",
     "noExpensesDesc": "Sayohatga birinchi xarajatni qo'shing",
     "notFound": "Sayohat topilmadi",
@@ -183,7 +185,13 @@
     "active": "Faol",
     "completed": "Tugallangan",
     "planned": "Rejalashtirilgan",
-    "couriersCount": "kuryer(lar)"
+    "couriersCount": "kuryer(lar)",
+    "noProducts": "Mahsulotlar yo'q",
+    "noProductsDesc": "Bu sayohatda hali mahsulotlar yo'q",
+    "addProduct": "Mahsulot qo'shish"
+  },
+  "products": {
+    "addFirst": "Birinchi mahsulotni qo'shing"
   },
   "dashboard": {
     "totalDebt": "Umumiy qarz",

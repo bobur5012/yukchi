@@ -14,6 +14,7 @@ export async function createProduct(data: {
   salePrice?: string;
   pricePerKg?: string;
   imageUrl?: string;
+  description?: string;
   shopId?: string;
 }): Promise<Product> {
   return api.post<Product>("/products", data);
@@ -29,6 +30,7 @@ export async function updateProduct(
     salePrice: string;
     pricePerKg: string;
     imageUrl: string;
+    description?: string;
     shopId: string | null;
   }>
 ): Promise<Product> {
@@ -37,4 +39,8 @@ export async function updateProduct(
 
 export async function getProduct(id: string): Promise<Product> {
   return api.get<Product>(`/products/${id}`);
+}
+
+export async function deleteProduct(id: string): Promise<void> {
+  return api.delete(`/products/${id}`);
 }

@@ -21,6 +21,7 @@ import {
   Bell,
   Package,
   CreditCard,
+  Plus,
 } from "lucide-react";
 import { PaymentDetailSheet } from "./PaymentDetailSheet";
 import { ShopReminders } from "./ShopReminders";
@@ -211,10 +212,20 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
         <TabsContent value="products" className="mt-4">
           <Card className="rounded-2xl card-premium">
             <CardContent className="p-4">
-              <p className="section-title mb-3">Привязанные товары</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="section-title mb-0">Привязанные товары</p>
+                {(role === "admin" || role === "courier") && (
+                  <Button asChild size="sm">
+                    <Link href={`/products/new?shopId=${shopId}`} className="inline-flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      {t("quickActions.addProduct")}
+                    </Link>
+                  </Button>
+                )}
+              </div>
               {(shop.products?.length ?? 0) === 0 ? (
                 <p className="py-6 text-center text-sm text-muted-foreground">
-                  Нет привязанных товаров. Привяжите товар в разделе «Товары».
+                  Нет привязанных товаров. Привяжите товар в разделе «Товары» или добавьте новый.
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -227,7 +238,8 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-[15px] truncate">{p.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {p.quantity} {p.unit ?? "шт"} · ${p.costPriceUsd}
+                          {p.quantity} {p.unit ?? "шт"}
+                          {p.salePrice && ` · ${p.salePrice} $`}
                         </p>
                       </div>
                     </div>

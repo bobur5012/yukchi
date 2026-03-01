@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Check } from "lucide-react";
 import type { Courier } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, getAvatarUrl } from "@/lib/utils";
 
 function getInitials(name: string): string {
   const parts = name?.trim().split(/\s+/) ?? [];
@@ -45,7 +45,7 @@ export function CourierSelectList({ couriers, selectedIds, onToggle }: CourierSe
           >
             {/* Avatar — compact 34px */}
             <Avatar className="size-[34px] shrink-0">
-              {c.avatarUrl ? <AvatarImage src={c.avatarUrl} alt={c.name} /> : null}
+              {c.avatarUrl ? <AvatarImage src={getAvatarUrl(c.avatarUrl) ?? c.avatarUrl} alt={c.name} /> : null}
               <AvatarFallback className="text-[11px] font-semibold bg-muted text-muted-foreground">
                 {getInitials(c.name)}
               </AvatarFallback>

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import imageCompression from "browser-image-compression";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ImagePlus, Camera, X } from "lucide-react";
 import {
   Select,
@@ -32,19 +33,25 @@ const UNITS_DISPLAY: Record<string, string> = {
 
 export function AddProductForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tripIdFromUrl = searchParams.get("tripId") ?? "";
+  const shopIdFromUrl = searchParams.get("shopId") ?? "";
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [unit, setUnit] = useState<string>(PRODUCT_UNITS[0]);
   const [salePrice, setSalePrice] = useState("");
   const [pricePerKg, setPricePerKg] = useState("");
-  const [tripId, setTripId] = useState("");
-  const [shopId, setShopId] = useState("");
+  const [tripId, setTripId] = useState(tripIdFromUrl);
+  const [shopId, setShopId] = useState(shopIdFromUrl);
+  const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
   const [shopSearch, setShopSearch] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -63,9 +70,21 @@ export function AddProductForm() {
   };
 
   useEffect(() => {
-    getTrips(1, 50).then((r) => setTrips(r.trips));
-    getShops(1, 100).then((r) => setShops(r.shops));
+    setLoadingData(true);
+    setDataError(null);
+    Promise.all([getTrips(1, 50), getShops(1, 100)])
+      .then(([tripsRes, shopsRes]) => {
+        setTrips(tripsRes.trips);
+        setShops(shopsRes.shops);
+      })
+      .catch((e) => setDataError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .finally(() => setLoadingData(false));
   }, []);
+
+  useEffect(() => {
+    if (tripIdFromUrl) setTripId(tripIdFromUrl);
+    if (shopIdFromUrl) setShopId(shopIdFromUrl);
+  }, [tripIdFromUrl, shopIdFromUrl]);
 
   const q = parseInt(quantity, 10) || 1;
   const sp = parseFloat(salePrice) || 0;
@@ -105,6 +124,7 @@ export function AddProductForm() {
         tripId,
         shopId: shopId || undefined,
         imageUrl,
+        description: description.trim() || undefined,
       });
       toast.success("Товар добавлен");
       router.push("/products");
@@ -114,6 +134,25 @@ export function AddProductForm() {
       setIsSubmitting(false);
     }
   };
+
+  if (loadingData) {
+    return (
+      <div className="py-12 text-center text-muted-foreground">Загрузка…</div>
+    );
+  }
+
+  if (dataError) {
+    return (
+      <div className="space-y-4 pb-20">
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-destructive">
+          {dataError}
+        </div>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Повторить
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
@@ -153,6 +192,9 @@ export function AddProductForm() {
         <FormSection>
           <FormRow label="Название">
             <Input placeholder="Кожаная сумка" value={name} onChange={(e) => setName(e.target.value)} />
+          </FormRow>
+          <FormRow label="Описание (необязательно)">
+            <Textarea placeholder="Описание товара" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="rounded-xl resize-none" />
           </FormRow>
           <div className="grid grid-cols-2 gap-3 px-4 py-3">
             <div>

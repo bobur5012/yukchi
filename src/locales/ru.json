@@ -148,6 +148,7 @@
     "code": "Код",
     "codePlaceholder": "Код из Telegram",
     "signIn": "Войти",
+    "verifyCode": "Подтвердить код",
     "authorized": "Авторизован",
     "pending": "Ожидание кода",
     "notAuthorized": "Не авторизован",
@@ -175,6 +176,7 @@
     "departure": "Вылет",
     "return": "Возвращение",
     "addExpense": "Добавить расход",
+    "addIncome": "Добавить приход",
     "noExpenses": "Нет расходов",
     "noExpensesDesc": "Добавьте первый расход в поездку",
     "notFound": "Поездка не найдена",
@@ -183,7 +185,13 @@
     "active": "Активна",
     "completed": "Завершена",
     "planned": "Запланирована",
-    "couriersCount": "курьер(ов)"
+    "couriersCount": "курьер(ов)",
+    "noProducts": "Нет товаров",
+    "noProductsDesc": "В этой поездке пока нет товаров",
+    "addProduct": "Добавить товар"
+  },
+  "products": {
+    "addFirst": "Добавьте первый товар"
   },
   "dashboard": {
     "totalDebt": "Общий долг",

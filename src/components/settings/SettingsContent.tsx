@@ -14,10 +14,11 @@ import {
   getTelegramSettings,
   updateTelegramSettings,
   checkTelegramConnection,
-  getNotificationSettings,
-  updateNotificationSettings,
   getMessageTemplates,
   updateMessageTemplates,
+  sendTelegramCode,
+  verifyTelegramCode,
+  getTelegramClientStatus,
 } from "@/lib/api/settings";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { sendTestPush } from "@/lib/api/push";
@@ -45,19 +46,6 @@ function SettingRow({ label, children }: { label: string; children: React.ReactN
     </div>
   );
 }
-
-const NOTIFICATION_KEYS = [
-  "newTrip",
-  "tripUpdated",
-  "newExpense",
-  "newProduct",
-  "newShop",
-  "newDebt",
-  "paymentReceived",
-  "newCourier",
-  "courierAssigned",
-  "tripReminder",
-] as const;
 
 const TEMPLATE_META: Array<{
   key: keyof MessageTemplates;
@@ -123,23 +111,24 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
   const {
     telegramBot,
     telegramClient,
-    notifications,
     messageTemplates,
     setTelegramBot,
     setTelegramClient,
-    setNotifications,
     setMessageTemplate,
     setMessageTemplates,
   } = useSettingsStore();
   const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [telegramAuthStep, setTelegramAuthStep] = useState<"idle" | "code_sent" | "verifying">("idle");
   const [savingTemplates, setSavingTemplates] = useState(false);
-  const [savingNotifications, setSavingNotifications] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
   const push = usePushNotifications();
 
   useEffect(() => {
     if (role === "admin") {
+      getTelegramClientStatus()
+        .then((s) => setTelegramClient({ status: s.hasSession ? "authorized" : "unauthorized" }))
+        .catch(() => {});
       getTelegramSettings()
         .then((r) =>
           setTelegramBot({
@@ -156,24 +145,6 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
     }
   }, [role, setTelegramBot, setMessageTemplates]);
 
-  useEffect(() => {
-    getNotificationSettings()
-      .then((r) =>
-        setNotifications({
-          newTrip: r.newTrip,
-          tripUpdated: r.tripUpdated,
-          newExpense: r.newExpense,
-          newProduct: r.newProduct,
-          newShop: r.newShop,
-          newDebt: r.newDebt,
-          paymentReceived: r.paymentReceived,
-          newCourier: r.newCourier,
-          courierAssigned: r.courierAssigned,
-          tripReminder: r.tripReminder,
-        })
-      )
-      .catch(() => {});
-  }, [setNotifications]);
 
   const handleLogout = () => { logout(); router.replace("/login"); };
 
@@ -229,21 +200,6 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
       toast.error(t("push.error"));
     } finally {
       setSendingTest(false);
-    }
-  };
-
-  const handleNotificationToggle = async (
-    key: (typeof NOTIFICATION_KEYS)[number],
-    value: boolean
-  ) => {
-    setNotifications({ [key]: value });
-    setSavingNotifications(true);
-    try {
-      await updateNotificationSettings({ [key]: value });
-    } catch {
-      toast.error(t("settings.saveError"));
-    } finally {
-      setSavingNotifications(false);
     }
   };
 
@@ -315,15 +271,6 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
             )}
           </>
         )}
-        {NOTIFICATION_KEYS.map((key) => (
-          <SettingRow key={key} label={t(`notify.${key}`)}>
-            <Switch
-              checked={notifications[key]}
-              onCheckedChange={(v) => handleNotificationToggle(key, v)}
-              disabled={savingNotifications}
-            />
-          </SettingRow>
-        ))}
       </SectionCard>
 
       {role === "admin" && (
@@ -373,7 +320,50 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
             <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.code")}</label>
             <Input placeholder={t("settings.codePlaceholder")} value={telegramClient.code} onChange={(e) => setTelegramClient({ code: e.target.value })} />
           </div>
-          <Button variant="outline" className="w-full h-[44px] rounded-[13px]">{t("settings.signIn")}</Button>
+          <Button
+            variant="outline"
+            className="w-full h-[44px] rounded-[13px]"
+            disabled={!telegramClient.phone || !telegramClient.appId || !telegramClient.appHash || telegramAuthStep === "verifying"}
+            onClick={async () => {
+              if (telegramAuthStep === "idle") {
+                setTelegramAuthStep("code_sent");
+                try {
+                  const res = await sendTelegramCode(telegramClient.phone);
+                  if (!res.success) {
+                    toast.error(res.error ?? t("settings.error"));
+                    setTelegramAuthStep("idle");
+                  }
+                } catch {
+                  toast.error(t("settings.error"));
+                  setTelegramAuthStep("idle");
+                }
+              } else if (telegramAuthStep === "code_sent" && telegramClient.code) {
+                setTelegramAuthStep("verifying");
+                try {
+                  const res = await verifyTelegramCode(telegramClient.phone, telegramClient.code);
+                  if (res.success) {
+                    setTelegramClient({ ...telegramClient, status: "authorized", code: "" });
+                    setTelegramAuthStep("idle");
+                    toast.success(t("settings.authorized"));
+                  } else {
+                    toast.error(res.error ?? t("settings.error"));
+                    setTelegramAuthStep("code_sent");
+                  }
+                } catch {
+                  toast.error(t("settings.error"));
+                  setTelegramAuthStep("code_sent");
+                } finally {
+                  setTelegramAuthStep("idle");
+                }
+              }
+            }}
+          >
+            {telegramAuthStep === "idle"
+              ? t("settings.signIn")
+              : telegramAuthStep === "code_sent"
+                ? t("settings.verifyCode")
+                : "…"}
+          </Button>
           <div className="flex items-center gap-2">
             {telegramClient.status === "authorized"
               ? <CheckCircle className="size-4 text-emerald-500" />

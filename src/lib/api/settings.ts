@@ -45,6 +45,23 @@ export async function checkTelegramConnection(
   return api.post<{ success: boolean; error?: string }>("/settings/telegram/check", data ?? {});
 }
 
+export interface TelegramClientStatus {
+  configured: boolean;
+  hasSession: boolean;
+}
+
+export async function getTelegramClientStatus(): Promise<TelegramClientStatus> {
+  return api.get<TelegramClientStatus>("/settings/telegram/client/status");
+}
+
+export async function sendTelegramCode(phone: string): Promise<{ success: boolean; error?: string }> {
+  return api.post<{ success: boolean; error?: string }>("/settings/telegram/client/send-code", { phone });
+}
+
+export async function verifyTelegramCode(phone: string, code: string): Promise<{ success: boolean; error?: string }> {
+  return api.post<{ success: boolean; error?: string }>("/settings/telegram/client/verify", { phone, code });
+}
+
 export type MessageTemplatesResponse = Record<string, string>;
 
 export async function getMessageTemplates(): Promise<MessageTemplatesResponse> {

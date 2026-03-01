@@ -3,15 +3,21 @@
 import { useEffect, useState } from "react";
 import { getProducts } from "@/lib/api/products";
 import { getTrips } from "@/lib/api/trips";
+import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import type { Product, Trip } from "@/types";
-import { Package } from "lucide-react";
+import { Package, Store } from "lucide-react";
+import { getAvatarUrl } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { DataErrorState } from "@/components/ui/data-error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProductDetailSheet } from "@/components/trips/ProductDetailSheet";
 import { VirtualList } from "@/components/ui/virtual-list";
+import { useTranslations } from "@/lib/useTranslations";
 
 export function ProductsList() {
+  const { t } = useTranslations();
+  const { formatAmount } = useFormattedAmount();
   const [products, setProducts] = useState<Product[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [productDetail, setProductDetail] = useState<Product | null>(null);
@@ -24,12 +30,8 @@ export function ProductsList() {
     getTrips(1, 50)
       .then(async (r) => {
         setTrips(r.trips);
-        const allProducts: Product[] = [];
-        for (const t of r.trips) {
-          const prods = await getProducts(t.id);
-          allProducts.push(...prods);
-        }
-        setProducts(allProducts);
+        const productArrays = await Promise.all(r.trips.map((t) => getProducts(t.id)));
+        setProducts(productArrays.flat());
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
       .finally(() => setLoading(false));
@@ -56,8 +58,8 @@ export function ProductsList() {
       <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
         <EmptyState
           icon={Package}
-          title="Нет товаров"
-          description="Добавьте первый товар"
+          title={t("tripsDetail.noProducts")}
+          description={t("products.addFirst")}
         />
       </div>
     );
@@ -80,7 +82,7 @@ export function ProductsList() {
                 <div className="h-20 w-20 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                   {prod.imageUrl ? (
                     <img
-                      src={prod.imageUrl}
+                      src={getAvatarUrl(prod.imageUrl) ?? prod.imageUrl}
                       alt={prod.name}
                       className="h-full w-full object-cover"
                     />
@@ -92,16 +94,23 @@ export function ProductsList() {
                   <h3 className="text-[15px] font-semibold truncate">
                     {prod.name}
                   </h3>
-                  <div className="text-sm text-muted-foreground mt-1 space-y-0.5">
-                    <p>Кол-во: {prod.quantity}</p>
-                    <p className="font-medium text-foreground">
-                      Себестоимость: {prod.costPrice} $
-                    </p>
-                    <p className="text-xs">{trip?.name ?? "-"}</p>
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <span className="text-sm text-muted-foreground">
+                      {prod.quantity} {prod.unit ?? "шт"}
+                    </span>
                     {prod.shop && (
-                      <p className="text-xs text-primary">→ {prod.shop.name}</p>
+                      <Badge variant="secondary" className="text-xs font-normal gap-1">
+                        <Store className="h-3 w-3" />
+                        {prod.shop.name}
+                      </Badge>
                     )}
                   </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">{trip?.name ?? "-"}</p>
+                  {prod.salePrice && (
+                    <p className="text-sm font-semibold text-emerald-600 mt-1">
+                      {formatAmount(parseFloat(prod.salePrice))}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -114,11 +123,18 @@ export function ProductsList() {
         product={productDetail}
         trip={productDetail ? trips.find((t) => t.id === productDetail.tripId) ?? null : null}
         courierName={undefined}
+        canEdit={true}
         onProductUpdated={(updated) => {
           setProducts((prev) =>
             prev.map((p) => (p.id === updated.id ? updated : p))
           );
           setProductDetail(updated);
+        }}
+        onProductDeleted={() => {
+          if (productDetail) {
+            setProducts((prev) => prev.filter((p) => p.id !== productDetail.id));
+            setProductDetail(null);
+          }
         }}
       />
     </>

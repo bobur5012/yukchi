@@ -55,6 +55,7 @@ export interface Product {
   pricePerKg?: string;
   pricePerKgUsd?: string;
   imageUrl?: string;
+  description?: string;
   shopId?: string | null;
   shop?: { id: string; name: string };
   createdAt?: string;

@@ -186,6 +186,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
               ) : (
                 <VirtualList
                   items={expenses}
+                  getItemKey={(exp) => exp.id}
                   estimateSize={88}
                   gap={8}
                   height="min(400px, 50vh)"
@@ -257,6 +258,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
             ) : (
               <VirtualList
                 items={products}
+                getItemKey={(prod) => prod.id}
                 estimateSize={120}
                 gap={8}
                 height="min(400px, 50vh)"
@@ -270,7 +272,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
                         <div className="w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-muted">
                           {prod.imageUrl ? (
                             <img
-                              src={getAvatarUrl(prod.imageUrl)}
+                              src={getAvatarUrl(prod.imageUrl, prod.id)}
                               alt={prod.name}
                               className="w-full h-full object-cover"
                             />

@@ -70,6 +70,7 @@ export function ProductsList() {
     <>
       <VirtualList
         items={products}
+        getItemKey={(prod) => prod.id}
         estimateSize={120}
         gap={16}
         renderItem={(prod) => {
@@ -83,7 +84,7 @@ export function ProductsList() {
                 <div className="h-20 w-20 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                   {prod.imageUrl ? (
                     <img
-                      src={getAvatarUrl(prod.imageUrl) ?? prod.imageUrl}
+                      src={getAvatarUrl(prod.imageUrl, prod.id) ?? prod.imageUrl}
                       alt={prod.name}
                       className="h-full w-full object-cover"
                     />

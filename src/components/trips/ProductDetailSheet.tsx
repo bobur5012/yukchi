@@ -163,7 +163,7 @@ export function ProductDetailSheet({
           {product.imageUrl ? (
             <div className="rounded-xl overflow-hidden border border-border/50 aspect-video min-h-[200px] bg-muted">
               <img
-                src={getAvatarUrl(product.imageUrl) ?? product.imageUrl}
+                src={getAvatarUrl(product.imageUrl, product.id) ?? product.imageUrl}
                 alt={product.name}
                 className="w-full h-full object-contain"
               />

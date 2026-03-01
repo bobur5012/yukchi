@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 interface VirtualListProps<T> {
   items: T[];
   renderItem: (item: T, index: number) => React.ReactNode;
+  getItemKey?: (item: T, index: number) => string | number;
   estimateSize?: number;
   height?: string | number;
   gap?: number;
@@ -17,6 +18,7 @@ interface VirtualListProps<T> {
 export function VirtualList<T>({
   items,
   renderItem,
+  getItemKey,
   estimateSize = 100,
   height = "calc(100dvh - 12rem)",
   gap = 16,
@@ -28,6 +30,7 @@ export function VirtualList<T>({
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
+    getItemKey: getItemKey ? (index) => getItemKey(items[index], index) : undefined,
     estimateSize: () => estimateSize,
     overscan,
     gap,

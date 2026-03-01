@@ -13,7 +13,7 @@ export function cn(...inputs: ClassValue[]) {
  * - Relative paths (/uploads/...) → resolved against the API base, then proxied.
  * - data: URLs → returned as-is (no proxy needed).
  */
-export function getAvatarUrl(url?: string | null): string | undefined {
+export function getAvatarUrl(url?: string | null, version?: string | number): string | undefined {
   if (!url) return undefined;
   if (url.startsWith("data:")) return url;
 
@@ -25,5 +25,6 @@ export function getAvatarUrl(url?: string | null): string | undefined {
     fullUrl = `${base}${url.startsWith("/") ? "" : "/"}${url}`;
   }
 
-  return `/api/proxy-avatar?url=${encodeURIComponent(fullUrl)}`;
+  const v = version != null ? `&v=${encodeURIComponent(String(version))}` : "";
+  return `/api/proxy-avatar?url=${encodeURIComponent(fullUrl)}${v}`;
 }

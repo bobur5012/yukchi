@@ -21,11 +21,13 @@ import { toast } from "sonner";
 import { FormCard, FormRow, FormSection, FieldHint } from "@/components/ui/form-helpers";
 
 const OTHER_VALUE = "Другое";
+type FundingMode = "cash" | "debt";
 
 export function AddTripForm() {
   const { t } = useTranslations();
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
+
   const [name, setName] = useState("");
   const [dateDeparture, setDateDeparture] = useState(today);
   const [dateReturn, setDateReturn] = useState(today);
@@ -34,28 +36,50 @@ export function AddTripForm() {
   const [cityOther, setCityOther] = useState("");
   const [courierIds, setCourierIds] = useState<string[]>([]);
   const [couriers, setCouriers] = useState<Courier[]>([]);
+  const [fundingMode, setFundingMode] = useState<FundingMode>("cash");
+  const [debtAmount, setDebtAmount] = useState("0");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => { getCouriers().then(setCouriers); }, []);
+  useEffect(() => {
+    getCouriers().then(setCouriers);
+  }, []);
+
+  useEffect(() => {
+    if (fundingMode === "cash") {
+      setDebtAmount("0");
+    } else if (fundingMode === "debt" && (!debtAmount || debtAmount === "0") && budget) {
+      setDebtAmount(budget);
+    }
+  }, [fundingMode, budget, debtAmount]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const numBudget = parseFloat(budget);
+
+    const numBudget = Number.parseFloat(budget);
     const regionId = city === OTHER_VALUE ? cityOther.trim() : city;
-    if (!name || !dateDeparture || !dateReturn || isNaN(numBudget) || numBudget <= 0 || !regionId) {
-      toast.error(t("common.fillAllFields")); return;
+    const numDebt = fundingMode === "debt" ? Number.parseFloat(debtAmount) : 0;
+
+    if (!name || !dateDeparture || !dateReturn || Number.isNaN(numBudget) || numBudget <= 0 || !regionId) {
+      toast.error(t("common.fillAllFields"));
+      return;
     }
     if (dateReturn < dateDeparture) {
-      toast.error(t("trips.returnBeforeDeparture")); return;
+      toast.error(t("trips.returnBeforeDeparture"));
+      return;
     }
+    if (fundingMode === "debt" && (Number.isNaN(numDebt) || numDebt <= 0)) {
+      toast.error("Укажите сумму долга");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await createTrip({
         name,
         departureDate: dateDeparture,
         returnDate: dateReturn,
-        budget: budget,
-        oldDebt: "0",
+        budget,
+        oldDebt: fundingMode === "debt" ? numDebt.toFixed(2) : "0",
         currency: "USD",
         regionId,
         courierIds: courierIds.length > 0 ? courierIds : undefined,
@@ -75,9 +99,10 @@ export function AddTripForm() {
       : 0;
 
   const toggleCourier = (id: string) =>
-    setCourierIds((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
+    setCourierIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   const showCityOther = city === OTHER_VALUE;
+  const showDebtInput = fundingMode === "debt";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-20 max-w-md mx-auto">
@@ -112,8 +137,10 @@ export function AddTripForm() {
               <SelectValue placeholder={t("trips.selectRegion")} />
             </SelectTrigger>
             <SelectContent position="popper" className="z-[100]">
-              {TURKEY_CITIES.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+              {TURKEY_CITIES.map((cityName) => (
+                <SelectItem key={cityName} value={cityName}>
+                  {cityName}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -132,6 +159,33 @@ export function AddTripForm() {
         <FormSection title={`${t("trips.budget")} (USD)`}>
           <Input type="number" step="0.01" placeholder="5 000" value={budget} onChange={(e) => setBudget(e.target.value)} />
         </FormSection>
+
+        <FormSection title="Тип финансирования">
+          <Select value={fundingMode} onValueChange={(value) => setFundingMode(value as FundingMode)}>
+            <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="cash">Наличка (магазин дал деньги)</SelectItem>
+              <SelectItem value="debt">Долг (закуп за счет организации)</SelectItem>
+            </SelectContent>
+          </Select>
+          <FieldHint>
+            Наличка: закупка на деньги магазина. Долг: товар + доставка добавятся в задолженность магазина.
+          </FieldHint>
+          {showDebtInput && (
+            <div className="mt-3">
+              <p className="text-xs text-muted-foreground mb-1.5">Сумма долга (USD)</p>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="5000"
+                value={debtAmount}
+                onChange={(e) => setDebtAmount(e.target.value)}
+              />
+            </div>
+          )}
+        </FormSection>
       </FormCard>
 
       <FormCard>
@@ -141,7 +195,7 @@ export function AddTripForm() {
       </FormCard>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Сохранение…" : t("trips.create")}
+        {isSubmitting ? "Сохранение..." : t("trips.create")}
       </Button>
     </form>
   );

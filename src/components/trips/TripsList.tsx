@@ -106,6 +106,7 @@ export function TripsList() {
             const oldDebt = parseFloat(trip.oldDebt || "0");
             const remaining = budgetUsd - spent - oldDebt + income;
             const couriers = trip.tripCouriers ?? [];
+            const fundingLabel = oldDebt > 0 ? "Долг" : "Наличка";
 
             const statusBorder =
               trip.status === "active"
@@ -128,6 +129,9 @@ export function TripsList() {
                     <div className="flex items-center gap-2 shrink-0">
                       <Badge variant="secondary" className={statusVariants[trip.status]}>
                         {t(`tripsDetail.${trip.status}`)}
+                      </Badge>
+                      <Badge variant="outline" className="border-border/60 text-xs">
+                        {fundingLabel}
                       </Badge>
                       <ChevronRight className="h-5 w-5 text-muted-foreground" />
                     </div>

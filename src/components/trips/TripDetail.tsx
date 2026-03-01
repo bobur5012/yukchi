@@ -110,6 +110,10 @@ export function TripDetail({ tripId }: TripDetailProps) {
                   {formatAmount(remaining)}
                 </p>
               </div>
+              <div>
+                <p className="text-[13px] text-muted-foreground">Тип финансирования</p>
+                <p className="text-[16px] font-semibold">{oldDebt > 0 ? "Долг (за счет организации)" : "Наличка (деньги магазина)"}</p>
+              </div>
               <div className="grid grid-cols-3 gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
                 <div className="text-center">
                   <p className="text-[11px] text-muted-foreground">Расход</p>

@@ -32,6 +32,7 @@ const UNITS_DISPLAY: Record<string, string> = {
 };
 
 export function AddProductForm() {
+  const NO_SHOP_VALUE = "none";
   const router = useRouter();
   const searchParams = useSearchParams();
   const tripIdFromUrl = searchParams.get("tripId") ?? "";
@@ -42,7 +43,7 @@ export function AddProductForm() {
   const [salePrice, setSalePrice] = useState("");
   const [pricePerKg, setPricePerKg] = useState("");
   const [tripId, setTripId] = useState(tripIdFromUrl);
-  const [shopId, setShopId] = useState(shopIdFromUrl);
+  const [shopId, setShopId] = useState(shopIdFromUrl || NO_SHOP_VALUE);
   const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -83,7 +84,7 @@ export function AddProductForm() {
 
   useEffect(() => {
     if (tripIdFromUrl) setTripId(tripIdFromUrl);
-    if (shopIdFromUrl) setShopId(shopIdFromUrl);
+    setShopId(shopIdFromUrl || NO_SHOP_VALUE);
   }, [tripIdFromUrl, shopIdFromUrl]);
 
   const q = parseInt(quantity, 10) || 1;
@@ -122,7 +123,7 @@ export function AddProductForm() {
         salePrice: sp > 0 ? sp.toFixed(2) : undefined,
         pricePerKg: ppk > 0 ? ppk.toFixed(2) : undefined,
         tripId,
-        shopId: shopId || undefined,
+        shopId: shopId !== NO_SHOP_VALUE ? shopId : undefined,
         imageUrl,
         description: description.trim() || undefined,
       });
@@ -252,7 +253,7 @@ export function AddProductForm() {
                   <SelectValue placeholder="Выберите магазин" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Не привязан</SelectItem>
+                  <SelectItem value={NO_SHOP_VALUE}>Не привязан</SelectItem>
                   {filteredShops.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                   ))}

@@ -96,7 +96,7 @@ export const useAuthStore = create<AuthState>()(
             localStorage.setItem("yukchi_token", state.accessToken);
             document.cookie = `yukchi_token=${state.accessToken}; path=/; SameSite=Lax; max-age=86400`;
           }
-          useAuthStore.getState().setHasHydrated(true);
+          state?.setHasHydrated(true);
         }
       },
     }

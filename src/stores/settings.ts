@@ -66,7 +66,7 @@ export const DEFAULT_TEMPLATES: MessageTemplates = {
   newExpense:
     "💸 *Новый расход*\n✈️ Поездка: {trip}\n📝 Описание: {description}\n💰 Сумма: {amount} {currency}\n👤 Добавил: {courier}",
   newProduct:
-    "📦 *Новый товар*\n✈️ Поездка: {trip}\n🏷️ Название: {name}\n🔢 Кол-во: {quantity} {unit}\n💰 Цена: {costPrice} {currency}",
+    '*New product*\nTrip: {trip}\nShop: {shop}\nName: {name}\nQuantity: {quantity} {unit}\nCost price: {costPrice} {currency}\nSale price: {salePrice} {currency}\nPrice per kg: {pricePerKg} {currency}\nTotal cost: {totalCost} {currency}\nTotal sale: {totalSale} {currency}\nTotal by kg: {totalByKg} {currency}\nAdded by: {addedBy}\nTime: {createdAt}',
   newShop:
     "🏪 *Новый магазин*\n📛 Название: {name}\n👤 Владелец: {owner}\n📞 Телефон: {phone}\n📍 Адрес: {address}",
   newCourier:

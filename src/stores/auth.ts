@@ -12,6 +12,7 @@ interface AuthState {
   login: (phone: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   setAuth: (user: AuthUser, token: string) => void;
+  setAccessToken: (token: string | null) => void;
   setHasHydrated: (value: boolean) => void;
 }
 
@@ -74,6 +75,11 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
         });
       },
+      setAccessToken: (token) =>
+        set((state) => ({
+          accessToken: token,
+          isAuthenticated: token ? true : state.isAuthenticated,
+        })),
 
       setHasHydrated: (value) => set({ _hasHydrated: value }),
     }),

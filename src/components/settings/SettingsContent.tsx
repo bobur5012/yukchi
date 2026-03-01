@@ -80,7 +80,7 @@ const TEMPLATE_META: Array<{
   {
     key: "newProduct",
     label: "📦 Новый товар",
-    vars: "{trip}, {name}, {quantity}, {unit}, {costPrice}, {currency}",
+    vars: "{trip}, {shop}, {name}, {quantity}, {unit}, {costPrice}, {salePrice}, {pricePerKg}, {totalCost}, {totalSale}, {totalByKg}, {addedBy}, {createdAt}, {currency}",
   },
   {
     key: "newShop",

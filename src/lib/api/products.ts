@@ -5,6 +5,11 @@ export async function getProducts(tripId: string): Promise<Product[]> {
   return api.get<Product[]>(`/products?tripId=${tripId}`);
 }
 
+export async function getProductsByTrips(tripIds: string[]): Promise<Product[]> {
+  if (tripIds.length === 0) return [];
+  return api.get<Product[]>(`/products?tripIds=${tripIds.join(",")}`);
+}
+
 export async function createProduct(data: {
   tripId: string;
   name: string;

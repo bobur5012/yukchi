@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getProducts } from "@/lib/api/products";
+import { getProductsByTrips } from "@/lib/api/products";
 import { getTrips } from "@/lib/api/trips";
 import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import type { Product, Trip } from "@/types";
@@ -30,8 +30,9 @@ export function ProductsList() {
     getTrips(1, 50)
       .then(async (r) => {
         setTrips(r.trips);
-        const productArrays = await Promise.all(r.trips.map((t) => getProducts(t.id)));
-        setProducts(productArrays.flat());
+        const ids = r.trips.map((t) => t.id);
+        const prods = await getProductsByTrips(ids);
+        setProducts(prods);
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
       .finally(() => setLoading(false));

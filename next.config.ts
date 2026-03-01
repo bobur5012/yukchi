@@ -31,6 +31,10 @@ export default withPWA({
   workboxOptions: {
     runtimeCaching: [
       {
+        urlPattern: /^https?:\/\/[^/]+\/api\/proxy-avatar.*$/i,
+        handler: "NetworkOnly",
+      },
+      {
         urlPattern: /^https?:\/\/[^/]+\/api\/.*/i,
         handler: "NetworkFirst",
         options: {

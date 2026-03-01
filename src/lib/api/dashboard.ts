@@ -6,6 +6,7 @@ export interface DashboardMetrics {
   shopsCount: number;
   totalBudgetUsd: string;
   totalExpensesUsd: string;
+  totalIncomeUsd?: string;
   remainingUsd: string;
   totalDebt: string;
 }

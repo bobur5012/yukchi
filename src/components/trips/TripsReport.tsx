@@ -2,14 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { getTrips } from "@/lib/api/trips";
-import { useAuthStore } from "@/stores/auth";
 import type { Trip } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plane, Wallet, TrendingUp, AlertTriangle } from "lucide-react";
+import { Plane, Wallet, TrendingUp, AlertTriangle, TrendingDown } from "lucide-react";
 
 export function TripsReport() {
-  const user = useAuthStore((s) => s.user);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,62 +26,111 @@ export function TripsReport() {
   }
 
   const activeTrips = trips.filter((t) => t.status === "active");
-  const totalBudget = activeTrips.reduce((s, t) => s + parseFloat(t.budget || "0"), 0);
-  const totalSpent = activeTrips.reduce(
-    (s, t) => s + (t.expenses ?? []).reduce((e, x) => e + parseFloat(x.amount || "0"), 0),
-    0
+
+  const totals = activeTrips.reduce(
+    (acc, trip) => {
+      const budget = parseFloat(trip.budgetUsd || trip.budget || "0");
+      const oldDebt = parseFloat(trip.oldDebt || "0");
+      const expenseItems = (trip.expenses ?? []).filter((e) => (e as { type?: string }).type !== "income");
+      const incomeItems = (trip.expenses ?? []).filter((e) => (e as { type?: string }).type === "income");
+      const spent = expenseItems.reduce((s, e) => s + parseFloat(e.amountUsd || e.amount || "0"), 0);
+      const income = incomeItems.reduce((s, e) => s + parseFloat(e.amountUsd || e.amount || "0"), 0);
+
+      acc.totalBudget += budget;
+      acc.totalOldDebt += oldDebt;
+      acc.totalSpent += spent;
+      acc.totalIncome += income;
+      return acc;
+    },
+    { totalBudget: 0, totalOldDebt: 0, totalSpent: 0, totalIncome: 0 }
   );
-  const totalRemaining = totalBudget - totalSpent;
-  const overBudget = trips.filter((t) => {
-    const spent = (t.expenses ?? []).reduce((s, e) => s + parseFloat(e.amount || "0"), 0);
-    return parseFloat(t.budget || "0") - spent < 0;
+
+  const totalRemaining = totals.totalBudget - totals.totalOldDebt - totals.totalSpent + totals.totalIncome;
+  const overBudget = trips.filter((trip) => {
+    const budget = parseFloat(trip.budgetUsd || trip.budget || "0");
+    const oldDebt = parseFloat(trip.oldDebt || "0");
+    const expenseItems = (trip.expenses ?? []).filter((e) => (e as { type?: string }).type !== "income");
+    const incomeItems = (trip.expenses ?? []).filter((e) => (e as { type?: string }).type === "income");
+    const spent = expenseItems.reduce((s, e) => s + parseFloat(e.amountUsd || e.amount || "0"), 0);
+    const income = incomeItems.reduce((s, e) => s + parseFloat(e.amountUsd || e.amount || "0"), 0);
+    const remaining = budget - oldDebt - spent + income;
+    return remaining < 0;
   });
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 grid-cols-2">
-        <Card className="rounded-2xl">
+        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Plane className="h-4 w-4" />
-              <span className="text-sm">Активных поездок</span>
+              <span className="text-sm">Активные поездки</span>
             </div>
             <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em]">{activeTrips.length}</p>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl">
+
+        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Wallet className="h-4 w-4" />
               <span className="text-sm">Остаток бюджета</span>
             </div>
-            <p
-              className={`text-[20px] font-bold tabular-nums tracking-[-0.03em] ${
-                totalRemaining < 0 ? "text-destructive" : ""
-              }`}
-            >
-              {totalRemaining.toLocaleString()} $
+            <p className={`text-[20px] font-bold tabular-nums tracking-[-0.03em] ${totalRemaining < 0 ? "text-destructive" : "text-emerald-500"}`}>
+              {totalRemaining.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <TrendingDown className="h-4 w-4" />
+              <span className="text-sm">Общий расход</span>
+            </div>
+            <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em] text-orange-500">
+              {totals.totalSpent.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <TrendingUp className="h-4 w-4" />
+              <span className="text-sm">Общий приход</span>
+            </div>
+            <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em] text-emerald-500">
+              +{totals.totalIncome.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $
             </p>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
         <CardContent className="p-4">
           <h3 className="font-semibold mb-3">Сводка по бюджету</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Общий бюджет</span>
-              <span>{totalBudget.toLocaleString()} $</span>
+              <span>{totals.totalBudget.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Старый долг</span>
+              <span>{totals.totalOldDebt.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Потрачено</span>
-              <span>{totalSpent.toLocaleString()} $</span>
+              <span className="text-orange-500">{totals.totalSpent.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $</span>
             </div>
-            <div className="flex justify-between font-medium">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Приход</span>
+              <span className="text-emerald-500">+{totals.totalIncome.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $</span>
+            </div>
+            <div className="flex justify-between font-medium border-t border-border/50 pt-2">
               <span>Остаток</span>
-              <span className={totalRemaining < 0 ? "text-destructive" : ""}>
-                {totalRemaining.toLocaleString()} $
+              <span className={totalRemaining < 0 ? "text-destructive" : "text-emerald-500"}>
+                {totalRemaining.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $
               </span>
             </div>
           </div>
@@ -95,21 +142,23 @@ export function TripsReport() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-2">
               <AlertTriangle className="h-5 w-5" />
-              <h3 className="font-semibold">Перерасход</h3>
+              <h3 className="font-semibold">Поездки с минусовым остатком</h3>
             </div>
             <div className="space-y-2">
-              {overBudget.map((t) => {
-                const spent = (t.expenses ?? []).reduce((s, e) => s + parseFloat(e.amount || "0"), 0);
-                const budgetNum = parseFloat(t.budget || "0");
-                const over = spent - budgetNum;
+              {overBudget.map((trip) => {
+                const budget = parseFloat(trip.budgetUsd || trip.budget || "0");
+                const oldDebt = parseFloat(trip.oldDebt || "0");
+                const expenseItems = (trip.expenses ?? []).filter((e) => (e as { type?: string }).type !== "income");
+                const incomeItems = (trip.expenses ?? []).filter((e) => (e as { type?: string }).type === "income");
+                const spent = expenseItems.reduce((s, e) => s + parseFloat(e.amountUsd || e.amount || "0"), 0);
+                const income = incomeItems.reduce((s, e) => s + parseFloat(e.amountUsd || e.amount || "0"), 0);
+                const deficit = Math.abs(budget - oldDebt - spent + income);
+
                 return (
-                  <div
-                    key={t.id}
-                    className="flex justify-between items-center py-2 border-b border-border last:border-0"
-                  >
-                    <span className="truncate">{t.name}</span>
+                  <div key={trip.id} className="flex justify-between items-center py-2 border-b border-border last:border-0">
+                    <span className="truncate">{trip.name}</span>
                     <Badge variant="destructive" className="shrink-0">
-                      +{over.toLocaleString()} $
+                      -{deficit.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $
                     </Badge>
                   </div>
                 );
@@ -118,23 +167,6 @@ export function TripsReport() {
           </CardContent>
         </Card>
       )}
-
-      <Card className="rounded-2xl">
-        <CardContent className="p-4">
-          <h3 className="font-semibold mb-3">Поездки по статусу</h3>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">
-              Активных: {trips.filter((t) => t.status === "active").length}
-            </Badge>
-            <Badge variant="secondary">
-              Завершённых: {trips.filter((t) => t.status === "completed").length}
-            </Badge>
-            <Badge variant="secondary" className="bg-blue-500/20 text-blue-700 dark:text-blue-400">
-              Запланировано: {trips.filter((t) => t.status === "planned").length}
-            </Badge>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

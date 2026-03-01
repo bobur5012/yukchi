@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   try {
     const presignRes = await fetch(
       `${API_BASE}/storage/presign?url=${encodeURIComponent(targetUrl)}`,
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
     );
 
     if (!presignRes.ok) {
@@ -49,9 +49,7 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Presign failed", { status: 502 });
     }
 
-    const upstream = await fetch(signedUrl, {
-      next: { revalidate: 3600 },
-    });
+    const upstream = await fetch(signedUrl, { cache: "no-store" });
 
     if (!upstream.ok) {
       return new NextResponse(null, { status: upstream.status });
@@ -64,7 +62,7 @@ export async function GET(req: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
       },
     });
   } catch {

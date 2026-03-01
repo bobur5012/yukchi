@@ -77,14 +77,15 @@ export function ProductsList() {
           const trip = trips.find((t) => t.id === prod.tripId);
           return (
             <div
-              className="rounded-2xl border border-border/50 bg-card p-4 card-premium overflow-hidden cursor-pointer active:scale-[0.99]"
+              className="rounded-2xl border border-border/60 bg-card/95 p-4 card-premium shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)] overflow-hidden cursor-pointer active:scale-[0.99]"
               onClick={() => setProductDetail(prod)}
             >
               <div className="flex gap-4">
                 <div className="h-20 w-20 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                   {prod.imageUrl ? (
                     <img
-                      src={getAvatarUrl(prod.imageUrl, prod.id) ?? prod.imageUrl}
+                      key={`${prod.id}-${prod.imageUrl ?? "no-image"}`}
+                      src={getAvatarUrl(prod.imageUrl, `${prod.id}-${prod.imageUrl ?? ""}`) ?? prod.imageUrl}
                       alt={prod.name}
                       className="h-full w-full object-cover"
                     />
@@ -93,7 +94,7 @@ export function ProductsList() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-[15px] font-semibold truncate">
+                  <h3 className="text-[15px] font-semibold leading-tight break-words">
                     {prod.name}
                   </h3>
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -107,9 +108,9 @@ export function ProductsList() {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">{trip?.name ?? "-"}</p>
+                  <p className="mt-1 text-xs text-muted-foreground break-words">{trip?.name ?? "-"}</p>
                   {prod.salePrice && (
-                    <p className="text-sm font-semibold text-emerald-600 mt-1">
+                    <p className="mt-1.5 text-sm font-semibold text-emerald-600 tabular-nums">
                       {formatAmount(parseFloat(prod.salePrice))}
                     </p>
                   )}

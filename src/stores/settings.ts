@@ -66,7 +66,7 @@ export const DEFAULT_TEMPLATES: MessageTemplates = {
   newExpense:
     "💸 *Новый расход*\n✈️ Поездка: {trip}\n📝 Описание: {description}\n💰 Сумма: {amount} {currency}\n👤 Добавил: {courier}",
   newProduct:
-    '*New product*\nTrip: {trip}\nShop: {shop}\nName: {name}\nQuantity: {quantity} {unit}\nCost price: {costPrice} {currency}\nSale price: {salePrice} {currency}\nPrice per kg: {pricePerKg} {currency}\nTotal cost: {totalCost} {currency}\nTotal sale: {totalSale} {currency}\nTotal by kg: {totalByKg} {currency}\nAdded by: {addedBy}\nTime: {createdAt}',
+    "📦 *Yangi mahsulot*\n✈️ Safar: {trip}\n🏬 Do'kon: {shop}\n🏷 Nomi: {name}\n🔢 Miqdor: {quantity} {unit}\n💵 Sotuv narxi: {salePrice} {currency}\n🚚 Dostavka turi: {deliveryMode}\n🚚 Dostavka narxi: {deliveryPrice} {currency}\n⚖️ 1 kg narxi: {pricePerKg} {currency}\n🧾 Mahsulot jami: {totalSale} {currency}\n🚚 Dostavka jami: {totalDelivery} {currency}\n💰 Umumiy jami: {grandTotal} {currency}\n👤 Qo'shgan: {addedBy}\n🕒 Sana: {createdAt}",
   newShop:
     "🏪 *Новый магазин*\n📛 Название: {name}\n👤 Владелец: {owner}\n📞 Телефон: {phone}\n📍 Адрес: {address}",
   newCourier:

@@ -1,12 +1,20 @@
 import { getApiToken } from "./api-token";
 import { handleUnauthorized } from "./on-unauthorized";
-import { getCacheKey, getCached, setCached } from "@/lib/cache/api-cache";
+import { clearCached, getCacheKey, getCached, setCached } from "@/lib/cache/api-cache";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ||
   (typeof window !== "undefined" ? "" : "http://localhost:3000") + "/api/v1";
 
 let refreshInFlight: Promise<string | null> | null = null;
+
+function shouldBypassCache(path: string): boolean {
+  return (
+    path.startsWith("/dashboard") ||
+    path.startsWith("/trips") ||
+    path.startsWith("/products")
+  );
+}
 
 async function refreshAccessToken(): Promise<string | null> {
   if (refreshInFlight) return refreshInFlight;
@@ -92,6 +100,10 @@ export async function apiFetch<T>(
 }
 
 async function cachedGet<T>(path: string): Promise<T> {
+  if (shouldBypassCache(path)) {
+    return apiFetch<T>(path, { method: "GET" });
+  }
+
   const key = getCacheKey(path);
   if (typeof navigator !== "undefined" && !navigator.onLine) {
     const cached = await getCached<T>(key);
@@ -113,10 +125,12 @@ async function mutateWithOfflineQueue<T>(
     await useSyncQueue.getState().enqueue({ method, path, body });
     throw new Error("Действие сохранено. Будет выполнено при подключении к интернету.");
   }
-  return apiFetch<T>(path, {
+  const result = await apiFetch<T>(path, {
     method,
     body: body ? JSON.stringify(body) : undefined,
   });
+  await clearCached();
+  return result;
 }
 
 export const api = {

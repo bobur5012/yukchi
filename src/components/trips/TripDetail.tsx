@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { getTrip } from "@/lib/api/trips";
 import { getProducts } from "@/lib/api/products";
-import { getCouriers } from "@/lib/api/couriers";
 import { formatDateSafe } from "@/lib/date-utils";
 import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { useTranslations } from "@/lib/useTranslations";
@@ -34,7 +33,6 @@ export function TripDetail({ tripId }: TripDetailProps) {
   const role = useAuthStore((s) => s.user?.role);
   const [trip, setTrip] = useState<Trip | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [courierNames, setCourierNames] = useState<Record<string, string>>({});
   const [expenseDetail, setExpenseDetail] = useState<Expense | null>(null);
   const [productDetail, setProductDetail] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,14 +44,10 @@ export function TripDetail({ tripId }: TripDetailProps) {
     Promise.all([
       getTrip(tripId),
       getProducts(tripId),
-      getCouriers(),
     ])
-      .then(([tripData, productsData, couriersData]) => {
+      .then(([tripData, productsData]) => {
         setTrip(tripData ?? null);
         setProducts(productsData);
-        const map: Record<string, string> = {};
-        couriersData.forEach((c) => { map[String(c.id)] = c.name; });
-        setCourierNames(map);
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
       .finally(() => setLoading(false));
@@ -85,7 +79,8 @@ export function TripDetail({ tripId }: TripDetailProps) {
   const spent = expenseItems.reduce((s, e) => s + parseFloat(e.amountUsd || e.amount || "0"), 0);
   const income = incomeItems.reduce((s, e) => s + parseFloat(e.amountUsd || e.amount || "0"), 0);
   const budget = parseFloat(trip.budgetUsd || trip.budget || "0");
-  const remaining = budget - spent + income;
+  const oldDebt = parseFloat(trip.oldDebt || "0");
+  const remaining = budget - oldDebt - spent + income;
 
   return (
     <div className="space-y-4">
@@ -112,8 +107,22 @@ export function TripDetail({ tripId }: TripDetailProps) {
                     remaining < 0 ? "text-destructive" : ""
                   }`}
                 >
-                  {formatAmount(Math.max(0, remaining))}
+                  {formatAmount(remaining)}
                 </p>
+              </div>
+              <div className="grid grid-cols-3 gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
+                <div className="text-center">
+                  <p className="text-[11px] text-muted-foreground">Расход</p>
+                  <p className="text-[14px] font-semibold text-orange-500 tabular-nums">{formatAmount(spent)}</p>
+                </div>
+                <div className="text-center border-x border-border/40">
+                  <p className="text-[11px] text-muted-foreground">Приход</p>
+                  <p className="text-[14px] font-semibold text-emerald-500 tabular-nums">+{formatAmount(income)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[11px] text-muted-foreground">Старый долг</p>
+                  <p className="text-[14px] font-semibold tabular-nums">{formatAmount(oldDebt)}</p>
+                </div>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-3">{t("tripsDetail.participants")}</p>
@@ -264,7 +273,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
                 height="min(400px, 50vh)"
                 renderItem={(prod) => (
                   <Card
-                    className="rounded-2xl card-premium cursor-pointer active:scale-[0.99] overflow-hidden"
+                    className="rounded-2xl card-premium cursor-pointer active:scale-[0.99] overflow-hidden border-border/60 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]"
                     onClick={() => setProductDetail(prod)}
                   >
                     <CardContent className="p-0">
@@ -272,7 +281,8 @@ export function TripDetail({ tripId }: TripDetailProps) {
                         <div className="w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-muted">
                           {prod.imageUrl ? (
                             <img
-                              src={getAvatarUrl(prod.imageUrl, prod.id)}
+                              key={`${prod.id}-${prod.imageUrl ?? "no-image"}`}
+                              src={getAvatarUrl(prod.imageUrl, `${prod.id}-${prod.imageUrl ?? ""}`)}
                               alt={prod.name}
                               className="w-full h-full object-cover"
                             />
@@ -283,7 +293,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-[15px] truncate">{prod.name}</p>
+                          <p className="font-semibold text-[15px] leading-tight break-words">{prod.name}</p>
                           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                             <span className="text-sm text-muted-foreground">
                               {prod.quantity} {prod.unit ?? "шт"}

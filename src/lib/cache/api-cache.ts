@@ -54,6 +54,34 @@ function set(key: string, value: CacheEntry): Promise<void> {
   );
 }
 
+function del(key: string): Promise<void> {
+  return openDb().then(
+    (db) =>
+      new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        tx.objectStore(STORE_NAME).delete(key);
+        tx.oncomplete = () => {
+          db.close();
+          resolve();
+        };
+        tx.onerror = () => reject(tx.error);
+      })
+  );
+}
+
+function keys(): Promise<string[]> {
+  return openDb().then(
+    (db) =>
+      new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const req = tx.objectStore(STORE_NAME).getAllKeys();
+        req.onsuccess = () => resolve((req.result ?? []).map((k) => String(k)));
+        req.onerror = () => reject(req.error);
+        tx.oncomplete = () => db.close();
+      })
+  );
+}
+
 export function getCacheKey(path: string, params?: Record<string, string>): string {
   const q = params ? "?" + new URLSearchParams(params).toString() : "";
   return path + q;
@@ -79,5 +107,16 @@ export async function setCached(key: string, data: unknown): Promise<void> {
     await set(key, { data, timestamp: Date.now() });
   } catch {
     // ignore cache write errors
+  }
+}
+
+export async function clearCached(prefix?: string): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    const allKeys = await keys();
+    const targetKeys = prefix ? allKeys.filter((k) => k.startsWith(prefix)) : allKeys;
+    await Promise.all(targetKeys.map((k) => del(k)));
+  } catch {
+    // ignore cache clear errors
   }
 }

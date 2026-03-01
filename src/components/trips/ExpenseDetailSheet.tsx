@@ -22,36 +22,41 @@ export function ExpenseDetailSheet({
   open,
   onOpenChange,
   expense,
-  tripCurrency,
+  tripCurrency: _tripCurrency,
 }: ExpenseDetailSheetProps) {
   const { locale } = useTranslations();
   const { formatAmount } = useFormattedAmount();
   if (!expense) return null;
 
+  const isIncome = (expense as Expense & { type?: string }).type === "income";
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="rounded-t-2xl">
         <SheetHeader>
-          <SheetTitle>Расход</SheetTitle>
+          <SheetTitle>{isIncome ? "Приход" : "Расход"}</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 px-4 pb-6">
           <div>
             <p className="text-[13px] text-muted-foreground">Описание</p>
-            <p className="text-[17px] font-semibold">{expense.description}</p>
+            <p className="text-[17px] font-semibold break-words">{expense.description}</p>
           </div>
           <div>
             <p className="text-[13px] text-muted-foreground">Сумма</p>
-            <p className="text-[20px] font-semibold tabular-nums tracking-[-0.03em]">
+            <p className={`text-[20px] font-semibold tabular-nums tracking-[-0.03em] ${isIncome ? "text-emerald-600" : ""}`}>
+              {isIncome ? "+" : ""}
               {formatAmount(parseFloat(expense.amountUsd || expense.amount || "0"))}
             </p>
           </div>
           <div>
             <p className="text-[13px] text-muted-foreground">Дата</p>
-            <p className="text-[15px] font-medium">{expense.createdAt ? formatDateSafe(expense.createdAt, "d MMMM yyyy", locale) : "—"}</p>
+            <p className="text-[15px] font-medium">
+              {expense.createdAt ? formatDateSafe(expense.createdAt, "d MMMM yyyy", locale) : "—"}
+            </p>
           </div>
           {expense.createdByUser && (
             <div>
-              <p className="text-[13px] text-muted-foreground">Кто внёс</p>
+              <p className="text-[13px] text-muted-foreground">Кто внес</p>
               <p className="text-[15px] font-medium">{expense.createdByUser.name}</p>
             </div>
           )}

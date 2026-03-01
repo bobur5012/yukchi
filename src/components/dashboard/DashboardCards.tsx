@@ -13,42 +13,58 @@ import {
   AlertTriangle,
   Plane,
   PiggyBank,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 
 const metricCards = [
   {
     title: "Общий долг",
-    getValue: (d: DashboardData, fa: (n: number) => string, _fau: (n: number) => string) => fa(parseFloat(d.metrics.totalDebt || "0")),
+    getValue: (d: DashboardData, fa: (n: number) => string) => fa(parseFloat(d.metrics.totalDebt || "0")),
     href: "/shops",
     icon: Wallet,
     gradient: "from-indigo-500/20 to-blue-500/20 dark:from-indigo-500/30 dark:to-blue-500/30",
   },
   {
     title: "Активные поездки",
-    getValue: (d: DashboardData, _fa?: (n: number) => string, _fau?: (n: number) => string) => String(d.metrics.tripsCount ?? 0),
+    getValue: (d: DashboardData) => String(d.metrics.tripsCount ?? 0),
     href: "/trips",
     icon: Plane,
     gradient: "from-emerald-500/20 to-teal-500/20 dark:from-emerald-500/30 dark:to-teal-500/30",
   },
   {
     title: "Остаток бюджета",
-    getValue: (d: DashboardData, fa: (n: number) => string, _fau: (n: number) => string) => fa(parseFloat(d.metrics.remainingUsd || "0")),
+    getValue: (d: DashboardData, fa: (n: number) => string) => fa(parseFloat(d.metrics.remainingUsd || "0")),
     href: "/trips",
     icon: PiggyBank,
-    gradient: "from-violet-500/20 to-purple-500/20 dark:from-violet-500/30 dark:to-purple-500/30",
+    gradient: "from-violet-500/20 to-indigo-500/20 dark:from-violet-500/30 dark:to-indigo-500/30",
+  },
+  {
+    title: "Общий расход",
+    getValue: (d: DashboardData, fa: (n: number) => string) => fa(parseFloat(d.metrics.totalExpensesUsd || "0")),
+    href: "/trips",
+    icon: TrendingDown,
+    gradient: "from-amber-500/20 to-orange-500/20 dark:from-amber-500/30 dark:to-orange-500/30",
+  },
+  {
+    title: "Общий приход",
+    getValue: (d: DashboardData, fa: (n: number) => string) => fa(parseFloat(d.metrics.totalIncomeUsd || "0")),
+    href: "/trips",
+    icon: TrendingUp,
+    gradient: "from-emerald-500/20 to-lime-500/20 dark:from-emerald-500/30 dark:to-lime-500/30",
   },
   {
     title: "Магазины",
-    getValue: (d: DashboardData, _fa?: (n: number) => string, _fau?: (n: number) => string) => String(d.metrics.shopsCount ?? 0),
+    getValue: (d: DashboardData) => String(d.metrics.shopsCount ?? 0),
     href: "/shops",
     icon: AlertTriangle,
-    gradient: "from-amber-500/20 to-orange-500/20 dark:from-amber-500/30 dark:to-orange-500/30",
+    gradient: "from-sky-500/20 to-cyan-500/20 dark:from-sky-500/30 dark:to-cyan-500/30",
   },
 ];
 
 export function DashboardCards() {
   const role = useAuthStore((s) => s.user?.role);
-  const { formatAmount, formatAmountFromUzs } = useFormattedAmount();
+  const { formatAmount } = useFormattedAmount();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -61,7 +77,7 @@ export function DashboardCards() {
   if (loading) {
     return (
       <div className="grid gap-4 grid-cols-2">
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3, 4, 5, 6].map((i) => (
           <Card key={i} className="rounded-2xl animate-pulse">
             <CardContent className="p-3 h-24" />
           </Card>
@@ -78,12 +94,10 @@ export function DashboardCards() {
             key={title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
+            transition={{ delay: i * 0.06 }}
           >
             <Link href={href}>
-              <Card
-                className={`overflow-hidden bg-gradient-to-br ${gradient} border-0 shadow-lg h-24 transition-opacity hover:opacity-90 active:opacity-95`}
-              >
+              <Card className={`overflow-hidden bg-gradient-to-br ${gradient} border-0 shadow-lg h-24 transition-opacity hover:opacity-90 active:opacity-95`}>
                 <CardHeader className="pb-1 pt-3 px-3">
                   <div className="flex items-center gap-2">
                     <Icon className="h-5 w-5 text-primary" />
@@ -91,8 +105,8 @@ export function DashboardCards() {
                   </div>
                 </CardHeader>
                 <CardContent className="px-3 pb-3 pt-0">
-                  <p className="text-[20px] font-bold tracking-[-0.03em]">
-                    {getValue(data, formatAmount, formatAmountFromUzs)}
+                  <p className="text-[20px] font-bold tracking-[-0.03em] tabular-nums">
+                    {getValue(data, formatAmount)}
                   </p>
                 </CardContent>
               </Card>

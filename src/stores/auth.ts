@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { login as apiLogin, logout as apiLogout } from "@/lib/api/auth";
 import type { AuthUser } from "@/lib/api/auth";
+import { AUTH_TOKEN_COOKIE, AUTH_TTL_SECONDS } from "@/lib/api/constants";
 
 interface AuthState {
   user: AuthUser | null;
@@ -32,7 +33,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           const res = await apiLogin(phone, password);
           if (typeof document !== "undefined") {
-            document.cookie = `yukchi_token=${res.accessToken}; path=/; SameSite=Lax; max-age=86400`;
+            document.cookie = `${AUTH_TOKEN_COOKIE}=${res.accessToken}; path=/; SameSite=Lax; max-age=${AUTH_TTL_SECONDS}`;
           }
           set({
             user: res.user,
@@ -55,8 +56,8 @@ export const useAuthStore = create<AuthState>()(
           // ignore
         }
         if (typeof window !== "undefined") {
-          localStorage.removeItem("yukchi_token");
-          document.cookie = "yukchi_token=; path=/; max-age=0";
+          localStorage.removeItem(AUTH_TOKEN_COOKIE);
+          document.cookie = `${AUTH_TOKEN_COOKIE}=; path=/; max-age=0`;
         }
         set({
           user: null,
@@ -67,7 +68,7 @@ export const useAuthStore = create<AuthState>()(
 
       setAuth: (user, token) => {
         if (typeof document !== "undefined") {
-          document.cookie = `yukchi_token=${token}; path=/; SameSite=Lax; max-age=86400`;
+          document.cookie = `${AUTH_TOKEN_COOKIE}=${token}; path=/; SameSite=Lax; max-age=${AUTH_TTL_SECONDS}`;
         }
         set({
           user,
@@ -96,11 +97,11 @@ export const useAuthStore = create<AuthState>()(
           if (error) {
             console.warn("[auth] rehydration error, clearing storage", error);
             localStorage.removeItem(AUTH_KEY);
-            localStorage.removeItem("yukchi_token");
-            document.cookie = "yukchi_token=; path=/; max-age=0";
+            localStorage.removeItem(AUTH_TOKEN_COOKIE);
+            document.cookie = `${AUTH_TOKEN_COOKIE}=; path=/; max-age=0`;
           } else if (state?.accessToken) {
-            localStorage.setItem("yukchi_token", state.accessToken);
-            document.cookie = `yukchi_token=${state.accessToken}; path=/; SameSite=Lax; max-age=86400`;
+            localStorage.setItem(AUTH_TOKEN_COOKIE, state.accessToken);
+            document.cookie = `${AUTH_TOKEN_COOKIE}=${state.accessToken}; path=/; SameSite=Lax; max-age=${AUTH_TTL_SECONDS}`;
           }
           state?.setHasHydrated(true);
         }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { getCouriers } from "@/lib/api/couriers";
 import { TURKEY_CITIES } from "@/lib/constants";
 import { CourierSelectList } from "@/components/couriers/CourierSelectList";
 import { useTranslations } from "@/lib/useTranslations";
+import { getLocalDateInputValue } from "@/lib/date-utils";
 import type { Courier } from "@/types";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection, FieldHint } from "@/components/ui/form-helpers";
@@ -26,7 +27,7 @@ type FundingMode = "cash" | "debt";
 export function AddTripForm() {
   const { t } = useTranslations();
   const router = useRouter();
-  const today = new Date().toISOString().split("T")[0];
+  const today = getLocalDateInputValue();
 
   const [name, setName] = useState("");
   const [dateDeparture, setDateDeparture] = useState(today);
@@ -40,9 +41,36 @@ export function AddTripForm() {
   const [debtAmount, setDebtAmount] = useState("0");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const resetForm = useCallback(() => {
+    const currentDay = getLocalDateInputValue();
+    setName("");
+    setDateDeparture(currentDay);
+    setDateReturn(currentDay);
+    setBudget("");
+    setCity("");
+    setCityOther("");
+    setCourierIds([]);
+    setFundingMode("cash");
+    setDebtAmount("0");
+  }, []);
+
   useEffect(() => {
     getCouriers().then(setCouriers);
   }, []);
+
+  useEffect(() => {
+    resetForm();
+  }, [resetForm]);
+
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        resetForm();
+      }
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, [resetForm]);
 
   useEffect(() => {
     if (fundingMode === "cash") {
@@ -105,7 +133,7 @@ export function AddTripForm() {
   const showDebtInput = fundingMode === "debt";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pb-20 max-w-md mx-auto">
+    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[420px] space-y-5 pb-24">
       <FormCard>
         <FormSection>
           <FormRow label={t("trips.name")}>
@@ -113,7 +141,7 @@ export function AddTripForm() {
           </FormRow>
         </FormSection>
 
-        <FormSection title={t("trips.dates")}>
+        <FormSection title={t("trips.dates")} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="text-xs text-muted-foreground mb-1.5">{t("trips.departureDate")}</p>
@@ -131,7 +159,7 @@ export function AddTripForm() {
           )}
         </FormSection>
 
-        <FormSection title={t("trips.region")}>
+        <FormSection title={t("trips.region")} className="space-y-3">
           <Select value={city} onValueChange={setCity}>
             <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
               <SelectValue placeholder={t("trips.selectRegion")} />
@@ -156,7 +184,7 @@ export function AddTripForm() {
           )}
         </FormSection>
 
-        <FormSection title={`${t("trips.budget")} (USD)`}>
+        <FormSection title={`${t("trips.budget")} (USD)`} className="space-y-3">
           <Input type="number" step="0.01" placeholder="5 000" value={budget} onChange={(e) => setBudget(e.target.value)} />
         </FormSection>
 

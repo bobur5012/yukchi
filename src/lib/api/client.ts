@@ -1,10 +1,10 @@
 import { getApiToken } from "./api-token";
 import { handleUnauthorized } from "./on-unauthorized";
+import { getApiBase } from "./base";
+import { AUTH_TOKEN_COOKIE, AUTH_TTL_SECONDS } from "./constants";
 import { clearCached, getCacheKey, getCached, setCached } from "@/lib/cache/api-cache";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== "undefined" ? "" : "http://localhost:3000") + "/api/v1";
+const API_BASE = getApiBase();
 
 let refreshInFlight: Promise<string | null> | null = null;
 
@@ -40,8 +40,8 @@ async function refreshAccessToken(): Promise<string | null> {
 
     if (!token || typeof window === "undefined") return token;
 
-    localStorage.setItem("yukchi_token", token);
-    document.cookie = `yukchi_token=${token}; path=/; SameSite=Lax; max-age=86400`;
+    localStorage.setItem(AUTH_TOKEN_COOKIE, token);
+    document.cookie = `${AUTH_TOKEN_COOKIE}=${token}; path=/; SameSite=Lax; max-age=${AUTH_TTL_SECONDS}`;
 
     const { useAuthStore } = await import("@/stores/auth");
     useAuthStore.getState().setAccessToken(token);

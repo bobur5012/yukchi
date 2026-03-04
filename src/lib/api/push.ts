@@ -1,9 +1,7 @@
 import { api } from "./client";
+import { getApiBase } from "./base";
 
-const API_BASE =
-  (process.env.NEXT_PUBLIC_API_URL ||
-    (typeof window !== "undefined" ? "" : "http://localhost:3000")) +
-  "/api/v1";
+const API_BASE = getApiBase();
 
 export interface PushSubscriptionPayload {
   endpoint: string;

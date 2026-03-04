@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerApiBase } from "@/lib/api/base";
+import { AUTH_TOKEN_COOKIE } from "@/lib/api/constants";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== "undefined" ? "" : "http://localhost:3000") + "/api/v1";
+const API_BASE = getServerApiBase();
 
 /**
  * Image proxy for private S3 storage. Fetches a presigned URL from the backend
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Invalid url", { status: 400 });
   }
 
-  const token = req.cookies.get("yukchi_token")?.value;
+  const token = req.cookies.get(AUTH_TOKEN_COOKIE)?.value;
   if (!token) {
     return new NextResponse(null, { status: 401 });
   }

@@ -5,6 +5,13 @@ export type DateLocale = "ru" | "uz";
 
 const dateLocales = { ru, uz } as const;
 
+export function getLocalDateInputValue(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 /**
  * Форматирует дату. Поддерживает ISO (2026-02-25T09:07:21.089Z) и YYYY-MM-DD.
  * Для YYYY-MM-DD добавляет T12:00:00 чтобы избежать проблем с часовыми поясами.

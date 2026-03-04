@@ -1,3 +1,5 @@
+import { AUTH_TOKEN_COOKIE } from "./constants";
+
 /**
  * Centralized token access for API client.
  * Avoids circular dependency: auth store -> api -> auth store.
@@ -12,5 +14,5 @@ export function setApiTokenGetter(fn: () => string | null): void {
 export function getApiToken(): string | null {
   if (tokenGetter) return tokenGetter();
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("yukchi_token");
+  return localStorage.getItem(AUTH_TOKEN_COOKIE);
 }

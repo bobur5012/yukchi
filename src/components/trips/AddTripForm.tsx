@@ -134,9 +134,11 @@ export function AddTripForm() {
 
   const showCityOther = city === OTHER_VALUE;
   const showDebtInput = fundingMode === "debt";
+  const fieldClass = "w-full h-[40px] text-[14px]";
+  const selectClass = "w-full h-[40px] rounded-xl border-border bg-muted/50 text-[14px]";
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[360px] px-2 sm:max-w-[400px] sm:px-0 space-y-4 pb-20">
+    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[340px] px-2 sm:max-w-[360px] sm:px-0 space-y-4 pb-20">
       <FormCard>
         <FormSection>
           <FormRow label={t("trips.name")}>
@@ -144,7 +146,7 @@ export function AddTripForm() {
               placeholder={t("trips.namePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-[42px] text-[15px]"
+              className={fieldClass}
             />
           </FormRow>
         </FormSection>
@@ -157,7 +159,7 @@ export function AddTripForm() {
                 type="date"
                 value={dateDeparture}
                 onChange={(e) => setDateDeparture(e.target.value)}
-                className="h-[42px] text-[15px]"
+                className={fieldClass}
               />
             </div>
             <div>
@@ -167,7 +169,7 @@ export function AddTripForm() {
                 value={dateReturn}
                 onChange={(e) => setDateReturn(e.target.value)}
                 min={dateDeparture}
-                className="h-[42px] text-[15px]"
+                className={fieldClass}
               />
             </div>
           </div>
@@ -180,7 +182,7 @@ export function AddTripForm() {
 
         <FormSection title={t("trips.region")} className="space-y-3">
           <Select value={city} onValueChange={setCity}>
-            <SelectTrigger className="w-full h-[42px] rounded-xl border-border bg-muted/50 text-[15px]">
+            <SelectTrigger className={selectClass}>
               <SelectValue placeholder={t("trips.selectRegion")} />
             </SelectTrigger>
             <SelectContent position="popper" className="z-[100]">
@@ -198,7 +200,7 @@ export function AddTripForm() {
                 placeholder="Укажите город"
                 value={cityOther}
                 onChange={(e) => setCityOther(e.target.value)}
-                className="h-[42px] rounded-xl text-[15px]"
+                className={fieldClass}
               />
             </div>
           )}
@@ -211,13 +213,13 @@ export function AddTripForm() {
             placeholder="5 000"
             value={budget}
             onChange={(e) => setBudget(e.target.value)}
-            className="h-[42px] text-[15px]"
+            className={fieldClass}
           />
         </FormSection>
 
         <FormSection title="Тип финансирования" className="space-y-3">
           <Select value={fundingMode} onValueChange={(value) => setFundingMode(value as FundingMode)}>
-            <SelectTrigger className="w-full h-[42px] rounded-xl border-border bg-muted/50 text-[15px]">
+            <SelectTrigger className={selectClass}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -239,7 +241,7 @@ export function AddTripForm() {
                 placeholder="5000"
                 value={debtAmount}
                 onChange={(e) => setDebtAmount(e.target.value)}
-                className="h-[42px] text-[15px]"
+                className={fieldClass}
               />
             </div>
           )}

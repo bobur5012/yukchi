@@ -21,7 +21,7 @@ import type { Courier } from "@/types";
 import { toast } from "sonner";
 import { FormCard, FormRow, FormSection, FieldHint } from "@/components/ui/form-helpers";
 
-const OTHER_VALUE = "Р”СЂСѓРіРѕРµ";
+const OTHER_VALUE = "Другое";
 type FundingMode = "cash" | "debt";
 
 export function AddTripForm() {
@@ -68,6 +68,7 @@ export function AddTripForm() {
         resetForm();
       }
     };
+
     window.addEventListener("pageshow", onPageShow);
     return () => window.removeEventListener("pageshow", onPageShow);
   }, [resetForm]);
@@ -91,12 +92,14 @@ export function AddTripForm() {
       toast.error(t("common.fillAllFields"));
       return;
     }
+
     if (dateReturn < dateDeparture) {
       toast.error(t("trips.returnBeforeDeparture"));
       return;
     }
+
     if (fundingMode === "debt" && (Number.isNaN(numDebt) || numDebt <= 0)) {
-      toast.error("РЈРєР°Р¶РёС‚Рµ СЃСѓРјРјСѓ РґРѕР»РіР°");
+      toast.error("Укажите сумму долга");
       return;
     }
 
@@ -133,23 +136,39 @@ export function AddTripForm() {
   const showDebtInput = fundingMode === "debt";
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[420px] space-y-5 pb-24">
+    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[360px] px-2 sm:max-w-[400px] sm:px-0 space-y-4 pb-20">
       <FormCard>
         <FormSection>
           <FormRow label={t("trips.name")}>
-            <Input placeholder={t("trips.namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              placeholder={t("trips.namePlaceholder")}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-[42px] text-[15px]"
+            />
           </FormRow>
         </FormSection>
 
         <FormSection title={t("trips.dates")} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <div>
               <p className="text-xs text-muted-foreground mb-1.5">{t("trips.departureDate")}</p>
-              <Input type="date" value={dateDeparture} onChange={(e) => setDateDeparture(e.target.value)} />
+              <Input
+                type="date"
+                value={dateDeparture}
+                onChange={(e) => setDateDeparture(e.target.value)}
+                className="h-[42px] text-[15px]"
+              />
             </div>
             <div>
               <p className="text-xs text-muted-foreground mb-1.5">{t("trips.returnDate")}</p>
-              <Input type="date" value={dateReturn} onChange={(e) => setDateReturn(e.target.value)} min={dateDeparture} />
+              <Input
+                type="date"
+                value={dateReturn}
+                onChange={(e) => setDateReturn(e.target.value)}
+                min={dateDeparture}
+                className="h-[42px] text-[15px]"
+              />
             </div>
           </div>
           {durationDays > 0 && (
@@ -161,7 +180,7 @@ export function AddTripForm() {
 
         <FormSection title={t("trips.region")} className="space-y-3">
           <Select value={city} onValueChange={setCity}>
-            <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
+            <SelectTrigger className="w-full h-[42px] rounded-xl border-border bg-muted/50 text-[15px]">
               <SelectValue placeholder={t("trips.selectRegion")} />
             </SelectTrigger>
             <SelectContent position="popper" className="z-[100]">
@@ -170,46 +189,57 @@ export function AddTripForm() {
                   {cityName}
                 </SelectItem>
               ))}
+              <SelectItem value={OTHER_VALUE}>{OTHER_VALUE}</SelectItem>
             </SelectContent>
           </Select>
           {showCityOther && (
             <div className="mt-3">
               <Input
-                placeholder="РЈРєР°Р¶РёС‚Рµ РіРѕСЂРѕРґ"
+                placeholder="Укажите город"
                 value={cityOther}
                 onChange={(e) => setCityOther(e.target.value)}
-                className="h-[44px] rounded-xl"
+                className="h-[42px] rounded-xl text-[15px]"
               />
             </div>
           )}
         </FormSection>
 
         <FormSection title={`${t("trips.budget")} (USD)`} className="space-y-3">
-          <Input type="number" step="0.01" placeholder="5 000" value={budget} onChange={(e) => setBudget(e.target.value)} />
+          <Input
+            type="number"
+            step="0.01"
+            placeholder="5 000"
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+            className="h-[42px] text-[15px]"
+          />
         </FormSection>
 
-        <FormSection title="РўРёРї С„РёРЅР°РЅСЃРёСЂРѕРІР°РЅРёСЏ">
+        <FormSection title="Тип финансирования" className="space-y-3">
           <Select value={fundingMode} onValueChange={(value) => setFundingMode(value as FundingMode)}>
-            <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
+            <SelectTrigger className="w-full h-[42px] rounded-xl border-border bg-muted/50 text-[15px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="cash">РќР°Р»РёС‡РєР° (РјР°РіР°Р·РёРЅ РґР°Р» РґРµРЅСЊРіРё)</SelectItem>
-              <SelectItem value="debt">Р”РѕР»Рі (Р·Р°РєСѓРї Р·Р° СЃС‡РµС‚ РѕСЂРіР°РЅРёР·Р°С†РёРё)</SelectItem>
+              <SelectItem value="cash">Наличка (магазин дал деньги)</SelectItem>
+              <SelectItem value="debt">Долг (закуп за счет организации)</SelectItem>
             </SelectContent>
           </Select>
           <FieldHint>
-            РќР°Р»РёС‡РєР°: Р·Р°РєСѓРїРєР° РЅР° РґРµРЅСЊРіРё РјР°РіР°Р·РёРЅР°. Р”РѕР»Рі: С‚РѕРІР°СЂ + РґРѕСЃС‚Р°РІРєР° РґРѕР±Р°РІСЏС‚СЃСЏ РІ Р·Р°РґРѕР»Р¶РµРЅРЅРѕСЃС‚СЊ РјР°РіР°Р·РёРЅР°.
+            <span className="block break-words text-[11px] leading-4">
+              Наличка: закупка на деньги магазина. Долг: товар + доставка добавятся в задолженность магазина.
+            </span>
           </FieldHint>
           {showDebtInput && (
             <div className="mt-3">
-              <p className="text-xs text-muted-foreground mb-1.5">РЎСѓРјРјР° РґРѕР»РіР° (USD)</p>
+              <p className="text-xs text-muted-foreground mb-1.5">Сумма долга (USD)</p>
               <Input
                 type="number"
                 step="0.01"
                 placeholder="5000"
                 value={debtAmount}
                 onChange={(e) => setDebtAmount(e.target.value)}
+                className="h-[42px] text-[15px]"
               />
             </div>
           )}
@@ -223,7 +253,7 @@ export function AddTripForm() {
       </FormCard>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "РЎРѕС…СЂР°РЅРµРЅРёРµ..." : t("trips.create")}
+        {isSubmitting ? "Сохранение..." : t("trips.create")}
       </Button>
     </form>
   );

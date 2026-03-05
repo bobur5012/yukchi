@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useTranslations } from "@/lib/useTranslations";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { useSettingsStore, DEFAULT_TEMPLATES, type MessageTemplates } from "@/stores/settings";
 import { useAuthStore } from "@/stores/auth";
 import {
@@ -21,7 +20,10 @@ import { sendTestPush } from "@/lib/api/push";
 import { CheckCircle, XCircle, LogOut, Bell, BellOff, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
-interface SettingsContentProps { role?: "admin" | "courier" }
+interface SettingsContentProps {
+  role?: "admin" | "courier";
+  hideNotifications?: boolean;
+}
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -30,15 +32,6 @@ function SectionCard({ title, children }: { title: string; children: React.React
         <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-[0.07em]">{title}</p>
       </div>
       <div className="px-4 pb-4 pt-2 space-y-3">{children}</div>
-    </div>
-  );
-}
-
-function SettingRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between min-h-[44px]">
-      <span className="text-[16px]">{label}</span>
-      {children}
     </div>
   );
 }
@@ -100,7 +93,7 @@ const TEMPLATE_META: Array<{
   },
 ];
 
-export function SettingsContent({ role = "admin" }: SettingsContentProps) {
+export function SettingsContent({ role = "admin", hideNotifications = false }: SettingsContentProps) {
   const { t } = useTranslations();
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
@@ -213,55 +206,56 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
 
   return (
     <div className="space-y-4">
-      {/* Push & Notifications */}
-      <SectionCard title={t("settings.notifications")}>
-        {push.isSupported && (
-          <>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[16px]">{t("push.title")}</span>
-              <div className="flex gap-2">
-                {push.isSubscribed ? (
-                  <>
+      {!hideNotifications && (
+        <SectionCard title={t("settings.notifications")}>
+          {push.isSupported && (
+            <>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[16px]">{t("push.title")}</span>
+                <div className="flex gap-2">
+                  {push.isSubscribed ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 rounded-xl"
+                        onClick={handleSendTestPush}
+                        disabled={sendingTest}
+                      >
+                        {sendingTest ? "..." : t("push.sendTest")}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 rounded-xl"
+                        onClick={handleDisablePush}
+                        disabled={push.loading}
+                      >
+                        <BellOff className="size-4 mr-1" />
+                        {t("push.disable")}
+                      </Button>
+                    </>
+                  ) : (
                     <Button
                       variant="outline"
                       size="sm"
                       className="h-9 rounded-xl"
-                      onClick={handleSendTestPush}
-                      disabled={sendingTest}
-                    >
-                      {sendingTest ? "..." : t("push.sendTest")}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 rounded-xl"
-                      onClick={handleDisablePush}
+                      onClick={handleEnablePush}
                       disabled={push.loading}
                     >
-                      <BellOff className="size-4 mr-1" />
-                      {t("push.disable")}
+                      <Bell className="size-4 mr-1" />
+                      {t("push.enable")}
                     </Button>
-                  </>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 rounded-xl"
-                    onClick={handleEnablePush}
-                    disabled={push.loading}
-                  >
-                    <Bell className="size-4 mr-1" />
-                    {t("push.enable")}
-                  </Button>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-            {push.permission === "denied" && (
-              <p className="text-[13px] text-muted-foreground">{t("push.permissionDenied")}</p>
-            )}
-          </>
-        )}
-      </SectionCard>
+              {push.permission === "denied" && (
+                <p className="text-[13px] text-muted-foreground">{t("push.permissionDenied")}</p>
+              )}
+            </>
+          )}
+        </SectionCard>
+      )}
 
       {role === "admin" && (
         <SectionCard title={t("settings.telegramBot")}>

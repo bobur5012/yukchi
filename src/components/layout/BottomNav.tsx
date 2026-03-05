@@ -106,30 +106,29 @@ function NavItem({
     <Link
       href={href}
       style={{ WebkitTapHighlightColor: "transparent" }}
-      className="relative flex flex-col items-center justify-center flex-1 pt-2 pb-1 gap-[3px]
-        min-w-0 transition-colors duration-150"
+      className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[22px] px-1 py-1.5 transition-colors duration-150"
     >
-      <Icon
+      <div
         className={cn(
-          "size-6 shrink-0 transition-all",
-          active ? "text-primary stroke-[2]" : "text-muted-foreground stroke-[1.5]"
+          "flex size-8 items-center justify-center rounded-2xl transition-all",
+          active ? "bg-primary/16 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" : "text-muted-foreground/80"
         )}
-      />
+      >
+        <Icon
+          className={cn(
+            "size-[18px] shrink-0 transition-all",
+            active ? "stroke-[2.3]" : "stroke-[1.9]"
+          )}
+        />
+      </div>
       <span
         className={cn(
           "text-[10px] font-medium whitespace-nowrap tracking-[0.01em]",
-          active ? "text-primary" : "text-muted-foreground"
+          active ? "text-foreground" : "text-muted-foreground"
         )}
       >
         {label}
       </span>
-      {active && (
-        <motion.div
-          layoutId="tab-indicator"
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] rounded-b-full bg-primary"
-          transition={{ type: "spring", stiffness: 500, damping: 40 }}
-        />
-      )}
     </Link>
   );
 }
@@ -160,12 +159,11 @@ export function BottomNav() {
     <motion.div
       whileTap={{ scale: 0.9 }}
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
-      className="relative flex flex-col items-center justify-center flex-1 shrink-0"
+      className="relative flex flex-1 shrink-0 flex-col items-center justify-center"
     >
       <Button
         size="icon"
-        className="size-[54px] rounded-full bg-primary text-white
-          shadow-[0_4px_20px_rgba(94,92,230,0.45)] -translate-y-3 z-10"
+        className="z-10 size-[56px] -translate-y-4 rounded-full border border-white/10 bg-primary text-white shadow-[0_12px_34px_rgba(94,92,230,0.42)] ring-4 ring-background/80"
         onClick={isOnDashboard ? () => setQuickActionsOpen(true) : undefined}
         asChild={!isOnDashboard && !!fabHref}
       >
@@ -186,13 +184,11 @@ export function BottomNav() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.05 }}
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50",
-        "border-t border-border/40",
-        "bg-card/90 backdrop-blur-2xl supports-[backdrop-filter]:bg-card/80",
+        "fixed bottom-2 left-1/2 z-50 w-[calc(100%-12px)] max-w-[430px] -translate-x-1/2 rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(22,22,28,0.95)_0%,rgba(14,14,18,0.9)_100%)] px-2 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-2xl supports-[backdrop-filter]:bg-[linear-gradient(180deg,rgba(22,22,28,0.8)_0%,rgba(14,14,18,0.72)_100%)]",
         "pb-[env(safe-area-inset-bottom,0)]"
       )}
     >
-      <div className="flex items-stretch justify-around h-[56px] max-w-[520px] mx-auto px-1">
+      <div className="mx-auto flex h-[60px] items-stretch justify-around gap-1">
         {leftItems.map(({ href, label, icon }) => (
           <NavItem
             key={href}
@@ -228,25 +224,25 @@ export function BottomNav() {
               <button
                 type="button"
                 style={{ WebkitTapHighlightColor: "transparent" }}
-                className="relative flex flex-col items-center justify-center flex-1 pt-2 pb-1 gap-[3px] min-w-0"
+                className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[22px] px-1 py-1.5"
               >
-                {isMoreActive && (
-                  <motion.div
-                    layoutId="tab-indicator"
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] rounded-b-full bg-primary"
-                    transition={{ type: "spring", stiffness: 500, damping: 40 }}
-                  />
-                )}
-                <MoreHorizontal
+                <div
                   className={cn(
-                    "size-6 shrink-0 transition-all",
-                    isMoreActive ? "text-primary stroke-[2]" : "text-muted-foreground stroke-[1.5]"
+                    "flex size-8 items-center justify-center rounded-2xl transition-all",
+                    isMoreActive ? "bg-primary/16 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" : "text-muted-foreground/80"
                   )}
-                />
+                >
+                  <MoreHorizontal
+                    className={cn(
+                      "size-[18px] shrink-0 transition-all",
+                      isMoreActive ? "stroke-[2.3]" : "stroke-[1.9]"
+                    )}
+                  />
+                </div>
                 <span
                   className={cn(
                     "text-[10px] font-medium whitespace-nowrap tracking-[0.01em]",
-                    isMoreActive ? "text-primary" : "text-muted-foreground"
+                    isMoreActive ? "text-foreground" : "text-muted-foreground"
                   )}
                 >
                   {t("nav.more")}

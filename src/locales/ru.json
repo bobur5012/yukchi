@@ -121,12 +121,15 @@
     "totalCount": "Магазинов",
     "activeCount": "Активные",
     "debtTotal": "Общий долг",
+    "callAction": "Позвонить",
+    "telegramAction": "Написать",
     "emptyFilteredTitle": "Ничего не найдено",
     "emptyFilteredDescription": "Попробуйте изменить запрос поиска",
     "emptyDescription": "Добавьте первый магазин, чтобы он появился в списке"
   },
   "profile": {
     "language": "Язык",
+    "currency": "Валюта",
     "russian": "Русский",
     "uzbek": "O'zbekcha"
   },

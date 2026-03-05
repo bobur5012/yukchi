@@ -19,7 +19,6 @@ import {
   Wallet,
   Building2,
 } from "lucide-react";
-import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { DataErrorState } from "@/components/ui/data-error-state";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -44,8 +43,6 @@ export function ShopsList() {
   const { t } = useTranslations();
   const role = useAuthStore((s) => s.user?.role);
   const isAdmin = role === "admin";
-  const { formatAmount } = useFormattedAmount();
-
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,13 +75,6 @@ export function ShopsList() {
     );
   }, [shops, search]);
 
-  const totalDebt = filteredShops.reduce(
-    (sum, shop) => sum + Number.parseFloat(shop.debt || "0"),
-    0
-  );
-  const activeCount = filteredShops.filter((shop) => shop.status === "active").length;
-  const filteredCount = filteredShops.length;
-
   const handleDelete = async () => {
     if (!deleteId) return;
     setDeleting(true);
@@ -114,45 +104,28 @@ export function ShopsList() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[28px] border border-border/40 bg-card/95 p-4 shadow-[0_12px_34px_rgba(0,0,0,0.16)]">
+      <div className="rounded-[26px] border border-border/35 bg-card/95 p-4 shadow-[0_12px_28px_rgba(0,0,0,0.14)]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[22px] font-semibold tracking-[-0.04em]">
+            <p className="text-[20px] font-semibold tracking-[-0.04em]">
               {t("titles.shops")}
             </p>
-            <p className="mt-1 text-[13px] text-muted-foreground">
+            <p className="mt-1 text-[12px] text-muted-foreground">
               {t("shops.searchHint")}
             </p>
           </div>
-          <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/12 text-primary">
-            <Store className="size-5" />
+          <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Store className="size-4.5" />
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <div className="rounded-2xl border border-border/30 bg-background/50 p-3">
-            <p className="text-[11px] text-muted-foreground">{t("shops.totalCount")}</p>
-            <p className="mt-1 text-[22px] font-semibold tabular-nums">{filteredCount}</p>
-          </div>
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3">
-            <p className="text-[11px] text-muted-foreground">{t("shops.activeCount")}</p>
-            <p className="mt-1 text-[22px] font-semibold tabular-nums">{activeCount}</p>
-          </div>
-          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3">
-            <p className="text-[11px] text-muted-foreground">{t("shops.debtTotal")}</p>
-            <p className="mt-1 truncate text-[18px] font-semibold tabular-nums">
-              {formatAmount(totalDebt)}
-            </p>
-          </div>
-        </div>
-
-        <div className="relative mt-4">
-          <Search className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative mt-3">
+          <Search className="absolute left-3 top-1/2 size-4.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder={t("shops.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-12 rounded-2xl border-border/40 bg-background/60 pl-10"
+            className="h-11 rounded-2xl border-border/35 bg-background/60 pl-10"
           />
         </div>
       </div>
@@ -168,7 +141,7 @@ export function ShopsList() {
       ) : (
         <VirtualList
           items={filteredShops}
-          estimateSize={180}
+          estimateSize={176}
           gap={12}
           renderItem={(shop) => {
             const phoneDigits = shop.phone?.replace(/\D/g, "") || "";
@@ -178,20 +151,20 @@ export function ShopsList() {
               shop.status === "active" ? t("couriers.active") : t("couriers.inactive");
 
             return (
-              <div className="overflow-hidden rounded-[28px] border border-border/40 bg-card/95 shadow-[0_14px_34px_rgba(0,0,0,0.16)]">
-                <Link href={`/shops/${shop.id}`} className="block p-4">
+              <div className="overflow-hidden rounded-[24px] border border-border/35 bg-card/95 shadow-[0_12px_26px_rgba(0,0,0,0.14)]">
+                <Link href={`/shops/${shop.id}`} className="block p-3.5">
                   <div className="flex items-start gap-3">
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary">
-                      <Building2 className="size-5" />
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                      <Building2 className="size-4.5" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <h3 className="truncate text-[18px] font-semibold tracking-[-0.03em]">
+                          <h3 className="truncate text-[17px] font-semibold tracking-[-0.03em]">
                             {shop.name}
                           </h3>
-                          <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                            <User className="h-4 w-4 shrink-0" />
+                          <div className="mt-1 flex items-center gap-2 text-[13px] text-muted-foreground">
+                            <User className="h-3.5 w-3.5 shrink-0" />
                             <span className="truncate">{shop.ownerName}</span>
                           </div>
                         </div>
@@ -205,23 +178,16 @@ export function ShopsList() {
                         </span>
                       </div>
 
-                      <div className="mt-3 grid grid-cols-2 gap-2">
-                        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3">
+                      <div className="mt-3">
+                        <div className="rounded-[18px] border border-amber-500/20 bg-amber-500/10 p-3">
                           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                             <Wallet className="size-3.5" />
                             <span>{t("shops.debt")}</span>
                           </div>
-                          <p className="mt-1 truncate text-[18px] font-semibold tabular-nums">
-                            {formatAmount(parseFloat(shop.debt || "0"))}
-                          </p>
-                        </div>
-                        <div className="rounded-2xl border border-border/30 bg-background/45 p-3">
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            <Phone className="size-3.5" />
-                            <span>{t("common.phone")}</span>
-                          </div>
-                          <p className="mt-1 truncate text-[14px] font-medium">
-                            {shop.phone || "—"}
+                          <p className="mt-1 truncate text-[17px] font-semibold tabular-nums">
+                            {Number.parseFloat(shop.debt || "0").toLocaleString("ru-RU", {
+                              maximumFractionDigits: 2,
+                            })} USD
                           </p>
                         </div>
                       </div>
@@ -236,22 +202,25 @@ export function ShopsList() {
                   </div>
                 </Link>
 
-                <div className="flex items-center gap-1 border-t border-border/30 px-4 py-3">
-                  {telUrl && (
-                    <Button variant="ghost" size="icon" className="size-10 rounded-xl" asChild>
+                <div className="flex items-center gap-2 border-t border-border/30 px-3.5 py-3">
+                  {telUrl ? (
+                    <Button variant="secondary" className="h-11 flex-1 rounded-2xl justify-center gap-2 bg-emerald-500/12 text-emerald-400 hover:bg-emerald-500/18" asChild>
                       <a href={telUrl}>
-                        <Phone className="h-4 w-4 text-emerald-500" />
+                        <Phone className="h-5 w-5" />
+                        {t("shops.callAction")}
                       </a>
                     </Button>
-                  )}
-                  {telegramUrl && (
-                    <Button variant="ghost" size="icon" className="size-10 rounded-xl" asChild>
+                  ) : null}
+                  {telegramUrl ? (
+                    <Button variant="secondary" className="h-11 flex-1 rounded-2xl justify-center gap-2 bg-sky-500/12 text-sky-400 hover:bg-sky-500/18" asChild>
                       <a href={telegramUrl} target="_blank" rel="noopener noreferrer">
-                        <MessageCircle className="h-4 w-4 text-sky-500" />
+                        <MessageCircle className="h-5 w-5" />
+                        {t("shops.telegramAction")}
                       </a>
                     </Button>
+                  ) : (
+                    <div className="flex-1" />
                   )}
-                  <div className="flex-1" />
                   {isAdmin && (
                     <>
                       <Button

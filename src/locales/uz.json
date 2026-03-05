@@ -121,12 +121,15 @@
     "totalCount": "Do'konlar",
     "activeCount": "Faol",
     "debtTotal": "Umumiy qarz",
+    "callAction": "Qo'ng'iroq",
+    "telegramAction": "Yozish",
     "emptyFilteredTitle": "Hech narsa topilmadi",
     "emptyFilteredDescription": "Qidiruv so'rovini o'zgartirib ko'ring",
     "emptyDescription": "Ro'yxatda ko'rinishi uchun birinchi do'konni qo'shing"
   },
   "profile": {
     "language": "Til",
+    "currency": "Valyuta",
     "russian": "Ruscha",
     "uzbek": "O'zbekcha"
   },

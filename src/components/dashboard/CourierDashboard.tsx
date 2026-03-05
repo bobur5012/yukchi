@@ -7,8 +7,8 @@ import {
   CheckCircle2,
   Trash2,
   Plus,
+  Minus,
   Wallet,
-  CreditCard,
   ListTodo,
 } from "lucide-react";
 import { useTranslations } from "@/lib/useTranslations";
@@ -40,17 +40,24 @@ function CurrencyTicker() {
   const [rates, setRates] = useState<CurrencyRates | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(() => {
-    setLoading(true);
-    fetchCBURates()
-      .then(setRates)
-      .catch(() => setRates(null))
-      .finally(() => setLoading(false));
-  }, []);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    let active = true;
+
+    fetchCBURates()
+      .then((data) => {
+        if (active) setRates(data);
+      })
+      .catch(() => {
+        if (active) setRates(null);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const items = useMemo(() => {
     if (!rates) {
@@ -88,18 +95,18 @@ function CurrencyTicker() {
     <motion.section
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="border-y border-border/20 bg-card/70 backdrop-blur supports-[backdrop-filter]:bg-card/55"
+      className="border-b border-white/5 bg-[linear-gradient(180deg,rgba(25,25,31,0.92)_0%,rgba(16,16,21,0.74)_100%)] backdrop-blur supports-[backdrop-filter]:bg-[linear-gradient(180deg,rgba(25,25,31,0.78)_0%,rgba(16,16,21,0.58)_100%)]"
     >
-      <div className="relative overflow-hidden py-2">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-card via-card/85 to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-card via-card/85 to-transparent" />
+      <div className="relative overflow-hidden py-1.5">
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-5 bg-gradient-to-r from-card via-card/85 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-5 bg-gradient-to-l from-card via-card/85 to-transparent" />
         <div className={cn("courier-ticker-track", loading && "opacity-80")}>
           {repeatedItems.map((item, index) => {
             const [from, to] = item.pair.split(" → ");
             return (
               <div
                 key={`${item.pair}-${index}`}
-                className="flex items-center gap-2 rounded-full border border-border/30 bg-background/55 px-3 py-1.5 text-[13px] shadow-sm shadow-black/10"
+                className="flex items-center gap-2 rounded-full border border-white/8 bg-background/45 px-2.5 py-1 text-[12px] shadow-sm shadow-black/10"
               >
                 <span className="whitespace-nowrap text-muted-foreground">
                   {FLAG_MAP[from] ?? from} → {FLAG_MAP[to] ?? to}
@@ -135,12 +142,12 @@ function OverviewStat({
   return (
     <div
       className={cn(
-        "rounded-3xl border bg-gradient-to-br p-3 shadow-[0_8px_30px_rgba(0,0,0,0.14)]",
+        "rounded-[26px] border bg-gradient-to-br p-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.14)]",
         toneClass
       )}
     >
-      <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="mt-1 text-[22px] font-semibold tracking-[-0.03em] tabular-nums">
+      <p className="text-[10px] text-muted-foreground">{label}</p>
+      <p className="mt-1 text-[20px] font-semibold tracking-[-0.03em] tabular-nums">
         {value}
       </p>
     </div>
@@ -228,14 +235,14 @@ export function CourierDashboard() {
   };
 
   return (
-    <div className="space-y-3 pb-3">
+    <div className="space-y-2.5 pb-3">
       <CurrencyTicker />
 
-      <div className="space-y-3 px-3">
+      <div className="space-y-2.5 px-2.5">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-3 gap-2"
+          className="grid grid-cols-3 gap-1.5"
         >
           <OverviewStat
             label={t("courier.pendingTasks")}
@@ -254,33 +261,33 @@ export function CourierDashboard() {
           />
         </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden rounded-[30px] border border-border/30 bg-card/95 shadow-[0_12px_34px_rgba(0,0,0,0.22)]"
-      >
-        <div className="px-4 pt-4 pb-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/12 text-primary">
-                <ListTodo className="size-5" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="overflow-hidden rounded-[30px] border border-border/30 bg-card/95 shadow-[0_12px_34px_rgba(0,0,0,0.22)]"
+        >
+          <div className="px-4 pt-4 pb-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                  <ListTodo className="size-5" />
+                </div>
+                <div>
+                  <h2 className="text-[20px] font-semibold tracking-[-0.03em]">
+                    {t("tasks.title")}
+                  </h2>
+                  <p className="text-[12px] text-muted-foreground">
+                    {pendingTasks > 0
+                      ? `${pendingTasks} ${t("courier.pendingTasks").toLowerCase()}`
+                      : t("tasks.empty")}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-[20px] font-semibold tracking-[-0.03em]">
-                  {t("tasks.title")}
-                </h2>
-                <p className="text-[12px] text-muted-foreground">
-                  {pendingTasks > 0
-                    ? `${pendingTasks} ${t("courier.pendingTasks").toLowerCase()}`
-                    : t("tasks.empty")}
-                </p>
+              <div className="rounded-full bg-primary/10 px-3 py-1 text-[12px] font-medium text-primary">
+                {tasks.length}
               </div>
-            </div>
-            <div className="rounded-full bg-primary/10 px-3 py-1 text-[12px] font-medium text-primary">
-              {tasks.length}
             </div>
           </div>
-        </div>
 
         <div className="px-4 pb-3">
           <div className="flex gap-2">
@@ -289,13 +296,13 @@ export function CourierDashboard() {
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
-              className="h-14 flex-1 rounded-2xl border-border/50 bg-background/60 px-4 text-[16px]"
+              className="h-12 flex-1 rounded-2xl border-border/50 bg-background/60 px-4 text-[15px]"
             />
             <Button
               size="icon"
               onClick={handleAddTask}
               disabled={!newTaskTitle.trim() || addingTask}
-              className="size-14 rounded-2xl shrink-0 shadow-lg shadow-primary/20"
+              className="size-12 shrink-0 rounded-2xl shadow-lg shadow-primary/20"
             >
               <Plus className="size-5" />
             </Button>
@@ -372,84 +379,91 @@ export function CourierDashboard() {
         )}
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="overflow-hidden rounded-[30px] border border-border/30 bg-card/95 shadow-[0_12px_34px_rgba(0,0,0,0.22)]"
-      >
-        <div className="px-4 pt-4 pb-2">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-[20px] font-semibold tracking-[-0.03em]">
-                {t("activity.lastPayments")}
-              </h2>
-              <p className="text-[12px] text-muted-foreground">
-                {t("courier.onlyOwnActivity")}
-              </p>
-            </div>
-            <div className="rounded-full bg-emerald-500/10 px-3 py-1 text-[12px] font-medium text-emerald-400">
-              {payments.length}
-            </div>
-          </div>
-        </div>
-        {paymentsLoading ? (
-          <div className="space-y-2 px-4 pb-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 rounded-2xl border border-border/30 bg-background/40 px-3 py-3"
-              >
-                <div className="size-8 rounded-lg bg-muted/60 animate-pulse shrink-0" />
-                <div className="flex-1 space-y-1">
-                  <div className="h-4 w-3/4 rounded bg-muted/60 animate-pulse" />
-                  <div className="h-3 w-16 rounded bg-muted/60 animate-pulse" />
-                </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="overflow-hidden rounded-[30px] border border-border/30 bg-card/95 shadow-[0_12px_34px_rgba(0,0,0,0.22)]"
+        >
+          <div className="px-4 pt-4 pb-2">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-[20px] font-semibold tracking-[-0.03em]">
+                  {t("activity.lastPayments")}
+                </h2>
+                <p className="text-[12px] text-muted-foreground">
+                  {t("courier.onlyOwnActivity")}
+                </p>
               </div>
-            ))}
-          </div>
-        ) : payments.length === 0 ? (
-          <div className="px-4 pb-5 pt-2 text-center">
-            <div className="mx-auto flex size-16 items-center justify-center rounded-[22px] bg-muted/35 text-muted-foreground">
-              <Wallet className="size-8" />
-            </div>
-            <p className="mt-3 text-[18px] font-semibold">{t("activity.empty")}</p>
-          </div>
-        ) : (
-          <div className="space-y-2 px-3 pb-3">
-            {payments.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-3 rounded-2xl border border-border/30 bg-background/45 px-3 py-3 transition-colors hover:bg-accent/20"
-              >
-                <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                  {item.type === "payment" ? (
-                    <CreditCard className="size-4 text-emerald-500" />
-                  ) : (
-                    <Wallet className="size-4 text-amber-500" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-medium truncate">
-                    {item.shop?.name ?? "—"} ·{" "}
-                    {Number(item.amount ?? "0").toLocaleString("ru-RU", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    USD
-                  </p>
-                  <p className="text-[12px] text-muted-foreground">
-                    {item.type === "payment"
-                      ? t("activity.payment")
-                      : t("activity.debt")}{" "}
-                    · {formatDateSafe(item.createdAt, "d MMM, HH:mm", locale)}
-                  </p>
-                </div>
+              <div className="rounded-full bg-emerald-500/10 px-3 py-1 text-[12px] font-medium text-emerald-400">
+                {payments.length}
               </div>
-            ))}
+            </div>
           </div>
-        )}
-      </motion.div>
+          {paymentsLoading ? (
+            <div className="space-y-2 px-4 pb-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 rounded-2xl border border-border/30 bg-background/40 px-3 py-3"
+                >
+                  <div className="size-8 rounded-lg bg-muted/60 animate-pulse shrink-0" />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-4 w-3/4 rounded bg-muted/60 animate-pulse" />
+                    <div className="h-3 w-16 rounded bg-muted/60 animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : payments.length === 0 ? (
+            <div className="px-4 pb-5 pt-2 text-center">
+              <div className="mx-auto flex size-16 items-center justify-center rounded-[22px] bg-muted/35 text-muted-foreground">
+                <Wallet className="size-8" />
+              </div>
+              <p className="mt-3 text-[18px] font-semibold">{t("activity.empty")}</p>
+            </div>
+          ) : (
+            <div className="space-y-2 px-3 pb-3">
+              {payments.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 rounded-2xl border border-border/30 bg-background/45 px-3 py-3 transition-colors hover:bg-accent/20"
+                >
+                  <div
+                    className={cn(
+                      "flex size-9 shrink-0 items-center justify-center rounded-xl border",
+                      item.type === "payment"
+                        ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-400"
+                        : "border-amber-500/25 bg-amber-500/10 text-amber-400"
+                    )}
+                  >
+                    {item.type === "payment" ? (
+                      <Plus className="size-4 stroke-[2.7]" />
+                    ) : (
+                      <Minus className="size-4 stroke-[2.7]" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[14px] font-medium">
+                      {item.shop?.name ?? "—"} ·{" "}
+                      {Number(item.amount ?? "0").toLocaleString("ru-RU", {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      USD
+                    </p>
+                    <p className="text-[12px] text-muted-foreground">
+                      {item.type === "payment"
+                        ? t("activity.payment")
+                        : t("activity.debt")}{" "}
+                      · {formatDateSafe(item.createdAt, "d MMM, HH:mm", locale)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   );

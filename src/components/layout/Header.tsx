@@ -90,7 +90,6 @@ export function Header({ title }: HeaderProps) {
     let cancelled = false;
 
     if (user?.role !== "courier" || !user.id) {
-      setCourierAvatarUrl(null);
       return;
     }
 
@@ -124,36 +123,34 @@ export function Header({ title }: HeaderProps) {
 
   return (
     <header
-      className="sticky top-0 z-40 w-full max-w-[430px] mx-auto
-        bg-card/85 backdrop-blur-2xl supports-[backdrop-filter]:bg-card/75
-        border-b border-border/30"
+      className="sticky top-0 z-40 mx-auto w-full max-w-[430px] border-b border-white/5 bg-[linear-gradient(180deg,rgba(22,22,28,0.96)_0%,rgba(17,17,22,0.88)_100%)] shadow-[0_10px_26px_rgba(0,0,0,0.28)] backdrop-blur-2xl supports-[backdrop-filter]:bg-[linear-gradient(180deg,rgba(22,22,28,0.82)_0%,rgba(17,17,22,0.7)_100%)]"
       style={{ paddingTop: "env(safe-area-inset-top, 0)" }}
     >
-      <div className="grid h-12 grid-cols-[72px_1fr_72px] items-center gap-1 px-2">
+      <div className="grid h-14 grid-cols-[92px_1fr_92px] items-center gap-2 px-3">
         <div className="flex items-center justify-start">
           {showBack ? (
             <button
               type="button"
               onClick={handleBack}
-              className="flex h-9 items-center gap-0.5 rounded-[10px] px-2 text-[16px] font-medium text-primary transition-colors hover:bg-accent active:bg-accent/80"
+              className="inline-flex h-10 items-center gap-1 rounded-full border border-white/8 bg-white/[0.03] px-3 text-[15px] font-medium text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-colors hover:bg-white/[0.06] active:bg-white/[0.08]"
             >
-              <ChevronLeft className="size-5 -ml-1" strokeWidth={2.5} />
+              <ChevronLeft className="size-4.5 -ml-0.5" strokeWidth={2.6} />
               <span className="leading-none">{t("nav.back")}</span>
             </button>
           ) : null}
         </div>
-        <h1 className="flex-1 text-[17px] font-semibold truncate tracking-[-0.02em] text-center px-2">
+        <h1 className="truncate px-2 text-center text-[18px] font-semibold tracking-[-0.035em] text-white/95">
           {displayTitle}
         </h1>
         <div className="flex items-center justify-end">
           <Link
             href="/profile"
-            className="flex size-10 items-center justify-center rounded-full border border-border/40 bg-background/70 transition-colors hover:bg-accent"
+            className="flex size-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] shadow-[0_8px_24px_rgba(0,0,0,0.24)] ring-1 ring-black/20 transition-colors hover:bg-white/[0.08]"
             aria-label={t("nav.profile")}
           >
-            <Avatar size="default" className="size-8">
+            <Avatar size="default" className="size-9">
               {avatarSrc ? <AvatarImage src={avatarSrc} alt={user?.name ?? t("nav.profile")} /> : null}
-              <AvatarFallback className="bg-primary/15 text-[11px] font-semibold text-primary">
+              <AvatarFallback className="bg-primary/20 text-[11px] font-semibold text-primary">
                 {avatarFallback}
               </AvatarFallback>
             </Avatar>

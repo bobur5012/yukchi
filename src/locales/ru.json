@@ -304,6 +304,13 @@
     "saleLabel": "Продажа",
     "deliveryLabel": "Доставка"
   },
+  "courier": {
+    "addProduct": "Добавить товар",
+    "addDebt": "Добавить долг",
+    "receivePayment": "Принять оплату",
+    "myTrips": "Мои поездки",
+    "myReports": "Мои отчёты"
+  },
   "reminders": {
     "title": "Напоминания",
     "add": "Добавить",

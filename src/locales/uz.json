@@ -270,6 +270,13 @@
     "saleLabel": "Sotuv",
     "deliveryLabel": "Yetkazish"
   },
+  "courier": {
+    "addProduct": "Mahsulot qo'shish",
+    "addDebt": "Qarz qo'shish",
+    "receivePayment": "To'lov qabul qilish",
+    "myTrips": "Mening sayohatlarim",
+    "myReports": "Mening hisobotlarim"
+  },
   "settings": {
     "notifications": "Bildirishnomalar",
     "newDebt": "Yangi qarz",

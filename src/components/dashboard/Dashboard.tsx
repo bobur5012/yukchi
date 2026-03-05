@@ -26,6 +26,8 @@ import { cn } from "@/lib/utils";
 import { TopCouriers } from "./TopCouriers";
 import { CurrencyWidget } from "./CurrencyWidget";
 import { ActivityFeed } from "./ActivityFeed";
+import { CourierDashboard } from "./CourierDashboard";
+import { useAuthStore } from "@/stores/auth";
 
 function AnimatedNumber({ value }: { value: string }) {
   return (
@@ -179,6 +181,7 @@ function ActivityRow({
 export function Dashboard() {
   const { t, locale } = useTranslations();
   const { formatAmount } = useFormattedAmount();
+  const user = useAuthStore((state) => state.user);
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -195,6 +198,11 @@ export function Dashboard() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Show courier-specific dashboard
+  if (user?.role === 'courier') {
+    return <CourierDashboard />;
+  }
 
   if (loading) {
     return (

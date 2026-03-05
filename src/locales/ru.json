@@ -246,6 +246,8 @@
     "shops": "Магазины",
     "remainingBudget": "Остаток бюджета",
     "totalBudget": "Общий бюджет",
+    "totalExpenses": "Общий расход",
+    "totalIncome": "Общий приход",
     "recentTrips": "Последние поездки",
     "noTrips": "Нет поездок",
     "noTripsDescription": "Здесь появятся последние поездки",
@@ -262,7 +264,10 @@
     "empty": "Пока нет действий",
     "lastPayments": "Последние платежи",
     "debt": "Долг",
-    "payment": "Платёж"
+    "payment": "Платёж",
+    "prevPage": "Назад",
+    "nextPage": "Дальше",
+    "pageLabel": "{{page}} / {{total}}"
   },
   "tabs": {
     "list": "Список",

@@ -141,7 +141,7 @@ export function ShopsList() {
       ) : (
         <VirtualList
           items={filteredShops}
-          estimateSize={176}
+          estimateSize={156}
           gap={12}
           renderItem={(shop) => {
             const phoneDigits = shop.phone?.replace(/\D/g, "") || "";
@@ -151,26 +151,26 @@ export function ShopsList() {
               shop.status === "active" ? t("couriers.active") : t("couriers.inactive");
 
             return (
-              <div className="overflow-hidden rounded-[24px] border border-border/35 bg-card/95 shadow-[0_12px_26px_rgba(0,0,0,0.14)]">
-                <Link href={`/shops/${shop.id}`} className="block p-3.5">
-                  <div className="flex items-start gap-3">
-                    <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary">
-                      <Building2 className="size-4.5" />
+              <div className="overflow-hidden rounded-[22px] border border-border/35 bg-card/95 shadow-[0_10px_22px_rgba(0,0,0,0.12)]">
+                <Link href={`/shops/${shop.id}`} className="block p-3">
+                  <div className="flex items-start gap-2.5">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                      <Building2 className="size-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <h3 className="truncate text-[17px] font-semibold tracking-[-0.03em]">
+                          <h3 className="truncate text-[16px] font-semibold tracking-[-0.03em]">
                             {shop.name}
                           </h3>
-                          <div className="mt-1 flex items-center gap-2 text-[13px] text-muted-foreground">
-                            <User className="h-3.5 w-3.5 shrink-0" />
+                          <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-muted-foreground">
+                            <User className="h-3 w-3 shrink-0" />
                             <span className="truncate">{shop.ownerName}</span>
                           </div>
                         </div>
                         <span
                           className={cn(
-                            "shrink-0 rounded-full px-2.5 py-1 text-xs font-medium",
+                            "shrink-0 rounded-full px-2 py-1 text-[11px] font-medium",
                             statusColors[shop.status]
                           )}
                         >
@@ -178,43 +178,44 @@ export function ShopsList() {
                         </span>
                       </div>
 
-                      <div className="mt-3">
-                        <div className="rounded-[18px] border border-amber-500/20 bg-amber-500/10 p-3">
-                          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            <Wallet className="size-3.5" />
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <div className="min-w-0 rounded-[16px] border border-amber-500/20 bg-amber-500/10 px-2.5 py-2">
+                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                            <Wallet className="size-3" />
                             <span>{t("shops.debt")}</span>
                           </div>
-                          <p className="mt-1 truncate text-[17px] font-semibold tabular-nums">
+                          <p className="mt-0.5 truncate text-[15px] font-semibold tabular-nums">
                             {Number.parseFloat(shop.debt || "0").toLocaleString("ru-RU", {
                               maximumFractionDigits: 2,
                             })} USD
                           </p>
                         </div>
+                        {shop.address ? (
+                          <div className="min-w-0 flex-1 text-right text-[11px] text-muted-foreground">
+                            <div className="inline-flex items-center gap-1.5">
+                              <MapPin className="size-3 shrink-0" />
+                              <span className="line-clamp-2">{shop.address}</span>
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
-
-                      {shop.address && (
-                        <div className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
-                          <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                          <span className="line-clamp-2">{shop.address}</span>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </Link>
 
-                <div className="flex items-center gap-2 border-t border-border/30 px-3.5 py-3">
+                <div className="flex items-center gap-2 border-t border-border/30 px-3 py-2.5">
                   {telUrl ? (
-                    <Button variant="secondary" className="h-11 flex-1 rounded-2xl justify-center gap-2 bg-emerald-500/12 text-emerald-400 hover:bg-emerald-500/18" asChild>
+                    <Button variant="secondary" className="h-10 flex-1 rounded-2xl justify-center gap-2 bg-emerald-500/12 text-emerald-400 hover:bg-emerald-500/18" asChild>
                       <a href={telUrl}>
-                        <Phone className="h-5 w-5" />
+                        <Phone className="h-4.5 w-4.5" />
                         {t("shops.callAction")}
                       </a>
                     </Button>
                   ) : null}
                   {telegramUrl ? (
-                    <Button variant="secondary" className="h-11 flex-1 rounded-2xl justify-center gap-2 bg-sky-500/12 text-sky-400 hover:bg-sky-500/18" asChild>
+                    <Button variant="secondary" className="h-10 flex-1 rounded-2xl justify-center gap-2 bg-sky-500/12 text-sky-400 hover:bg-sky-500/18" asChild>
                       <a href={telegramUrl} target="_blank" rel="noopener noreferrer">
-                        <MessageCircle className="h-5 w-5" />
+                        <MessageCircle className="h-4.5 w-4.5" />
                         {t("shops.telegramAction")}
                       </a>
                     </Button>

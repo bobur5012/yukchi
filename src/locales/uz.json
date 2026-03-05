@@ -212,6 +212,8 @@
     "shops": "Do'konlar",
     "remainingBudget": "Qolgan byudjet",
     "totalBudget": "Umumiy byudjet",
+    "totalExpenses": "Umumiy xarajat",
+    "totalIncome": "Umumiy kirim",
     "recentTrips": "So'nggi sayohatlar",
     "noTrips": "Sayohatlar yo'q",
     "noTripsDescription": "Bu yerda so'nggi sayohatlar paydo bo'ladi",
@@ -228,7 +230,10 @@
     "empty": "Hozircha harakatlar yo'q",
     "lastPayments": "Oxirgi to'lovlar",
     "debt": "Qarz",
-    "payment": "To'lov"
+    "payment": "To'lov",
+    "prevPage": "Oldingi",
+    "nextPage": "Keyingi",
+    "pageLabel": "{{page}} / {{total}}"
   },
   "tabs": {
     "list": "Ro'yxat",

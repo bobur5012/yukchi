@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { getActivity, type ActivityItem } from "@/lib/api/activity";
@@ -8,6 +8,9 @@ import { formatDateSafe } from "@/lib/date-utils";
 import { useTranslations } from "@/lib/useTranslations";
 import { Receipt, Wallet, Package, Activity } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
+
+const PAGE_SIZE = 6;
 
 function interpolate(template: string, params: Record<string, string>): string {
   return Object.entries(params).reduce(
@@ -43,17 +46,17 @@ function ActivityItemRow({
   return (
     <Link href={href}>
       <motion.div
-        className="flex items-center gap-3 px-4 py-3 hover:bg-accent/40 transition-colors active:bg-accent"
+        className="flex items-center gap-3 px-4 py-2.5 hover:bg-accent/40 transition-colors active:bg-accent"
         whileTap={{ backgroundColor: "var(--accent)" }}
       >
-        <div className="size-[42px] rounded-[13px] bg-primary/15 flex items-center justify-center shrink-0">
-          {item.type === "expense" && <Receipt className="size-[18px] text-primary" />}
-          {item.type === "debt" && <Wallet className="size-[18px] text-primary" />}
-          {item.type === "product" && <Package className="size-[18px] text-primary" />}
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-[14px] bg-primary/12">
+          {item.type === "expense" && <Receipt className="size-[16px] text-primary" />}
+          {item.type === "debt" && <Wallet className="size-[16px] text-primary" />}
+          {item.type === "product" && <Package className="size-[16px] text-primary" />}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-medium truncate">{label}</p>
-          <p className="text-[12px] text-muted-foreground">
+          <p className="truncate text-[13px] font-medium">{label}</p>
+          <p className="text-[11px] text-muted-foreground">
             {formatDateSafe(item.createdAt, "d MMM, HH:mm", locale)}
           </p>
         </div>
@@ -66,18 +69,37 @@ export function ActivityFeed() {
   const { t, locale } = useTranslations();
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const load = useCallback(() => {
-    setLoading(true);
-    getActivity(20)
-      .then((r) => setItems(r.items))
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
-  }, []);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let active = true;
+
+    getActivity(36)
+      .then((r) => {
+        if (!active) return;
+        setItems(r.items);
+        setPage(1);
+      })
+      .catch(() => {
+        if (!active) return;
+        setItems([]);
+        setPage(1);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedItems = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return items.slice(start, start + PAGE_SIZE);
+  }, [currentPage, items]);
 
   if (loading) {
     return (
@@ -106,16 +128,52 @@ export function ActivityFeed() {
       className="rounded-2xl bg-card border border-border/30 overflow-hidden"
     >
       <div className="px-4 pt-4 pb-2">
-        <h2 className="text-[17px] font-semibold">{t("dashboard.activityFeed")}</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-[17px] font-semibold">{t("dashboard.activityFeed")}</h2>
+          {items.length > 0 ? (
+            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+              {items.length}
+            </span>
+          ) : null}
+        </div>
       </div>
       {items.length === 0 ? (
         <EmptyState icon={Activity} title={t("activity.empty")} className="py-8" />
       ) : (
-        <div className="divide-y divide-border/30">
-          {items.slice(0, 10).map((item) => (
+        <>
+          <div className="divide-y divide-border/30">
+          {pagedItems.map((item) => (
             <ActivityItemRow key={`${item.type}-${item.id}`} item={item} locale={locale} t={t} />
           ))}
-        </div>
+          </div>
+          {totalPages > 1 ? (
+            <div className="flex items-center justify-between border-t border-border/30 px-4 py-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 rounded-xl px-3 text-[12px]"
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={currentPage === 1}
+              >
+                {t("activity.prevPage")}
+              </Button>
+              <span className="text-[12px] text-muted-foreground">
+                {t("activity.pageLabel")
+                  .replace("{{page}}", String(currentPage))
+                  .replace("{{total}}", String(totalPages))}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 rounded-xl px-3 text-[12px]"
+                onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                disabled={currentPage === totalPages}
+              >
+                {t("activity.nextPage")}
+              </Button>
+            </div>
+          ) : null}
+        </>
       )}
     </motion.div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { getDashboard } from "@/lib/api/dashboard";
@@ -10,135 +10,60 @@ import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { useTranslations } from "@/lib/useTranslations";
 import {
   Banknote,
-  ChevronRight,
   PiggyBank,
   Plane,
-  Plus,
   Receipt,
   Store,
   TrendingUp,
-  Wallet,
+  ArrowDownCircle,
+  ArrowUpCircle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { DataErrorState } from "@/components/ui/data-error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 import { TopCouriers } from "./TopCouriers";
-import { CurrencyWidget } from "./CurrencyWidget";
 import { ActivityFeed } from "./ActivityFeed";
 import { CourierDashboard } from "./CourierDashboard";
 import { useAuthStore } from "@/stores/auth";
-
-function AnimatedNumber({ value }: { value: string }) {
-  return (
-    <motion.span
-      key={value}
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      className="tabular-nums"
-    >
-      {parseFloat(value || "0").toLocaleString()}
-    </motion.span>
-  );
-}
+import { CurrencyTicker } from "./CurrencyTicker";
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={cn("rounded-xl bg-muted/60 animate-pulse", className)} />;
 }
 
-function MetricsStrip({
-  metrics,
+function MetricCard({
+  href,
+  title,
+  value,
+  icon: Icon,
+  iconBg,
+  iconColor,
+  delay,
 }: {
-  metrics: Array<{
-    title: string;
-    value: string;
-    href: string;
-    icon: React.ComponentType<{ className?: string }>;
-    iconBg: string;
-    iconColor: string;
-  }>;
+  href: string;
+  title: string;
+  value: string;
+  icon: React.ComponentType<{ className?: string }>;
+  iconBg: string;
+  iconColor: string;
+  delay: number;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1, duration: 0.28 }}
-      className="rounded-2xl bg-card border border-border/30 p-3"
+      transition={{ delay, duration: 0.24 }}
     >
-      <div className="flex flex-wrap gap-2">
-        {metrics.map((m, i) => {
-          const Icon = m.icon;
-          return (
-            <Link key={i} href={m.href}>
-              <motion.div
-                className={cn(
-                  "inline-flex items-center gap-1.5 py-2 px-3 rounded-xl transition-colors",
-                  "hover:bg-accent/50 active:scale-[0.98]",
-                  m.iconBg
-                )}
-                whileTap={{ scale: 0.97 }}
-              >
-                <Icon className={cn("size-4 shrink-0", m.iconColor)} />
-                <span className="text-[13px] font-semibold tabular-nums">{m.value}</span>
-                <span className="text-[12px] text-muted-foreground hidden sm:inline">{m.title}</span>
-              </motion.div>
-            </Link>
-          );
-        })}
-      </div>
-    </motion.div>
-  );
-}
-
-function HeroCard({
-  label,
-  formattedAmount,
-  subtitle,
-  href,
-  icon: Icon,
-  gradient,
-  warning,
-}: {
-  label: string;
-  formattedAmount: string;
-  subtitle?: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  gradient: string;
-  warning?: boolean;
-}) {
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
       <Link href={href}>
-        <motion.div
-          className={cn("rounded-2xl p-5 overflow-hidden relative", gradient)}
-          whileTap={{ scale: 0.985 }}
-          transition={{ duration: 0.12 }}
-        >
-          <div className="absolute -right-6 -top-6 size-32 rounded-full bg-white/8 pointer-events-none" />
-          <div className="absolute -right-3 -bottom-8 size-24 rounded-full bg-white/5 pointer-events-none" />
-
-          <div className="relative z-10 flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="size-9 rounded-xl bg-white/15 flex items-center justify-center">
-                  <Icon className="size-[18px] text-white" />
-                </div>
-                <p className="text-[13px] text-white/75 font-medium">{label}</p>
-              </div>
-              <p className="text-[34px] font-bold text-white tracking-[-0.04em] leading-none tabular-nums">
-                {formattedAmount}
-              </p>
-              {subtitle && (
-                <p className={cn("text-[13px] mt-1.5 font-medium", warning ? "text-amber-200" : "text-white/70")}>
-                  {subtitle}
-                </p>
-              )}
-            </div>
-            <ChevronRight className="size-5 text-white/50 shrink-0 mt-0.5" />
+        <div className="rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(29,29,35,0.98)_0%,rgba(20,20,26,0.92)_100%)] p-3 shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition-transform active:scale-[0.985]">
+          <div className={cn("mb-3 flex size-9 items-center justify-center rounded-2xl", iconBg)}>
+            <Icon className={cn("size-[18px]", iconColor)} />
           </div>
-        </motion.div>
+          <p className="text-[11px] text-muted-foreground">{title}</p>
+          <p className="mt-1 text-[22px] font-semibold tracking-[-0.035em] tabular-nums">
+            {value}
+          </p>
+        </div>
       </Link>
     </motion.div>
   );
@@ -186,18 +111,33 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(() => {
+  const load = () => {
     setLoading(true);
     setError(null);
     getDashboard()
       .then(setData)
       .catch((e) => setError(e instanceof Error ? e.message : t("common.loadError")))
       .finally(() => setLoading(false));
-  }, []);
+  };
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let active = true;
+
+    getDashboard()
+      .then((response) => {
+        if (active) setData(response);
+      })
+      .catch((e) => {
+        if (active) setError(e instanceof Error ? e.message : t("common.loadError"));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [t]);
 
   // Show courier-specific dashboard
   if (user?.role === 'courier') {
@@ -211,13 +151,9 @@ export function Dashboard() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-[116px]" />
-        <div className="flex gap-2">
-          <Skeleton className="h-10 flex-1" />
-          <Skeleton className="h-10 flex-1" />
-        </div>
+        <Skeleton className="h-8 rounded-full" />
         <div className="grid grid-cols-2 gap-3">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-[92px]" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-[108px]" />)}
         </div>
         <Skeleton className="h-[160px]" />
       </div>
@@ -231,62 +167,82 @@ export function Dashboard() {
   if (!data) return null;
 
   const m = data.metrics;
-  const totalDebt = parseFloat(m.totalDebt || "0");
-  const heroGradient = totalDebt > 0
-    ? "bg-gradient-to-br from-amber-500 to-orange-600"
-    : "bg-gradient-to-br from-indigo-500 to-violet-600";
+  const metrics = [
+    {
+      title: t("dashboard.totalDebt"),
+      value: formatAmount(parseFloat(m.totalDebt || "0")),
+      href: "/shops",
+      icon: Banknote,
+      iconBg: "bg-amber-500/14",
+      iconColor: "text-amber-400",
+    },
+    {
+      title: t("dashboard.shops"),
+      value: m.shopsCount.toString(),
+      href: "/shops",
+      icon: Store,
+      iconBg: "bg-sky-500/14",
+      iconColor: "text-sky-400",
+    },
+    {
+      title: t("dashboard.activeTrips"),
+      value: m.tripsCount.toString(),
+      href: "/trips",
+      icon: Plane,
+      iconBg: "bg-emerald-500/14",
+      iconColor: "text-emerald-400",
+    },
+    {
+      title: t("dashboard.remainingBudget"),
+      value: formatAmount(parseFloat(m.remainingUsd || "0")),
+      href: "/trips",
+      icon: PiggyBank,
+      iconBg: "bg-violet-500/14",
+      iconColor: "text-violet-400",
+    },
+    {
+      title: t("dashboard.totalExpenses"),
+      value: formatAmount(parseFloat(m.totalExpensesUsd || "0")),
+      href: "/trips",
+      icon: ArrowDownCircle,
+      iconBg: "bg-rose-500/14",
+      iconColor: "text-rose-400",
+    },
+    {
+      title: t("dashboard.totalIncome"),
+      value: formatAmount(parseFloat(m.totalIncomeUsd || "0")),
+      href: "/trips",
+      icon: ArrowUpCircle,
+      iconBg: "bg-teal-500/14",
+      iconColor: "text-teal-400",
+    },
+  ];
 
   return (
     <div className="space-y-4">
-      <HeroCard
-        label={t("dashboard.totalDebt")}
-        formattedAmount={formatAmount(totalDebt)}
-        subtitle={totalDebt > 0 ? `${t("dashboard.debt")}: ${formatAmount(totalDebt)}` : undefined}
-        href="/shops"
-        icon={Banknote}
-        gradient={heroGradient}
-        warning={totalDebt > 0}
-      />
+      <CurrencyTicker className="rounded-[30px] border border-white/8 shadow-[0_12px_28px_rgba(0,0,0,0.18)]" />
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.08 }}
-        className="flex gap-2"
-      >
-        <Button asChild className="flex-1 h-[44px] rounded-[13px] text-[15px]">
-          <Link href="/trips/new" className="inline-flex items-center gap-1.5">
-            <Plus className="size-4" />
-            {t("dashboard.newTrip")}
-          </Link>
-        </Button>
-        <Button asChild variant="secondary" className="flex-1 h-[44px] rounded-[13px] text-[15px]">
-          <Link href="/shops/new" className="inline-flex items-center gap-1.5">
-            <Wallet className="size-4" />
-            {t("dashboard.addDebt")}
-          </Link>
-        </Button>
-      </motion.div>
-
-      <CurrencyWidget />
-
-      <MetricsStrip
-        metrics={[
-          { title: t("dashboard.activeTrips"), value: m.tripsCount.toString(), href: "/trips", icon: Plane, iconBg: "bg-emerald-500/15", iconColor: "text-emerald-500" },
-          { title: t("dashboard.shops"), value: m.shopsCount.toString(), href: "/shops", icon: Store, iconBg: "bg-sky-500/15", iconColor: "text-sky-500" },
-          { title: t("dashboard.remainingBudget"), value: formatAmount(parseFloat(m.remainingUsd || "0")), href: "/trips", icon: PiggyBank, iconBg: "bg-violet-500/15", iconColor: "text-violet-500" },
-          { title: t("dashboard.totalBudget"), value: formatAmount(parseFloat(m.totalBudgetUsd || "0")), href: "/trips", icon: TrendingUp, iconBg: "bg-indigo-500/15", iconColor: "text-indigo-500" },
-        ]}
-      />
+      <div className="grid grid-cols-2 gap-3">
+        {metrics.map((metric, index) => (
+          <MetricCard key={metric.title} {...metric} delay={0.05 + index * 0.03} />
+        ))}
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.22 }}
-        className="rounded-2xl bg-card border border-border/30 overflow-hidden"
+        className="overflow-hidden rounded-[30px] border border-border/30 bg-card/95 shadow-[0_12px_30px_rgba(0,0,0,0.18)]"
       >
         <div className="px-4 pt-4 pb-2">
-          <h2 className="text-[17px] font-semibold">{t("dashboard.recentTrips")}</h2>
+          <div className="flex items-center gap-2">
+            <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+              <TrendingUp className="size-5" />
+            </div>
+            <h2 className="text-[20px] font-semibold tracking-[-0.03em]">
+              {t("dashboard.recentTrips")}
+            </h2>
+          </div>
         </div>
         <div className="divide-y divide-border/30">
           {(data.recentTrips ?? []).length === 0 ? (

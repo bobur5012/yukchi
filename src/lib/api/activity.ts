@@ -33,6 +33,23 @@ export interface ActivityResponse {
   items: ActivityItem[];
 }
 
+export type DebtPaymentItem = {
+  id: string;
+  type: "debt" | "payment";
+  amount?: string;
+  description?: string;
+  shop?: { id: string; name: string };
+  createdAt: string;
+};
+
 export async function getActivity(limit = 50): Promise<ActivityResponse> {
   return api.get<ActivityResponse>(`/activity?limit=${limit}`);
+}
+
+export async function getMyDebtPaymentActivity(
+  limit = 20
+): Promise<DebtPaymentItem[]> {
+  return api.get<DebtPaymentItem[]>(
+    `/activity/my-debt-payments?limit=${limit}`
+  );
 }

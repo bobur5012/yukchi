@@ -115,7 +115,15 @@
     "fillNameAndOwner": "Заполните название и имя владельца",
     "fullPhoneRequired": "Введите полный номер телефона",
     "noShops": "Нет магазинов",
-    "selectShop": "Выберите магазин"
+    "selectShop": "Выберите магазин",
+    "searchHint": "Поиск по владельцу, телефону и адресу",
+    "searchPlaceholder": "Найдите магазин, владельца или номер телефона",
+    "totalCount": "Магазинов",
+    "activeCount": "Активные",
+    "debtTotal": "Общий долг",
+    "emptyFilteredTitle": "Ничего не найдено",
+    "emptyFilteredDescription": "Попробуйте изменить запрос поиска",
+    "emptyDescription": "Добавьте первый магазин, чтобы он появился в списке"
   },
   "profile": {
     "language": "Язык",
@@ -213,7 +221,18 @@
     "addProduct": "Добавить товар"
   },
   "products": {
-    "addFirst": "Добавьте первый товар"
+    "addFirst": "Добавьте первый товар",
+    "searchHint": "Быстрый обзор по фото, цене и поездке",
+    "searchPlaceholder": "Найдите товар, магазин или поездку",
+    "totalCount": "Товаров",
+    "withPhotoCount": "С фото",
+    "totalValue": "Сумма продаж",
+    "photosBadge": "с фото",
+    "linkedShopsBadge": "привязано к магазинам",
+    "emptyFilteredTitle": "Товары не найдены",
+    "emptyFilteredDescription": "Попробуйте другой запрос или откройте полный список",
+    "delivery": "Доставка",
+    "unitPrice": "Цена за ед."
   },
   "dashboard": {
     "totalDebt": "Общий долг",
@@ -312,7 +331,10 @@
     "addDebt": "Добавить долг",
     "receivePayment": "Принять оплату",
     "myTrips": "Мои поездки",
-    "myReports": "Мои отчёты"
+    "myReports": "Мои отчёты",
+    "pendingTasks": "Открытые задачи",
+    "completedTasks": "Выполнено",
+    "onlyOwnActivity": "Только ваши долги и оплаты"
   },
   "tasks": {
     "title": "Задачи",

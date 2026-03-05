@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Circle, CheckCircle2, Trash2, Plus, Wallet, CreditCard } from "lucide-react";
-import { CurrencyWidget } from "./CurrencyWidget";
-import { TopCouriers } from "./TopCouriers";
+import {
+  Circle,
+  CheckCircle2,
+  Trash2,
+  Plus,
+  Wallet,
+  CreditCard,
+  ListTodo,
+} from "lucide-react";
 import { useTranslations } from "@/lib/useTranslations";
 import {
   getTasks,
@@ -17,12 +23,129 @@ import {
   getMyDebtPaymentActivity,
   type DebtPaymentItem,
 } from "@/lib/api/activity";
+import { fetchCBURates, type CurrencyRates } from "@/lib/api/cbu-rates";
 import { formatDateSafe } from "@/lib/date-utils";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+const FLAG_MAP: Record<string, string> = {
+  USD: "🇺🇸",
+  UZS: "🇺🇿",
+  TRY: "🇹🇷",
+};
+
+function CurrencyTicker() {
+  const [rates, setRates] = useState<CurrencyRates | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    fetchCBURates()
+      .then(setRates)
+      .catch(() => setRates(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const items = useMemo(() => {
+    if (!rates) {
+      return [
+        { pair: "USD → UZS", value: "..." },
+        { pair: "USD → TRY", value: "..." },
+        { pair: "TRY → UZS", value: "..." },
+        { pair: "TRY → USD", value: "..." },
+      ];
+    }
+
+    return [
+      {
+        pair: "USD → UZS",
+        value: rates.usdUzs.toLocaleString("ru-RU", { maximumFractionDigits: 0 }),
+      },
+      {
+        pair: "USD → TRY",
+        value: rates.usdTry.toFixed(2),
+      },
+      {
+        pair: "TRY → UZS",
+        value: rates.tryUzs.toLocaleString("ru-RU", { maximumFractionDigits: 0 }),
+      },
+      {
+        pair: "TRY → USD",
+        value: rates.tryUsd.toFixed(4),
+      },
+    ];
+  }, [rates]);
+
+  const repeatedItems = [...items, ...items];
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="border-y border-border/20 bg-card/70 backdrop-blur supports-[backdrop-filter]:bg-card/55"
+    >
+      <div className="relative overflow-hidden py-2">
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-card via-card/85 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-card via-card/85 to-transparent" />
+        <div className={cn("courier-ticker-track", loading && "opacity-80")}>
+          {repeatedItems.map((item, index) => {
+            const [from, to] = item.pair.split(" → ");
+            return (
+              <div
+                key={`${item.pair}-${index}`}
+                className="flex items-center gap-2 rounded-full border border-border/30 bg-background/55 px-3 py-1.5 text-[13px] shadow-sm shadow-black/10"
+              >
+                <span className="whitespace-nowrap text-muted-foreground">
+                  {FLAG_MAP[from] ?? from} → {FLAG_MAP[to] ?? to}
+                </span>
+                <span className="whitespace-nowrap font-semibold tabular-nums text-emerald-400">
+                  {item.value}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+function OverviewStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "primary" | "success" | "warning";
+}) {
+  const toneClass =
+    tone === "success"
+      ? "from-emerald-500/20 to-emerald-500/5 border-emerald-500/20"
+      : tone === "warning"
+        ? "from-amber-500/20 to-amber-500/5 border-amber-500/20"
+        : "from-violet-500/20 to-violet-500/5 border-violet-500/20";
+
+  return (
+    <div
+      className={cn(
+        "rounded-3xl border bg-gradient-to-br p-3 shadow-[0_8px_30px_rgba(0,0,0,0.14)]",
+        toneClass
+      )}
+    >
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="mt-1 text-[22px] font-semibold tracking-[-0.03em] tabular-nums">
+        {value}
+      </p>
+    </div>
+  );
+}
 
 export function CourierDashboard() {
   const { t, locale } = useTranslations();
@@ -34,6 +157,9 @@ export function CourierDashboard() {
   const [addingTask, setAddingTask] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const completedTasks = tasks.filter((task) => task.completed).length;
+  const pendingTasks = tasks.length - completedTasks;
 
   const loadTasks = useCallback(() => {
     setTasksLoading(true);
@@ -102,17 +228,58 @@ export function CourierDashboard() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <CurrencyWidget />
+    <div className="space-y-3 pb-3">
+      <CurrencyTicker />
 
-      {/* Tasks */}
+      <div className="space-y-3 px-3">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-3 gap-2"
+        >
+          <OverviewStat
+            label={t("courier.pendingTasks")}
+            value={pendingTasks.toString()}
+            tone="primary"
+          />
+          <OverviewStat
+            label={t("courier.completedTasks")}
+            value={completedTasks.toString()}
+            tone="success"
+          />
+          <OverviewStat
+            label={t("activity.lastPayments")}
+            value={payments.length.toString()}
+            tone="warning"
+          />
+        </motion.div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl bg-card border border-border/30 overflow-hidden"
+        className="overflow-hidden rounded-[30px] border border-border/30 bg-card/95 shadow-[0_12px_34px_rgba(0,0,0,0.22)]"
       >
         <div className="px-4 pt-4 pb-3">
-          <h2 className="text-[17px] font-semibold">{t("tasks.title")}</h2>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                <ListTodo className="size-5" />
+              </div>
+              <div>
+                <h2 className="text-[20px] font-semibold tracking-[-0.03em]">
+                  {t("tasks.title")}
+                </h2>
+                <p className="text-[12px] text-muted-foreground">
+                  {pendingTasks > 0
+                    ? `${pendingTasks} ${t("courier.pendingTasks").toLowerCase()}`
+                    : t("tasks.empty")}
+                </p>
+              </div>
+            </div>
+            <div className="rounded-full bg-primary/10 px-3 py-1 text-[12px] font-medium text-primary">
+              {tasks.length}
+            </div>
+          </div>
         </div>
 
         <div className="px-4 pb-3">
@@ -122,12 +289,13 @@ export function CourierDashboard() {
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
-              className="flex-1"
+              className="h-14 flex-1 rounded-2xl border-border/50 bg-background/60 px-4 text-[16px]"
             />
             <Button
               size="icon"
               onClick={handleAddTask}
               disabled={!newTaskTitle.trim() || addingTask}
+              className="size-14 rounded-2xl shrink-0 shadow-lg shadow-primary/20"
             >
               <Plus className="size-5" />
             </Button>
@@ -135,11 +303,11 @@ export function CourierDashboard() {
         </div>
 
         {tasksLoading ? (
-          <div className="px-4 pb-4 space-y-2">
+          <div className="space-y-2 px-4 pb-4">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 py-2"
+                className="flex items-center gap-3 rounded-2xl border border-border/30 bg-background/40 px-3 py-3"
               >
                 <div className="size-6 rounded-full bg-muted/60 animate-pulse shrink-0" />
                 <div className="h-4 flex-1 rounded bg-muted/60 animate-pulse" />
@@ -147,13 +315,17 @@ export function CourierDashboard() {
             ))}
           </div>
         ) : tasks.length === 0 ? (
-          <EmptyState
-            icon={Circle}
-            title={t("tasks.empty")}
-            className="py-8"
-          />
+          <div className="px-4 pb-5 pt-2 text-center">
+            <div className="mx-auto flex size-16 items-center justify-center rounded-[22px] bg-muted/35 text-muted-foreground">
+              <Circle className="size-8" />
+            </div>
+            <p className="mt-3 text-[18px] font-semibold">{t("tasks.empty")}</p>
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              {t("tasks.addPlaceholder")}
+            </p>
+          </div>
         ) : (
-          <div className="divide-y divide-border/30">
+          <div className="space-y-2 px-3 pb-3">
             <AnimatePresence mode="popLayout">
               {tasks.map((task) => (
                 <motion.div
@@ -162,7 +334,7 @@ export function CourierDashboard() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-accent/20 transition-colors"
+                  className="flex items-center gap-3 rounded-2xl border border-border/30 bg-background/45 px-3 py-3 transition-colors hover:bg-accent/20"
                 >
                   <button
                     type="button"
@@ -178,7 +350,7 @@ export function CourierDashboard() {
                   </button>
                   <span
                     className={cn(
-                      "flex-1 text-[15px] truncate",
+                      "flex-1 text-[15px]",
                       task.completed && "line-through text-muted-foreground"
                     )}
                   >
@@ -200,24 +372,33 @@ export function CourierDashboard() {
         )}
       </motion.div>
 
-      {/* Last payments */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="rounded-2xl bg-card border border-border/30 overflow-hidden"
+        className="overflow-hidden rounded-[30px] border border-border/30 bg-card/95 shadow-[0_12px_34px_rgba(0,0,0,0.22)]"
       >
         <div className="px-4 pt-4 pb-2">
-          <h2 className="text-[17px] font-semibold">
-            {t("activity.lastPayments")}
-          </h2>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-[20px] font-semibold tracking-[-0.03em]">
+                {t("activity.lastPayments")}
+              </h2>
+              <p className="text-[12px] text-muted-foreground">
+                {t("courier.onlyOwnActivity")}
+              </p>
+            </div>
+            <div className="rounded-full bg-emerald-500/10 px-3 py-1 text-[12px] font-medium text-emerald-400">
+              {payments.length}
+            </div>
+          </div>
         </div>
         {paymentsLoading ? (
-          <div className="px-4 pb-4 space-y-2">
+          <div className="space-y-2 px-4 pb-4">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 py-2"
+                className="flex items-center gap-3 rounded-2xl border border-border/30 bg-background/40 px-3 py-3"
               >
                 <div className="size-8 rounded-lg bg-muted/60 animate-pulse shrink-0" />
                 <div className="flex-1 space-y-1">
@@ -228,17 +409,18 @@ export function CourierDashboard() {
             ))}
           </div>
         ) : payments.length === 0 ? (
-          <EmptyState
-            icon={Wallet}
-            title={t("activity.empty")}
-            className="py-8"
-          />
+          <div className="px-4 pb-5 pt-2 text-center">
+            <div className="mx-auto flex size-16 items-center justify-center rounded-[22px] bg-muted/35 text-muted-foreground">
+              <Wallet className="size-8" />
+            </div>
+            <p className="mt-3 text-[18px] font-semibold">{t("activity.empty")}</p>
+          </div>
         ) : (
-          <div className="divide-y divide-border/30">
+          <div className="space-y-2 px-3 pb-3">
             {payments.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-accent/20 transition-colors"
+                className="flex items-center gap-3 rounded-2xl border border-border/30 bg-background/45 px-3 py-3 transition-colors hover:bg-accent/20"
               >
                 <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   {item.type === "payment" ? (
@@ -249,7 +431,12 @@ export function CourierDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[14px] font-medium truncate">
-                    {item.shop?.name ?? "—"} · {item.amount ?? "0"} USD
+                    {item.shop?.name ?? "—"} ·{" "}
+                    {Number(item.amount ?? "0").toLocaleString("ru-RU", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    USD
                   </p>
                   <p className="text-[12px] text-muted-foreground">
                     {item.type === "payment"
@@ -263,8 +450,7 @@ export function CourierDashboard() {
           </div>
         )}
       </motion.div>
-
-      <TopCouriers />
+      </div>
     </div>
   );
 }

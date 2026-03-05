@@ -38,7 +38,6 @@ const courierMainNavItems = (t: (k: string) => string) => [
   { href: "/trips",     label: t("nav.trips"),    icon: Plane },
   { href: "/shops",     label: t("nav.shops"),    icon: Store },
   { href: "/products",  label: t("nav.products"), icon: Package },
-  { href: "/profile",   label: t("nav.profile"),  icon: User },
 ];
 
 const adminMoreItems = (t: (k: string) => string) => [

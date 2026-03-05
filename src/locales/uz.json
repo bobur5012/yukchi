@@ -115,7 +115,15 @@
     "fillNameAndOwner": "Nomi va egasi ismini to'ldiring",
     "fullPhoneRequired": "To'liq telefon raqamini kiriting",
     "noShops": "Do'konlar yo'q",
-    "selectShop": "Do'konni tanlang"
+    "selectShop": "Do'konni tanlang",
+    "searchHint": "Ega, telefon va manzil bo'yicha qidiruv",
+    "searchPlaceholder": "Do'kon, egasi yoki telefon raqamini toping",
+    "totalCount": "Do'konlar",
+    "activeCount": "Faol",
+    "debtTotal": "Umumiy qarz",
+    "emptyFilteredTitle": "Hech narsa topilmadi",
+    "emptyFilteredDescription": "Qidiruv so'rovini o'zgartirib ko'ring",
+    "emptyDescription": "Ro'yxatda ko'rinishi uchun birinchi do'konni qo'shing"
   },
   "profile": {
     "language": "Til",
@@ -179,7 +187,18 @@
     "addProduct": "Mahsulot qo'shish"
   },
   "products": {
-    "addFirst": "Birinchi mahsulotni qo'shing"
+    "addFirst": "Birinchi mahsulotni qo'shing",
+    "searchHint": "Foto, narx va sayohat bo'yicha tez ko'rinish",
+    "searchPlaceholder": "Mahsulot, do'kon yoki sayohatni toping",
+    "totalCount": "Mahsulotlar",
+    "withPhotoCount": "Rasmli",
+    "totalValue": "Sotuv summasi",
+    "photosBadge": "rasmli",
+    "linkedShopsBadge": "do'konga biriktirilgan",
+    "emptyFilteredTitle": "Mahsulotlar topilmadi",
+    "emptyFilteredDescription": "Boshqa so'rov kiriting yoki to'liq ro'yxatni oching",
+    "delivery": "Yetkazish",
+    "unitPrice": "Dona narxi"
   },
   "dashboard": {
     "totalDebt": "Umumiy qarz",
@@ -278,7 +297,10 @@
     "addDebt": "Qarz qo'shish",
     "receivePayment": "To'lov qabul qilish",
     "myTrips": "Mening sayohatlarim",
-    "myReports": "Mening hisobotlarim"
+    "myReports": "Mening hisobotlarim",
+    "pendingTasks": "Ochiq vazifa",
+    "completedTasks": "Bajarilgan",
+    "onlyOwnActivity": "Faqat sizning qarz va to'lovlaringiz"
   },
   "tasks": {
     "title": "Vazifalar",

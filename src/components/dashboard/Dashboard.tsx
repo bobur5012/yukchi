@@ -201,7 +201,11 @@ export function Dashboard() {
 
   // Show courier-specific dashboard
   if (user?.role === 'courier') {
-    return <CourierDashboard />;
+    return (
+      <div className="-mx-4 -mt-5">
+        <CourierDashboard />
+      </div>
+    );
   }
 
   if (loading) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { RefreshCw, TrendingUp } from "lucide-react";
 import { fetchCBURates, type CurrencyRates } from "@/lib/api/cbu-rates";
@@ -41,15 +41,17 @@ export function CurrencyWidget() {
   const [rates, setRates] = useState<CurrencyRates | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const tRef = useRef(t);
+  tRef.current = t;
 
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
     fetchCBURates()
       .then(setRates)
-      .catch(() => setError(t("common.loadError")))
+      .catch(() => setError(tRef.current("common.loadError")))
       .finally(() => setLoading(false));
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     load();

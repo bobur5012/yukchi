@@ -4,19 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { fetchCBURates, type CurrencyRates } from "@/lib/api/cbu-rates";
 import { useCurrencyStore, type ProfileCurrency } from "@/stores/currency";
 
-let ratesCache: CurrencyRates | null = null;
-let ratesCacheTime = 0;
-const CACHE_MS = 5 * 60 * 1000;
-
-async function getRates(): Promise<CurrencyRates> {
-  if (ratesCache && Date.now() - ratesCacheTime < CACHE_MS) {
-    return ratesCache;
-  }
-  ratesCache = await fetchCBURates();
-  ratesCacheTime = Date.now();
-  return ratesCache;
-}
-
 function convertUsdToCurrency(
   amountUsd: number,
   target: ProfileCurrency,
@@ -76,7 +63,7 @@ export function useFormattedAmount() {
   const [rates, setRates] = useState<CurrencyRates | null>(null);
 
   useEffect(() => {
-    getRates()
+    fetchCBURates()
       .then(setRates)
       .catch(() => setRates(null));
   }, []);

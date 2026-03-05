@@ -256,7 +256,7 @@ export function AddTripForm() {
           />
         </FormSection>
 
-        <FormSection title="Тип финансирования" className="px-4 pb-4 space-y-3">
+        <FormSection title={t("trips.fundingType")} className="px-4 pb-4 space-y-3">
           <Select value={fundingMode} onValueChange={(value) => setFundingMode(value as FundingMode)}>
             <SelectTrigger className={selectClass}>
               <SelectValue />
@@ -277,13 +277,13 @@ export function AddTripForm() {
             </SelectContent>
           </Select>
           <FieldHint>
-            <span className="block break-words text-[11px] leading-4 text-muted-foreground">
+            <span className="block break-words whitespace-normal text-[11px] leading-4 text-muted-foreground">
               {t("trips.fundingHint")}
             </span>
           </FieldHint>
           {showDebtInput && (
             <div className="mt-3 space-y-1.5">
-              <p className="text-xs text-muted-foreground">Сумма долга (USD)</p>
+              <p className="text-xs text-muted-foreground">{t("trips.debtAmountLabel")}</p>
               <Input
                 type="number"
                 step="0.01"

@@ -6,7 +6,8 @@ import { motion } from "framer-motion";
 import { getActivity, type ActivityItem } from "@/lib/api/activity";
 import { formatDateSafe } from "@/lib/date-utils";
 import { useTranslations } from "@/lib/useTranslations";
-import { Receipt, Wallet, Package } from "lucide-react";
+import { Receipt, Wallet, Package, Activity } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 function interpolate(template: string, params: Record<string, string>): string {
   return Object.entries(params).reduce(
@@ -97,10 +98,6 @@ export function ActivityFeed() {
     );
   }
 
-  if (items.length === 0) {
-    return null;
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -111,11 +108,15 @@ export function ActivityFeed() {
       <div className="px-4 pt-4 pb-2">
         <h2 className="text-[17px] font-semibold">{t("dashboard.activityFeed")}</h2>
       </div>
-      <div className="divide-y divide-border/30">
-        {items.slice(0, 10).map((item) => (
-          <ActivityItemRow key={`${item.type}-${item.id}`} item={item} locale={locale} t={t} />
-        ))}
-      </div>
+      {items.length === 0 ? (
+        <EmptyState icon={Activity} title={t("activity.empty")} className="py-8" />
+      ) : (
+        <div className="divide-y divide-border/30">
+          {items.slice(0, 10).map((item) => (
+            <ActivityItemRow key={`${item.type}-${item.id}`} item={item} locale={locale} t={t} />
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }

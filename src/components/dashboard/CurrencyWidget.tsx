@@ -123,7 +123,7 @@ export function CurrencyWidget() {
           <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
         </button>
       </div>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="grid grid-cols-2 gap-1.5">
         <RateChip
           pair="USD → UZS"
           value={rates ? rates.usdUzs.toLocaleString("ru-RU", { maximumFractionDigits: 0 }) : "—"}

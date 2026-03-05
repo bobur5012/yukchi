@@ -90,7 +90,9 @@
     "debtFunding": "Qarz (tashkilot hisobidan xarid)",
     "cashFunding": "Naqd (do'kon puli)",
     "cashFundingShort": "Naqd (do'kon pul berdi)",
-    "fundingHint": "Naqd: do'kon puli bilan xarid. Qarz: mahsulot va yetkazib berish do'kon qarziga qo'shiladi."
+    "fundingHint": "Naqd: do'kon puli bilan xarid. Qarz: mahsulot va yetkazib berish do'kon qarziga qo'shiladi.",
+    "fundingType": "Mablag' turi",
+    "debtAmountLabel": "Qarz summasi (USD)"
   },
   "shops": {
     "add": "Qo'shish",
@@ -200,7 +202,8 @@
     "addedProduct": "{{who}} mahsulot qo'shdi «{{name}}»",
     "inTrip": "sayohatda",
     "inShop": "do'konda",
-    "unknown": "—"
+    "unknown": "—",
+    "empty": "Hozircha harakatlar yo'q"
   },
   "tabs": {
     "list": "Ro'yxat",

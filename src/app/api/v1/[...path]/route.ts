@@ -71,7 +71,18 @@ async function forward(req: NextRequest, path: string[]): Promise<NextResponse> 
   }
 
   const upstream = await fetch(targetUrl, init);
-  const response = new NextResponse(upstream.body, { status: upstream.status });
+  let body: BodyInit;
+  if (upstream.status >= 500) {
+    const bodyText = await upstream.text();
+    console.error(
+      `[API Proxy] Upstream ${upstream.status} for ${method} ${targetUrl}:`,
+      bodyText.slice(0, 500)
+    );
+    body = bodyText;
+  } else {
+    body = upstream.body ?? "";
+  }
+  const response = new NextResponse(body, { status: upstream.status });
   copyIncomingHeaders(upstream, response);
   return response;
 }

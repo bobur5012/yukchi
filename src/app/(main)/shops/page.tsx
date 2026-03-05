@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { ShopsList } from "@/components/shops/ShopsList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslations } from "@/lib/useTranslations";
 
 const ShopsReport = dynamic(
   () => import("@/components/shops/ShopsReport").then((m) => ({ default: m.ShopsReport })),
@@ -11,12 +12,13 @@ const ShopsReport = dynamic(
 );
 
 export default function ShopsPage() {
+  const { t } = useTranslations();
   return (
     <div className="space-y-4">
       <Tabs defaultValue="list" className="w-full">
         <TabsList className="w-full grid grid-cols-2 rounded-2xl">
-          <TabsTrigger value="list">Список</TabsTrigger>
-          <TabsTrigger value="report">Отчёт</TabsTrigger>
+          <TabsTrigger value="list">{t("tabs.list")}</TabsTrigger>
+          <TabsTrigger value="report">{t("tabs.report")}</TabsTrigger>
         </TabsList>
         <TabsContent value="list" className="mt-4">
           <Suspense fallback={<div className="animate-pulse h-32 rounded-2xl bg-muted" />}>

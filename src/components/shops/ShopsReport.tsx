@@ -12,7 +12,7 @@ import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import Link from "next/link";
 
 export function ShopsReport() {
-  const { locale } = useTranslations();
+  const { t, locale } = useTranslations();
   const { formatAmount } = useFormattedAmount();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +56,7 @@ export function ShopsReport() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Wallet className="h-4 w-4" />
-              <span className="text-sm">Общий долг</span>
+              <span className="text-sm">{t("shopsReport.totalDebt")}</span>
             </div>
             <p className="text-2xl font-bold">{totalDebt.toLocaleString()} $</p>
           </CardContent>
@@ -71,7 +71,7 @@ export function ShopsReport() {
               {overdueDebt.toLocaleString()} $
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {overdueShops.length} магазин(ов)
+              {overdueShops.length} {t("shopsReport.shopsCount")}
             </p>
           </CardContent>
         </Card>
@@ -79,7 +79,7 @@ export function ShopsReport() {
 
       <Card className="rounded-2xl">
         <CardContent className="p-4">
-          <h3 className="font-semibold mb-3">Крупные должники</h3>
+          <h3 className="font-semibold mb-3">{t("shopsReport.topDebtors")}</h3>
           <div className="space-y-2">
             {sortedByDebt.slice(0, 5).map((shop) => (
               <Link key={shop.id} href={`/shops/${shop.id}`}>
@@ -94,7 +94,7 @@ export function ShopsReport() {
                     </p>
                     {lastPayment(shop) && (
                       <p className="text-xs text-muted-foreground">
-                        Оплата: {formatDateSafe(lastPayment(shop)!.createdAt, "d MMM", locale)}
+                        {t("shopsReport.payment")}: {formatDateSafe(lastPayment(shop)!.createdAt, "d MMM", locale)}
                       </p>
                     )}
                   </div>
@@ -123,7 +123,7 @@ export function ShopsReport() {
                     <div className="min-w-0">
                       <p className="font-medium truncate">{shop.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {entry.type === "debt" ? "Долг" : "Оплата"} • {formatAmount(parseFloat(entry.amount || "0"))}
+                        {entry.type === "debt" ? t("shopsReport.debt") : t("shopsReport.payment")} • {formatAmount(parseFloat(entry.amount || "0"))}
                         {entry.description && ` • ${entry.description}`}
                       </p>
                     </div>
@@ -138,7 +138,7 @@ export function ShopsReport() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground py-4 text-center">Нет записей</p>
+                <p className="text-sm text-muted-foreground py-4 text-center">{t("shopsReport.noEntries")}</p>
               );
             })()}
           </div>
@@ -151,14 +151,14 @@ export function ShopsReport() {
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">
               <CheckCircle className="h-3 w-3 mr-1" />
-              Активных: {shops.filter((s) => s.status === "active").length}
+              {t("shopsReport.active")}: {shops.filter((s) => s.status === "active").length}
             </Badge>
             <Badge variant="secondary" className="bg-muted text-muted-foreground">
-              Неактивных: {shops.filter((s) => s.status === "inactive").length}
+              {t("shopsReport.inactive")}: {shops.filter((s) => s.status === "inactive").length}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-3">
-            Всего получено оплат: {totalPaid.toLocaleString()} $
+            {t("shopsReport.totalPaid")}: {totalPaid.toLocaleString()} $
           </p>
         </CardContent>
       </Card>

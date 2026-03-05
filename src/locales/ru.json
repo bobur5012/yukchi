@@ -54,7 +54,9 @@
     "comment": "Комментарий",
     "user": "Пользователь",
     "admin": "Администратор",
-    "courier": "Курьер"
+    "courier": "Курьер",
+    "retry": "Повторить",
+    "loadError": "Ошибка загрузки"
   },
   "couriers": {
     "create": "Создать",
@@ -84,11 +86,23 @@
     "couriers": "Курьеры",
     "day": "день",
     "daysFew": "дня",
-    "daysMany": "дней"
+    "daysMany": "дней",
+    "debtFunding": "Долг (закуп за счёт организации)",
+    "cashFunding": "Наличка (деньги магазина)",
+    "cashFundingShort": "Наличка (магазин дал деньги)",
+    "fundingHint": "Наличка: закупка на деньги магазина. Долг: товар + доставка добавятся в задолженность магазина."
   },
   "shops": {
     "add": "Добавить",
     "added": "Магазин добавлен",
+    "debt": "Долг",
+    "products": "Товары",
+    "contacts": "Контакты",
+    "reminders": "Напоминания",
+    "remindersShort": "Напомин.",
+    "addDebt": "Добавить долг",
+    "noProductsLinked": "Нет привязанных товаров. Привяжите товар в разделе «Товары» или добавьте новый.",
+    "contactsNotSet": "Контакты не указаны",
     "shopName": "Название магазина",
     "shopNamePlaceholder": "Магазин «Стиль»",
     "ownerName": "Имя владельца",
@@ -156,7 +170,13 @@
     "logout": "Выйти из аккаунта",
     "save": "Сохранить",
     "saved": "Сохранено",
-    "saveError": "Не удалось сохранить"
+    "saveError": "Не удалось сохранить",
+    "templatesTitle": "Шаблоны Telegram-сообщений",
+    "templatesHint": "Используйте переменные в фигурных скобках. Поддерживается Markdown: *жирный*, _курсив_.",
+    "variables": "Переменные",
+    "saveTemplates": "Сохранить шаблоны",
+    "savingTemplates": "Сохранение…",
+    "resetToDefaults": "Сбросить к стандартным"
   },
   "quickActions": {
     "title": "Быстрые действия",
@@ -199,10 +219,97 @@
     "newTrip": "Новая поездка",
     "addDebt": "Добавить долг",
     "activeTrips": "Активные поездки",
+    "shops": "Магазины",
     "remainingBudget": "Остаток бюджета",
     "totalBudget": "Общий бюджет",
     "recentTrips": "Последние поездки",
     "noTrips": "Нет поездок",
-    "noTripsDescription": "Здесь появятся последние поездки"
+    "noTripsDescription": "Здесь появятся последние поездки",
+    "currencyRates": "Курсы валют",
+    "activityFeed": "История действий"
+  },
+  "activity": {
+    "addedExpense": "{{who}} добавил расход {{amount}}$",
+    "addedDebt": "{{who}} добавил долг {{amount}}$",
+    "addedProduct": "{{who}} добавил товар «{{name}}»",
+    "inTrip": "в поездке",
+    "inShop": "в магазин",
+    "unknown": "—"
+  },
+  "tabs": {
+    "list": "Список",
+    "report": "Отчёт"
+  },
+  "topCouriers": {
+    "bestCouriers": "Лучшие курьеры",
+    "all": "Все",
+    "points_one": "балл",
+    "points_few": "балла",
+    "points_many": "баллов",
+    "awardPoints": "Наградить баллами",
+    "updateFailed": "Не удалось обновить баллы"
+  },
+  "tripsReport": {
+    "reportForDay": "Отчёт за день",
+    "activityFor": "Активность за",
+    "products": "Товары",
+    "expenses": "Расходы",
+    "incomes": "Приходы",
+    "addedProducts": "Добавленные товары",
+    "noActivity": "Нет активности за выбранный день",
+    "activeTrips": "Активные поездки",
+    "remainingBudget": "Остаток бюджета",
+    "totalSpent": "Общий расход",
+    "totalIncome": "Общий приход",
+    "expense": "Расход",
+    "income": "Приход",
+    "totalIncome": "Общий приход",
+    "budgetSummary": "Сводка по бюджету",
+    "totalBudget": "Общий бюджет",
+    "oldDebt": "Старый долг",
+    "spent": "Потрачено",
+    "remaining": "Остаток",
+    "overBudgetTrips": "Поездки с минусовым остатком"
+  },
+  "shopsReport": {
+    "totalDebt": "Общий долг",
+    "overdue": "Просрочено",
+    "shopsCount": "магазин(ов)",
+    "topDebtors": "Крупные должники",
+    "payment": "Оплата",
+    "debtMovement": "Движение по долгам (кто, когда)",
+    "debt": "Долг",
+    "statistics": "Статистика",
+    "active": "Активных",
+    "inactive": "Неактивных",
+    "totalPaid": "Всего получено оплат",
+    "noEntries": "Нет записей"
+  },
+  "productsReport": {
+    "dateFilter": "Фильтр по дате",
+    "reset": "Сбросить",
+    "shownForDate": "Показаны товары за",
+    "shownAll": "Показаны все товары",
+    "products": "Товаров",
+    "sale": "Продажа (итого)",
+    "delivery": "Доставка (итого)",
+    "total": "Общий итог",
+    "byTrips": "По поездкам",
+    "productDetails": "Детали по товарам",
+    "units": "ед.",
+    "productsCount": "товар(ов)",
+    "saleLabel": "Продажа",
+    "deliveryLabel": "Доставка"
+  },
+  "reminders": {
+    "title": "Напоминания",
+    "add": "Добавить",
+    "noReminders": "Нет напоминаний",
+    "addReminderHint": "Добавьте напоминание о долге",
+    "addReminder": "Добавить напоминание",
+    "monthly": "Ежемесячно, {{day}} число",
+    "oneTime": "Одноразово: {{date}}",
+    "sent": "Отправлено",
+    "saving": "Сохранение…"
   }
 }

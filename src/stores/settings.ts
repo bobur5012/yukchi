@@ -7,14 +7,6 @@ interface TelegramBotConfig {
   status: "connected" | "disconnected" | "error";
 }
 
-interface TelegramClientConfig {
-  phone: string;
-  appId: string;
-  appHash: string;
-  code: string;
-  status: "authorized" | "unauthorized" | "pending";
-}
-
 interface NotificationSettings {
   newTrip: boolean;
   tripUpdated: boolean;
@@ -44,11 +36,9 @@ export interface MessageTemplates {
 
 interface SettingsState {
   telegramBot: TelegramBotConfig;
-  telegramClient: TelegramClientConfig;
   notifications: NotificationSettings;
   messageTemplates: MessageTemplates;
   setTelegramBot: (config: Partial<TelegramBotConfig>) => void;
-  setTelegramClient: (config: Partial<TelegramClientConfig>) => void;
   setNotifications: (settings: Partial<NotificationSettings>) => void;
   setMessageTemplate: (key: keyof MessageTemplates, value: string) => void;
   setMessageTemplates: (templates: Partial<MessageTemplates>) => void;
@@ -85,13 +75,6 @@ export const useSettingsStore = create<SettingsState>()(
         chatId: "",
         status: "disconnected",
       },
-      telegramClient: {
-        phone: "",
-        appId: "",
-        appHash: "",
-        code: "",
-        status: "unauthorized",
-      },
       notifications: {
         newTrip: true,
         tripUpdated: true,
@@ -109,11 +92,6 @@ export const useSettingsStore = create<SettingsState>()(
       setTelegramBot: (config) =>
         set((state) => ({
           telegramBot: { ...state.telegramBot, ...config },
-        })),
-
-      setTelegramClient: (config) =>
-        set((state) => ({
-          telegramClient: { ...state.telegramClient, ...config },
         })),
 
       setNotifications: (settings) =>

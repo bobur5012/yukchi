@@ -10,12 +10,13 @@ const TripsReport = dynamic(
 );
 
 export default function TripsPage() {
+  const { t } = useTranslations();
   return (
     <div className="space-y-4">
       <Tabs defaultValue="list" className="w-full">
         <TabsList className="w-full grid grid-cols-2 rounded-2xl">
-          <TabsTrigger value="list">Список</TabsTrigger>
-          <TabsTrigger value="report">Отчёт</TabsTrigger>
+          <TabsTrigger value="list">{t("tabs.list")}</TabsTrigger>
+          <TabsTrigger value="report">{t("tabs.report")}</TabsTrigger>
         </TabsList>
         <TabsContent value="list" className="mt-4">
           <TripsList />

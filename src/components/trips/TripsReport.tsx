@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "@/lib/useTranslations";
 import { getTrips } from "@/lib/api/trips";
 import { getProductsByTrips } from "@/lib/api/products";
 import type { Trip, Product, Expense } from "@/types";
@@ -22,6 +23,7 @@ function isSameDay(a: string, b: string): boolean {
 }
 
 export function TripsReport() {
+  const { t } = useTranslations();
   const { formatAmount } = useFormattedAmount();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -110,7 +112,7 @@ export function TripsReport() {
         <CardContent className="p-4">
           <div className="flex items-center gap-2 text-muted-foreground mb-2">
             <Calendar className="h-4 w-4" />
-            <span className="text-sm font-medium">Отчёт за день</span>
+            <span className="text-sm font-medium">{t("tripsReport.reportForDay")}</span>
           </div>
           <Input
             type="date"
@@ -123,17 +125,17 @@ export function TripsReport() {
 
       <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
         <CardContent className="p-4">
-          <h3 className="font-semibold mb-3">Активность за {selectedDate}</h3>
+          <h3 className="font-semibold mb-3">{t("tripsReport.activityFor")} {selectedDate}</h3>
           <div className="grid gap-3 grid-cols-3 mb-4">
             <div className="rounded-xl bg-muted/40 p-3 text-center">
               <Package className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">Товары</p>
+              <p className="text-xs text-muted-foreground">{t("tripsReport.products")}</p>
               <p className="text-lg font-bold tabular-nums text-emerald-600">{dayProducts.length}</p>
               <p className="text-xs tabular-nums">{formatAmount(dayProductsTotal)}</p>
             </div>
             <div className="rounded-xl bg-muted/40 p-3 text-center">
               <Receipt className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">Расходы</p>
+              <p className="text-xs text-muted-foreground">{t("tripsReport.expenses")}</p>
               <p className="text-lg font-bold tabular-nums text-orange-500">{dayExpenses.length}</p>
               <p className="text-xs tabular-nums">{formatAmount(dayExpensesTotal)}</p>
             </div>
@@ -147,7 +149,7 @@ export function TripsReport() {
           <div className="space-y-3 text-sm">
             {dayProducts.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">Добавленные товары</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">{t("tripsReport.addedProducts")}</p>
                 <div className="space-y-1">
                   {dayProducts.map((p) => {
                     const trip = trips.find((t) => t.id === p.tripId);
@@ -171,7 +173,7 @@ export function TripsReport() {
                 <div className="space-y-1">
                   {dayExpenses.map(({ trip, expense }) => (
                     <div key={expense.id} className="flex justify-between py-1.5 px-2 rounded-lg bg-muted/20">
-                      <span className="truncate">{(expense as Expense & { description?: string }).description || "Расход"}</span>
+                      <span className="truncate">{(expense as Expense & { description?: string }).description || t("tripsReport.expense")}</span>
                       <span className="shrink-0 tabular-nums text-orange-500">{trip.name} — {formatAmount(toNum(expense.amountUsd ?? expense.amount))}</span>
                     </div>
                   ))}
@@ -180,11 +182,11 @@ export function TripsReport() {
             )}
             {dayIncomes.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">Приходы</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">{t("tripsReport.incomes")}</p>
                 <div className="space-y-1">
                   {dayIncomes.map(({ trip, expense }) => (
                     <div key={expense.id} className="flex justify-between py-1.5 px-2 rounded-lg bg-muted/20">
-                      <span className="truncate">{(expense as Expense & { description?: string }).description || "Приход"}</span>
+                      <span className="truncate">{(expense as Expense & { description?: string }).description || t("tripsReport.income")}</span>
                       <span className="shrink-0 tabular-nums text-emerald-600">+{formatAmount(toNum(expense.amountUsd ?? expense.amount))} — {trip.name}</span>
                     </div>
                   ))}
@@ -192,7 +194,7 @@ export function TripsReport() {
               </div>
             )}
             {dayProducts.length === 0 && dayExpenses.length === 0 && dayIncomes.length === 0 && (
-              <p className="text-muted-foreground py-4 text-center">Нет активности за выбранный день</p>
+              <p className="text-muted-foreground py-4 text-center">{t("tripsReport.noActivity")}</p>
             )}
           </div>
         </CardContent>
@@ -203,7 +205,7 @@ export function TripsReport() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Plane className="h-4 w-4" />
-              <span className="text-sm">Активные поездки</span>
+              <span className="text-sm">{t("tripsReport.activeTrips")}</span>
             </div>
             <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em]">{activeTrips.length}</p>
           </CardContent>
@@ -213,7 +215,7 @@ export function TripsReport() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Wallet className="h-4 w-4" />
-              <span className="text-sm">Остаток бюджета</span>
+              <span className="text-sm">{t("tripsReport.remainingBudget")}</span>
             </div>
             <p className={`text-[20px] font-bold tabular-nums tracking-[-0.03em] ${totalRemaining < 0 ? "text-destructive" : "text-emerald-500"}`}>
               {totalRemaining.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $
@@ -225,7 +227,7 @@ export function TripsReport() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <TrendingDown className="h-4 w-4" />
-              <span className="text-sm">Общий расход</span>
+              <span className="text-sm">{t("tripsReport.totalSpent")}</span>
             </div>
             <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em] text-orange-500">
               {totals.totalSpent.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $
@@ -237,7 +239,7 @@ export function TripsReport() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <TrendingUp className="h-4 w-4" />
-              <span className="text-sm">Общий приход</span>
+              <span className="text-sm">{t("tripsReport.totalIncome")}</span>
             </div>
             <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em] text-emerald-500">
               +{totals.totalIncome.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $
@@ -248,14 +250,14 @@ export function TripsReport() {
 
       <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
         <CardContent className="p-4">
-          <h3 className="font-semibold mb-3">Сводка по бюджету</h3>
+          <h3 className="font-semibold mb-3">{t("tripsReport.budgetSummary")}</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Общий бюджет</span>
+              <span className="text-muted-foreground">{t("tripsReport.totalBudget")}</span>
               <span>{totals.totalBudget.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Старый долг</span>
+              <span className="text-muted-foreground">{t("tripsReport.oldDebt")}</span>
               <span>{totals.totalOldDebt.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $</span>
             </div>
             <div className="flex justify-between">
@@ -263,11 +265,11 @@ export function TripsReport() {
               <span className="text-orange-500">{totals.totalSpent.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Приход</span>
+              <span className="text-muted-foreground">{t("tripsReport.income")}</span>
               <span className="text-emerald-500">+{totals.totalIncome.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $</span>
             </div>
             <div className="flex justify-between font-medium border-t border-border/50 pt-2">
-              <span>Остаток</span>
+              <span>{t("tripsReport.remaining")}</span>
               <span className={totalRemaining < 0 ? "text-destructive" : "text-emerald-500"}>
                 {totalRemaining.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $
               </span>
@@ -281,7 +283,7 @@ export function TripsReport() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-2">
               <AlertTriangle className="h-5 w-5" />
-              <h3 className="font-semibold">Поездки с минусовым остатком</h3>
+              <h3 className="font-semibold">{t("tripsReport.overBudgetTrips")}</h3>
             </div>
             <div className="space-y-2">
               {overBudget.map((trip) => {

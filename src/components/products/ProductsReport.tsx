@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "@/lib/useTranslations";
 import { getProductsByTrips } from "@/lib/api/products";
 import { getTrips } from "@/lib/api/trips";
 import type { Product, Trip } from "@/types";
@@ -22,6 +23,7 @@ function isSameDay(a: string, b: string): boolean {
 }
 
 export function ProductsReport() {
+  const { t } = useTranslations();
   const { formatAmount } = useFormattedAmount();
   const [products, setProducts] = useState<Product[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -86,12 +88,12 @@ export function ProductsReport() {
             />
             {selectedDate && (
               <Button variant="outline" size="sm" onClick={() => setSelectedDate(null)} className="shrink-0">
-                Сбросить
+                {t("productsReport.reset")}
               </Button>
             )}
           </div>
           {selectedDate ? (
-            <p className="text-xs text-muted-foreground mt-1">Показаны товары за {selectedDate}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("productsReport.shownForDate")} {selectedDate}</p>
           ) : (
             <p className="text-xs text-muted-foreground mt-1">Показаны все товары</p>
           )}
@@ -103,10 +105,10 @@ export function ProductsReport() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Package className="h-4 w-4" />
-              <span className="text-sm">Товаров</span>
+              <span className="text-sm">{t("productsReport.products")}</span>
             </div>
             <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em]">{filteredProducts.length}</p>
-            <p className="text-xs text-muted-foreground">{totalQuantity.toLocaleString("ru-RU")} ед.</p>
+            <p className="text-xs text-muted-foreground">{totalQuantity.toLocaleString("ru-RU")} {t("productsReport.units")}</p>
           </CardContent>
         </Card>
 
@@ -114,7 +116,7 @@ export function ProductsReport() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <DollarSign className="h-4 w-4" />
-              <span className="text-sm">Продажа (итого)</span>
+              <span className="text-sm">{t("productsReport.sale")}</span>
             </div>
             <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em] text-emerald-500">
               {totalSale.toLocaleString("ru-RU", { maximumFractionDigits: 2 })} $
@@ -126,7 +128,7 @@ export function ProductsReport() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Truck className="h-4 w-4" />
-              <span className="text-sm">Доставка (итого)</span>
+              <span className="text-sm">{t("productsReport.delivery")}</span>
             </div>
             <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em]">
               {totalDelivery.toLocaleString("ru-RU", { maximumFractionDigits: 2 })} $
@@ -138,7 +140,7 @@ export function ProductsReport() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <DollarSign className="h-4 w-4" />
-              <span className="text-sm">Общий итог</span>
+              <span className="text-sm">{t("productsReport.total")}</span>
             </div>
             <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em]">
               {grandTotal.toLocaleString("ru-RU", { maximumFractionDigits: 2 })} $
@@ -149,7 +151,7 @@ export function ProductsReport() {
 
       <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
         <CardContent className="p-4">
-          <h3 className="font-semibold mb-3">По поездкам</h3>
+          <h3 className="font-semibold mb-3">{t("productsReport.byTrips")}</h3>
           <div className="space-y-2">
             {byTrip.map(({ trip, products: prods }) => {
               const tripSale = prods.reduce((sum, p) => sum + p.quantity * toNum(p.salePrice), 0);
@@ -162,11 +164,11 @@ export function ProductsReport() {
                 <div key={trip.id} className="rounded-xl bg-muted/30 px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-medium truncate">{trip.name}</p>
-                    <p className="text-xs text-muted-foreground shrink-0">{prods.length} товар(ов)</p>
+                    <p className="text-xs text-muted-foreground shrink-0">{prods.length} {t("productsReport.productsCount")}</p>
                   </div>
                   <div className="mt-1 grid grid-cols-3 gap-2 text-xs">
-                    <div className="text-muted-foreground">Продажа</div>
-                    <div className="text-muted-foreground">Доставка</div>
+                    <div className="text-muted-foreground">{t("productsReport.saleLabel")}</div>
+                    <div className="text-muted-foreground">{t("productsReport.deliveryLabel")}</div>
                     <div className="text-muted-foreground">Итого</div>
                     <div className="font-medium tabular-nums text-emerald-500">{tripSale.toLocaleString("ru-RU", { maximumFractionDigits: 2 })} $</div>
                     <div className="font-medium tabular-nums">{tripDelivery.toLocaleString("ru-RU", { maximumFractionDigits: 2 })} $</div>

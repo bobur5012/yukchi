@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { ProductsList } from "@/components/products/ProductsList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslations } from "@/lib/useTranslations";
 
 const ProductsReport = dynamic(
   () => import("@/components/products/ProductsReport").then((m) => ({ default: m.ProductsReport })),
@@ -10,12 +11,13 @@ const ProductsReport = dynamic(
 );
 
 export default function ProductsPage() {
+  const { t } = useTranslations();
   return (
     <div className="space-y-4">
       <Tabs defaultValue="list" className="w-full">
         <TabsList className="w-full grid grid-cols-2 rounded-2xl">
-          <TabsTrigger value="list">Список</TabsTrigger>
-          <TabsTrigger value="report">Отчёт</TabsTrigger>
+          <TabsTrigger value="list">{t("tabs.list")}</TabsTrigger>
+          <TabsTrigger value="report">{t("tabs.report")}</TabsTrigger>
         </TabsList>
         <TabsContent value="list" className="mt-4">
           <ProductsList />

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useAuthStore } from "@/stores/auth";
+import { useTranslations } from "@/lib/useTranslations";
 import { getDashboard } from "@/lib/api/dashboard";
 import type { DashboardData } from "@/lib/api/dashboard";
 import { useFormattedAmount } from "@/lib/useFormattedAmount";
@@ -17,54 +18,58 @@ import {
   TrendingDown,
 } from "lucide-react";
 
-const metricCards = [
+function getMetricCards(t: (k: string) => string) {
+  return [
   {
-    title: "Общий долг",
+    title: t("dashboard.totalDebt"),
     getValue: (d: DashboardData, fa: (n: number) => string) => fa(parseFloat(d.metrics.totalDebt || "0")),
     href: "/shops",
     icon: Wallet,
     gradient: "from-indigo-500/20 to-blue-500/20 dark:from-indigo-500/30 dark:to-blue-500/30",
   },
   {
-    title: "Активные поездки",
+    title: t("dashboard.activeTrips"),
     getValue: (d: DashboardData) => String(d.metrics.tripsCount ?? 0),
     href: "/trips",
     icon: Plane,
     gradient: "from-emerald-500/20 to-teal-500/20 dark:from-emerald-500/30 dark:to-teal-500/30",
   },
   {
-    title: "Остаток бюджета",
+    title: t("dashboard.remainingBudget"),
     getValue: (d: DashboardData, fa: (n: number) => string) => fa(parseFloat(d.metrics.remainingUsd || "0")),
     href: "/trips",
     icon: PiggyBank,
     gradient: "from-violet-500/20 to-indigo-500/20 dark:from-violet-500/30 dark:to-indigo-500/30",
   },
   {
-    title: "Общий расход",
+    title: t("tripsReport.totalSpent"),
     getValue: (d: DashboardData, fa: (n: number) => string) => fa(parseFloat(d.metrics.totalExpensesUsd || "0")),
     href: "/trips",
     icon: TrendingDown,
     gradient: "from-amber-500/20 to-orange-500/20 dark:from-amber-500/30 dark:to-orange-500/30",
   },
   {
-    title: "Общий приход",
+    title: t("tripsReport.totalIncome"),
     getValue: (d: DashboardData, fa: (n: number) => string) => fa(parseFloat(d.metrics.totalIncomeUsd || "0")),
     href: "/trips",
     icon: TrendingUp,
     gradient: "from-emerald-500/20 to-lime-500/20 dark:from-emerald-500/30 dark:to-lime-500/30",
   },
   {
-    title: "Магазины",
+    title: t("dashboard.shops"),
     getValue: (d: DashboardData) => String(d.metrics.shopsCount ?? 0),
     href: "/shops",
     icon: AlertTriangle,
     gradient: "from-sky-500/20 to-cyan-500/20 dark:from-sky-500/30 dark:to-cyan-500/30",
   },
 ];
+}
 
 export function DashboardCards() {
+  const { t } = useTranslations();
   const role = useAuthStore((s) => s.user?.role);
   const { formatAmount } = useFormattedAmount();
+  const metricCards = getMetricCards(t);
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 

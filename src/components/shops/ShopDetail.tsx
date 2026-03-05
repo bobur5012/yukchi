@@ -91,20 +91,20 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
         )}>
           <TabsTrigger value="debt" className="flex items-center gap-1.5 min-w-0">
             <CreditCard className="size-4 shrink-0" />
-            <span className="hidden sm:inline truncate">Долг</span>
+            <span className="hidden sm:inline truncate">{t("shops.debt")}</span>
           </TabsTrigger>
           <TabsTrigger value="products" className="flex items-center gap-1.5 min-w-0">
             <Package className="size-4 shrink-0" />
-            <span className="hidden sm:inline truncate">Товары</span>
+            <span className="hidden sm:inline truncate">{t("shops.products")}</span>
           </TabsTrigger>
           <TabsTrigger value="contacts" className="flex items-center gap-1.5 min-w-0">
             <Phone className="size-4 shrink-0" />
-            <span className="hidden sm:inline truncate">Контакты</span>
+            <span className="hidden sm:inline truncate">{t("shops.contacts")}</span>
           </TabsTrigger>
           {role === "admin" && (
             <TabsTrigger value="reminders" className="flex items-center gap-1.5 min-w-0">
               <Bell className="size-4 shrink-0" />
-              <span className="hidden sm:inline truncate">Напомин.</span>
+              <span className="hidden sm:inline truncate">{t("shops.remindersShort")}</span>
             </TabsTrigger>
           )}
         </TabsList>
@@ -144,7 +144,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                   <Button asChild variant="outline" className="h-11 rounded-xl gap-2">
                     <Link href={`/shops/${shopId}/debt/new`}>
                       <ArrowDownCircle className="h-4 w-4" />
-                      Добавить долг
+                      {t("shops.addDebt")}
                     </Link>
                   </Button>
                 )}
@@ -225,7 +225,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
               </div>
               {(shop.products?.length ?? 0) === 0 ? (
                 <p className="py-6 text-center text-sm text-muted-foreground">
-                  Нет привязанных товаров. Привяжите товар в разделе «Товары» или добавьте новый.
+                  {t("shops.noProductsLinked")}
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -325,7 +325,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
             {!shop.phone && !shop.address && (
               <Card className="rounded-2xl card-premium">
                 <CardContent className="py-10 text-center text-muted-foreground">
-                  Контакты не указаны
+                  {t("shops.contactsNotSet")}
                 </CardContent>
               </Card>
             )}

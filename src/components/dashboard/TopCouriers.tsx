@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useTranslations } from "@/lib/useTranslations";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCouriers, updateCourierPoints } from "@/lib/api/couriers";
@@ -26,6 +27,7 @@ const RANK_STYLES = [
 ];
 
 export function TopCouriers() {
+  const { t } = useTranslations();
   const role = useAuthStore((s) => s.user?.role);
   const isAdmin = role === "admin";
 
@@ -91,11 +93,11 @@ export function TopCouriers() {
       <div className="px-4 pt-4 pb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Crown className="size-[18px] text-amber-400" />
-          <h2 className="text-[17px] font-semibold">Лучшие курьеры</h2>
+          <h2 className="text-[17px] font-semibold">{t("topCouriers.bestCouriers")}</h2>
         </div>
         <Link href="/couriers" className="flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
           <Users className="size-4" />
-          Все
+          {t("topCouriers.all")}
           <ChevronRight className="size-4" />
         </Link>
       </div>
@@ -134,7 +136,7 @@ export function TopCouriers() {
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <Star className="size-3 text-amber-400 fill-amber-400" />
                   <span className="text-[13px] text-muted-foreground">
-                    {(courier.points ?? 0)} {(courier.points ?? 0) === 1 ? "балл" : (courier.points ?? 0) < 5 ? "балла" : "баллов"}
+                    {(courier.points ?? 0)} {(courier.points ?? 0) === 1 ? t("topCouriers.points_one") : (courier.points ?? 0) >= 2 && (courier.points ?? 0) < 5 ? t("topCouriers.points_few") : t("topCouriers.points_many")}
                   </span>
                 </div>
               </div>
@@ -181,7 +183,7 @@ export function TopCouriers() {
                         variant="ghost"
                         className="size-8 rounded-lg text-amber-400 hover:text-amber-500 hover:bg-amber-500/10"
                         onClick={() => setAwardingId(courier.id)}
-                        title="Наградить баллами"
+                        title={t("topCouriers.awardPoints")}
                       >
                         <Crown className="size-4" />
                       </Button>

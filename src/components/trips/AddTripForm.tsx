@@ -265,20 +265,20 @@ export function AddTripForm() {
               <SelectItem value="cash">
                 <span className="flex items-center gap-2">
                   <Banknote className="h-3.5 w-3.5" />
-                  Наличка (магазин дал деньги)
+                  {t("trips.cashFundingShort")}
                 </span>
               </SelectItem>
               <SelectItem value="debt">
                 <span className="flex items-center gap-2">
                   <CreditCard className="h-3.5 w-3.5" />
-                  Долг (закуп за счет организации)
+                  {t("trips.debtFunding")}
                 </span>
               </SelectItem>
             </SelectContent>
           </Select>
           <FieldHint>
             <span className="block break-words text-[11px] leading-4 text-muted-foreground">
-              Наличка: закупка на деньги магазина. Долг: товар + доставка добавятся в задолженность магазина.
+              {t("trips.fundingHint")}
             </span>
           </FieldHint>
           {showDebtInput && (

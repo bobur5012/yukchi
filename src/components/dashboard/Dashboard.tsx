@@ -25,6 +25,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 import { TopCouriers } from "./TopCouriers";
 import { CurrencyWidget } from "./CurrencyWidget";
+import { ActivityFeed } from "./ActivityFeed";
 
 function AnimatedNumber({ value }: { value: string }) {
   return (
@@ -44,47 +45,46 @@ function Skeleton({ className }: { className?: string }) {
   return <div className={cn("rounded-xl bg-muted/60 animate-pulse", className)} />;
 }
 
-function MetricCard({
-  title,
-  value,
-  href,
-  icon: Icon,
-  iconBg,
-  iconColor,
-  delay = 0,
+function MetricsStrip({
+  metrics,
 }: {
-  title: string;
-  value: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  iconBg: string;
-  iconColor: string;
-  delay?: number;
+  metrics: Array<{
+    title: string;
+    value: string;
+    href: string;
+    icon: React.ComponentType<{ className?: string }>;
+    iconBg: string;
+    iconColor: string;
+  }>;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.28 }}
+      transition={{ delay: 0.1, duration: 0.28 }}
+      className="rounded-2xl bg-card border border-border/30 p-3"
     >
-      <Link href={href}>
-        <motion.div
-          className="rounded-2xl bg-card border border-border/30 p-4 active:scale-[0.98] transition-transform"
-          whileTap={{ scale: 0.97 }}
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className={cn("size-10 rounded-xl flex items-center justify-center shrink-0", iconBg)}>
-              <Icon className={cn("size-[18px]", iconColor)} />
-            </div>
-            <span className="text-[13px] text-muted-foreground font-medium flex-1 leading-snug">
-              {title}
-            </span>
-          </div>
-          <p className="text-[22px] font-bold tabular-nums tracking-[-0.03em]">
-            {value}
-          </p>
-        </motion.div>
-      </Link>
+      <div className="flex flex-wrap gap-2">
+        {metrics.map((m, i) => {
+          const Icon = m.icon;
+          return (
+            <Link key={i} href={m.href}>
+              <motion.div
+                className={cn(
+                  "inline-flex items-center gap-1.5 py-2 px-3 rounded-xl transition-colors",
+                  "hover:bg-accent/50 active:scale-[0.98]",
+                  m.iconBg
+                )}
+                whileTap={{ scale: 0.97 }}
+              >
+                <Icon className={cn("size-4 shrink-0", m.iconColor)} />
+                <span className="text-[13px] font-semibold tabular-nums">{m.value}</span>
+                <span className="text-[12px] text-muted-foreground hidden sm:inline">{m.title}</span>
+              </motion.div>
+            </Link>
+          );
+        })}
+      </div>
     </motion.div>
   );
 }
@@ -188,7 +188,7 @@ export function Dashboard() {
     setError(null);
     getDashboard()
       .then(setData)
-      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .catch((e) => setError(e instanceof Error ? e.message : t("common.loadError")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -258,28 +258,14 @@ export function Dashboard() {
 
       <CurrencyWidget />
 
-      <div className="grid grid-cols-2 gap-3">
-        <MetricCard
-          title={t("dashboard.activeTrips")} value={m.tripsCount.toString()}
-          href="/trips" icon={Plane}
-          iconBg="bg-emerald-500/15" iconColor="text-emerald-400" delay={0.1}
-        />
-        <MetricCard
-          title="Магазины" value={m.shopsCount.toString()}
-          href="/shops" icon={Store}
-          iconBg="bg-sky-500/15" iconColor="text-sky-400" delay={0.13}
-        />
-        <MetricCard
-          title={t("dashboard.remainingBudget")} value={formatAmount(parseFloat(m.remainingUsd || "0"))}
-          href="/trips" icon={PiggyBank}
-          iconBg="bg-violet-500/15" iconColor="text-violet-400" delay={0.16}
-        />
-        <MetricCard
-          title={t("dashboard.totalBudget")} value={formatAmount(parseFloat(m.totalBudgetUsd || "0"))}
-          href="/trips" icon={TrendingUp}
-          iconBg="bg-indigo-500/15" iconColor="text-indigo-400" delay={0.19}
-        />
-      </div>
+      <MetricsStrip
+        metrics={[
+          { title: t("dashboard.activeTrips"), value: m.tripsCount.toString(), href: "/trips", icon: Plane, iconBg: "bg-emerald-500/15", iconColor: "text-emerald-500" },
+          { title: t("dashboard.shops"), value: m.shopsCount.toString(), href: "/shops", icon: Store, iconBg: "bg-sky-500/15", iconColor: "text-sky-500" },
+          { title: t("dashboard.remainingBudget"), value: formatAmount(parseFloat(m.remainingUsd || "0")), href: "/trips", icon: PiggyBank, iconBg: "bg-violet-500/15", iconColor: "text-violet-500" },
+          { title: t("dashboard.totalBudget"), value: formatAmount(parseFloat(m.totalBudgetUsd || "0")), href: "/trips", icon: TrendingUp, iconBg: "bg-indigo-500/15", iconColor: "text-indigo-500" },
+        ]}
+      />
 
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -312,6 +298,7 @@ export function Dashboard() {
         </div>
       </motion.div>
 
+      <ActivityFeed />
       <TopCouriers />
     </div>
   );

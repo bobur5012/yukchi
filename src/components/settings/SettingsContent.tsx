@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useTranslations } from "@/lib/useTranslations";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PhoneInput } from "@/components/ui/phone-input";
 import { Switch } from "@/components/ui/switch";
 import { useSettingsStore, DEFAULT_TEMPLATES, type MessageTemplates } from "@/stores/settings";
 import { useAuthStore } from "@/stores/auth";
@@ -16,9 +15,6 @@ import {
   checkTelegramConnection,
   getMessageTemplates,
   updateMessageTemplates,
-  sendTelegramCode,
-  verifyTelegramCode,
-  getTelegramClientStatus,
 } from "@/lib/api/settings";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { sendTestPush } from "@/lib/api/push";
@@ -110,25 +106,19 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
   const logout = useAuthStore((s) => s.logout);
   const {
     telegramBot,
-    telegramClient,
     messageTemplates,
     setTelegramBot,
-    setTelegramClient,
     setMessageTemplate,
     setMessageTemplates,
   } = useSettingsStore();
   const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [telegramAuthStep, setTelegramAuthStep] = useState<"idle" | "code_sent" | "verifying">("idle");
   const [savingTemplates, setSavingTemplates] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
   const push = usePushNotifications();
 
   useEffect(() => {
     if (role === "admin") {
-      getTelegramClientStatus()
-        .then((s) => setTelegramClient({ status: s.hasSession ? "authorized" : "unauthorized" }))
-        .catch(() => {});
       getTelegramSettings()
         .then((r) =>
           setTelegramBot({
@@ -302,84 +292,11 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
         </SectionCard>
       )}
 
-      {role === "admin" && (
-        <SectionCard title={t("settings.telegramClient")}>
-          <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">{t("auth.phone")}</label>
-            <PhoneInput value={telegramClient.phone} onChange={(v) => setTelegramClient({ phone: v })} />
-          </div>
-          <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.appId")}</label>
-            <Input placeholder="12345678" value={telegramClient.appId} onChange={(e) => setTelegramClient({ appId: e.target.value })} />
-          </div>
-          <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.hash")}</label>
-            <Input placeholder="abcdef123456..." value={telegramClient.appHash} onChange={(e) => setTelegramClient({ appHash: e.target.value })} />
-          </div>
-          <div>
-            <label className="text-[13px] text-muted-foreground block mb-1">{t("settings.code")}</label>
-            <Input placeholder={t("settings.codePlaceholder")} value={telegramClient.code} onChange={(e) => setTelegramClient({ code: e.target.value })} />
-          </div>
-          <Button
-            variant="outline"
-            className="w-full h-[44px] rounded-[13px]"
-            disabled={!telegramClient.phone || !telegramClient.appId || !telegramClient.appHash || telegramAuthStep === "verifying"}
-            onClick={async () => {
-              if (telegramAuthStep === "idle") {
-                setTelegramAuthStep("code_sent");
-                try {
-                  const res = await sendTelegramCode(telegramClient.phone);
-                  if (!res.success) {
-                    toast.error(res.error ?? t("settings.error"));
-                    setTelegramAuthStep("idle");
-                  }
-                } catch {
-                  toast.error(t("settings.error"));
-                  setTelegramAuthStep("idle");
-                }
-              } else if (telegramAuthStep === "code_sent" && telegramClient.code) {
-                setTelegramAuthStep("verifying");
-                try {
-                  const res = await verifyTelegramCode(telegramClient.phone, telegramClient.code);
-                  if (res.success) {
-                    setTelegramClient({ ...telegramClient, status: "authorized", code: "" });
-                    setTelegramAuthStep("idle");
-                    toast.success(t("settings.authorized"));
-                  } else {
-                    toast.error(res.error ?? t("settings.error"));
-                    setTelegramAuthStep("code_sent");
-                  }
-                } catch {
-                  toast.error(t("settings.error"));
-                  setTelegramAuthStep("code_sent");
-                } finally {
-                  setTelegramAuthStep("idle");
-                }
-              }
-            }}
-          >
-            {telegramAuthStep === "idle"
-              ? t("settings.signIn")
-              : telegramAuthStep === "code_sent"
-                ? t("settings.verifyCode")
-                : "…"}
-          </Button>
-          <div className="flex items-center gap-2">
-            {telegramClient.status === "authorized"
-              ? <CheckCircle className="size-4 text-emerald-500" />
-              : <XCircle className="size-4 text-muted-foreground" />}
-            <span className="text-[14px] text-muted-foreground">
-              {telegramClient.status === "authorized" ? t("settings.authorized") : telegramClient.status === "pending" ? t("settings.pending") : t("settings.notAuthorized")}
-            </span>
-          </div>
-        </SectionCard>
-      )}
-
       {/* Telegram message templates */}
       {role === "admin" && (
-        <SectionCard title="Шаблоны Telegram-сообщений">
+        <SectionCard title={t("settings.templatesTitle")}>
           <p className="text-[13px] text-muted-foreground leading-relaxed">
-            Используйте переменные в фигурных скобках. Поддерживается Markdown: *жирный*, _курсив_.
+            {t("settings.templatesHint")}
           </p>
 
           {TEMPLATE_META.map(({ key, label, vars }) => (
@@ -392,7 +309,7 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
                 className="text-[13px] font-mono leading-snug"
               />
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                <span className="font-medium">Переменные:</span> {vars}
+                <span className="font-medium">{t("settings.variables")}:</span> {vars}
               </p>
             </div>
           ))}
@@ -403,14 +320,14 @@ export function SettingsContent({ role = "admin" }: SettingsContentProps) {
               onClick={handleSaveTemplates}
               disabled={savingTemplates}
             >
-              {savingTemplates ? "Сохранение…" : "Сохранить шаблоны"}
+              {savingTemplates ? t("settings.savingTemplates") : t("settings.saveTemplates")}
             </Button>
             <Button
               variant="outline"
               size="icon"
               className="size-[44px] rounded-[13px] shrink-0"
               onClick={handleResetTemplates}
-              title="Сбросить к стандартным"
+              title={t("settings.resetToDefaults")}
             >
               <RotateCcw className="size-4" />
             </Button>

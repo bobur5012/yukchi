@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "@/lib/useTranslations";
 import {
   getReminders,
   createReminder,
@@ -34,6 +35,7 @@ interface ShopRemindersProps {
 }
 
 export function ShopReminders({ shopId }: ShopRemindersProps) {
+  const { t, locale } = useTranslations();
   const [reminders, setReminders] = useState<ShopReminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
@@ -102,8 +104,8 @@ export function ShopReminders({ shopId }: ShopRemindersProps) {
           <CardContent className="py-8">
             <EmptyState
               icon={Bell}
-              title="Нет напоминаний"
-              description="Добавьте напоминание о долге"
+              title={t("reminders.noReminders")}
+              description={t("reminders.addReminderHint")}
             />
           </CardContent>
         </Card>
@@ -115,14 +117,15 @@ export function ShopReminders({ shopId }: ShopRemindersProps) {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-[15px]">
                     {r.type === "monthly"
-                      ? `Ежемесячно, ${r.dayOfMonth} число`
+                      ? t("reminders.monthly").replace("{{day}}", String(r.dayOfMonth ?? ""))
                       : r.reminderAt
-                        ? `Одноразово: ${formatDateSafe(r.reminderAt, "d MMM yyyy", "ru")}`
+                        ? t("reminders.oneTime").replace("{{date}}", formatDateSafe(r.reminderAt, "d MMM yyyy", locale))
+                        : t("reminders.oneTime").replace("{{date}}", "—")
                         : "Одноразово"}
                   </p>
                   {r.lastSentAt && (
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Отправлено: {formatDateSafe(r.lastSentAt, "d MMM yyyy", "ru")}
+                      Отправлено: {formatDateSafe(r.lastSentAt, "d MMM yyyy", locale)}
                     </p>
                   )}
                 </div>
@@ -198,7 +201,7 @@ export function ShopReminders({ shopId }: ShopRemindersProps) {
                 (type === "one_time" && !reminderAt)
               }
             >
-              {submitting ? "Сохранение…" : "Добавить"}
+              {submitting ? t("reminders.saving") : t("reminders.add")}
             </Button>
           </div>
         </SheetContent>

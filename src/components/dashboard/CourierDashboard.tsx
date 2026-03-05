@@ -62,7 +62,7 @@ export function CourierDashboard() {
       </motion.div>
 
       {/* Top Couriers */}
-      <TopCouriers showAll={false} />
+      <TopCouriers />
     </div>
   );
 }

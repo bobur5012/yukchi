@@ -13,17 +13,12 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ProductDetailSheet } from "@/components/trips/ProductDetailSheet";
 import { VirtualList } from "@/components/ui/virtual-list";
 import { useTranslations } from "@/lib/useTranslations";
+import { getAvatarUrl } from "@/lib/utils";
 
 function toNum(value?: string | null): number {
   if (!value) return 0;
   const n = Number.parseFloat(value);
   return Number.isFinite(n) ? n : 0;
-}
-
-function withVersion(url?: string | null, version?: string): string | undefined {
-  if (!url) return undefined;
-  const join = url.includes("?") ? "&" : "?";
-  return `${url}${join}v=${encodeURIComponent(version ?? "1")}`;
 }
 
 function formatCreatedAt(value?: string): string {
@@ -107,7 +102,7 @@ export function ProductsList() {
             : fixedDelivery > 0
               ? fixedDelivery
               : 0;
-          const imageSrc = withVersion(prod.imageUrl, `${prod.id}-${prod.createdAt ?? "1"}`);
+          const imageSrc = getAvatarUrl(prod.imageUrl, `${prod.id}-${prod.createdAt ?? "1"}`);
 
           return (
             <div

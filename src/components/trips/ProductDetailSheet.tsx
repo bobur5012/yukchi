@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { toast } from "sonner";
+import { getAvatarUrl } from "@/lib/utils";
 
 interface ProductDetailSheetProps {
   open: boolean;
@@ -47,12 +48,6 @@ function toNum(value?: string | null): number {
   if (!value) return 0;
   const n = Number.parseFloat(value);
   return Number.isFinite(n) ? n : 0;
-}
-
-function withVersion(url?: string | null, version?: string): string | undefined {
-  if (!url) return undefined;
-  const join = url.includes("?") ? "&" : "?";
-  return `${url}${join}v=${encodeURIComponent(version ?? "1")}`;
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -210,7 +205,7 @@ export function ProductDetailSheet({
 
   if (!product) return null;
 
-  const imageSrc = withVersion(product.imageUrl, `${product.id}-${product.createdAt ?? "1"}`);
+  const imageSrc = getAvatarUrl(product.imageUrl, `${product.id}-${product.createdAt ?? "1"}`);
   const deliveryModeLabel = computed.deliveryPerKg > 0 ? "За кг" : computed.fixedDelivery > 0 ? "Фикс" : "—";
   const deliveryPriceLabel = computed.deliveryPerKg > 0
     ? `${formatAmount(computed.deliveryPerKg)} / кг`

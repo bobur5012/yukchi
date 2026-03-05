@@ -10,9 +10,12 @@ export interface ShopsResponse {
 
 export async function getShops(
   page = 1,
-  limit = 20
+  limit = 20,
+  includeInactive?: boolean
 ): Promise<ShopsResponse> {
-  return api.get<ShopsResponse>(`/shops?page=${page}&limit=${limit}`);
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (includeInactive) params.set("includeInactive", "1");
+  return api.get<ShopsResponse>(`/shops?${params}`);
 }
 
 export async function getShop(id: string): Promise<Shop> {

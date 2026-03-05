@@ -18,7 +18,7 @@ export function ShopsReport() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getShops(1, 100).then((r) => setShops(r.shops)).finally(() => setLoading(false));
+    getShops(1, 100, true).then((r) => setShops(r.shops)).finally(() => setLoading(false));
   }, []);
 
   if (loading) {
@@ -101,6 +101,46 @@ export function ShopsReport() {
                 </div>
               </Link>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+        <CardContent className="p-4">
+          <h3 className="font-semibold mb-3">Движение по долгам (кто, когда)</h3>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {(() => {
+              const allEntries = shops.flatMap((shop) =>
+                (shop.debtEntries ?? []).map((e) => ({ shop, entry: e }))
+              );
+              allEntries.sort((a, b) => new Date(b.entry.createdAt).getTime() - new Date(a.entry.createdAt).getTime());
+              return allEntries.length > 0 ? (
+                allEntries.slice(0, 20).map(({ shop, entry }) => (
+                  <div
+                    key={entry.id}
+                    className="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-xl bg-muted/30 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{shop.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {entry.type === "debt" ? "Долг" : "Оплата"} • {formatAmount(parseFloat(entry.amount || "0"))}
+                        {entry.description && ` • ${entry.description}`}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0 text-xs">
+                      <p className="text-muted-foreground">
+                        {entry.createdByUser?.name || "—"}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {formatDateSafe(entry.createdAt, "d MMM, HH:mm", locale)}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground py-4 text-center">Нет записей</p>
+              );
+            })()}
           </div>
         </CardContent>
       </Card>

@@ -46,9 +46,9 @@ function ActivityItemRow({
         whileTap={{ backgroundColor: "var(--accent)" }}
       >
         <div className="size-[42px] rounded-[13px] bg-primary/15 flex items-center justify-center shrink-0">
-          {icon === Receipt && <Receipt className="size-[18px] text-primary" />}
-          {icon === Wallet && <Wallet className="size-[18px] text-primary" />}
-          {icon === Package && <Package className="size-[18px] text-primary" />}
+          {item.type === "expense" && <Receipt className="size-[18px] text-primary" />}
+          {item.type === "debt" && <Wallet className="size-[18px] text-primary" />}
+          {item.type === "product" && <Package className="size-[18px] text-primary" />}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[14px] font-medium truncate">{label}</p>

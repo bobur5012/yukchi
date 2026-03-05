@@ -120,8 +120,7 @@ export function ShopReminders({ shopId }: ShopRemindersProps) {
                       ? t("reminders.monthly").replace("{{day}}", String(r.dayOfMonth ?? ""))
                       : r.reminderAt
                         ? t("reminders.oneTime").replace("{{date}}", formatDateSafe(r.reminderAt, "d MMM yyyy", locale))
-                        : t("reminders.oneTime").replace("{{date}}", "—")
-                        : "Одноразово"}
+                        : t("reminders.oneTime").replace("{{date}}", "—")}
                   </p>
                   {r.lastSentAt && (
                     <p className="text-xs text-muted-foreground mt-0.5">

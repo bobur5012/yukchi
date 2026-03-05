@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { TripsList } from "@/components/trips/TripsList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslations } from "@/lib/useTranslations";
 
 const TripsReport = dynamic(
   () => import("@/components/trips/TripsReport").then((m) => ({ default: m.TripsReport })),

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useMemo } from "react";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import ru from "@/locales/ru.json";
 import uz from "@/locales/uz.json";
@@ -23,13 +24,13 @@ function getNested(obj: Record<string, unknown>, path: string): unknown {
 
 export function useTranslations() {
   const { locale } = useLocale();
-  const data = translations[locale];
+  const data = useMemo(() => translations[locale], [locale]);
 
-  function t(key: string): string {
+  const t = useCallback((key: string): string => {
     if (!data) return key;
     const value = getNested(data as Record<string, unknown>, key);
     return typeof value === "string" ? value : key;
-  }
+  }, [data]);
 
   return { t, locale };
 }

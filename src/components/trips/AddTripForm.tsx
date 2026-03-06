@@ -119,9 +119,9 @@ export function AddTripForm() {
       setFieldErrors(errors);
       if (errors.name) toast.error(t("common.fillAllFields"));
       else if (errors.dateReturn) toast.error(t("trips.returnBeforeDeparture"));
-      else if (errors.region) toast.error("Укажите регион или город");
-      else if (errors.budget) toast.error("Введите корректный бюджет (больше 0)");
-      else if (errors.debtAmount) toast.error("Укажите сумму долга");
+      else if (errors.region) toast.error(t("trips.regionRequired"));
+      else if (errors.budget) toast.error(t("trips.budgetRequired"));
+      else if (errors.debtAmount) toast.error(t("trips.debtRequired"));
       return;
     }
 
@@ -165,12 +165,12 @@ export function AddTripForm() {
       <FormHero
         icon={<Plane className="size-5" />}
         title={t("trips.create")}
-        description="Новая поездка с чистой структурой, понятным бюджетом и быстрым выбором курьеров."
+        description={t("trips.formHeroDescription")}
         meta={
           <>
             <FormMetaPill label={t("trips.departureDate")} value={dateDeparture || today} />
             <FormMetaPill label={t("trips.returnDate")} value={dateReturn || today} />
-            <FormMetaPill label={t("trips.dates")} value={durationDays > 0 ? `${durationDays} дн.` : "—"} />
+            <FormMetaPill label={t("trips.dates")} value={durationDays > 0 ? `${durationDays} ${t("trips.daysMany")}` : "—"} />
           </>
         }
       />
@@ -246,9 +246,9 @@ export function AddTripForm() {
           </Select>
           {showCityOther && (
             <div className="mt-3 space-y-1.5">
-              <p className="text-xs text-muted-foreground">Укажите город</p>
+              <p className="text-xs text-muted-foreground">{t("trips.regionOtherLabel")}</p>
               <Input
-                placeholder="Например: Анталья"
+                placeholder={t("trips.regionOtherPlaceholder")}
                 value={cityOther}
                 onChange={(e) => {
                   setCityOther(e.target.value);
@@ -329,19 +329,19 @@ export function AddTripForm() {
       <FormCard className="p-4">
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Бюджет</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("trips.summaryBudget")}</p>
             <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">
               {budget ? `${budget} $` : "—"}
             </p>
           </div>
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Формат</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("trips.summaryFormat")}</p>
             <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">
-              {fundingMode === "debt" ? "Долг" : "Наличные"}
+              {fundingMode === "debt" ? t("trips.debtShort") : t("trips.cashShort")}
             </p>
           </div>
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Курьеры</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("trips.summaryCouriers")}</p>
             <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">{courierIds.length || 0}</p>
           </div>
         </div>
@@ -352,7 +352,7 @@ export function AddTripForm() {
         className="h-12 w-full rounded-[22px] text-[15px] font-semibold shadow-[0_18px_34px_rgba(94,92,230,0.34)]"
         disabled={isSubmitting}
       >
-        {isSubmitting ? "Сохранение..." : t("trips.create")}
+        {isSubmitting ? t("common.saving") : t("trips.create")}
       </Button>
     </form>
   );

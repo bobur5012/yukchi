@@ -48,6 +48,7 @@ export interface Product {
   name: string;
   quantity: number;
   unit?: string;
+  deliveryKg?: string;
   costPrice: string;
   costPriceUsd: string;
   salePrice?: string;

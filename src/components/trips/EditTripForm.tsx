@@ -74,9 +74,9 @@ export function EditTripForm() {
           setDebtAmount("0");
         }
       })
-      .catch(() => toast.error("Поездка не найдена"))
+      .catch(() => toast.error(t("trips.notFound")))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +93,7 @@ export function EditTripForm() {
       return;
     }
     if (fundingMode === "debt" && (Number.isNaN(numDebt) || numDebt <= 0)) {
-      toast.error("Укажите сумму долга");
+      toast.error(t("trips.debtRequired"));
       return;
     }
     if (!id) return;
@@ -109,7 +109,7 @@ export function EditTripForm() {
         regionId,
         status,
       });
-      toast.success("Поездка обновлена");
+      toast.success(t("trips.updated"));
       router.push("/trips");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
@@ -138,13 +138,13 @@ export function EditTripForm() {
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
       <FormHero
         icon={<Plane className="size-5" />}
-        title="Обновить поездку"
-        description="Корректируйте даты, бюджет и формат финансирования в том же премиальном мобильном стиле."
+        title={t("trips.updateTitle")}
+        description={t("trips.updateDescription")}
         meta={
           <>
             <FormMetaPill label={t("trips.departureDate")} value={dateDeparture || "—"} />
             <FormMetaPill label={t("trips.returnDate")} value={dateReturn || "—"} />
-            <FormMetaPill label={t("trips.remaining")} value={durationDays > 0 ? `${durationDays} дн.` : "—"} />
+            <FormMetaPill label={t("trips.remaining")} value={durationDays > 0 ? `${durationDays} ${t("trips.daysMany")}` : "—"} />
           </>
         }
       />
@@ -173,13 +173,13 @@ export function EditTripForm() {
               <Input type="date" value={dateReturn} onChange={(e) => setDateReturn(e.target.value)} min={dateDeparture} />
             </div>
           </div>
-          {durationDays > 0 ? <FieldHint>{durationDays} дн.</FieldHint> : null}
+          {durationDays > 0 ? <FieldHint>{durationDays} {t("trips.daysMany")}</FieldHint> : null}
         </FormSection>
 
-        <FormSection title="Город Турции" className="px-5 pb-5">
+        <FormSection title={t("trips.region")} className="px-5 pb-5">
           <Select value={city} onValueChange={setCity}>
             <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-              <SelectValue placeholder="Выберите город" />
+              <SelectValue placeholder={t("trips.selectRegion")} />
             </SelectTrigger>
             <SelectContent position="popper" className="z-[100]">
               {TURKEY_CITIES.map((cityName) => (
@@ -192,7 +192,7 @@ export function EditTripForm() {
           {showCityOther && (
             <div className="mt-3">
               <Input
-                placeholder="Укажите город"
+                placeholder={t("trips.regionOtherPlaceholder")}
                 value={cityOther}
                 onChange={(e) => setCityOther(e.target.value)}
                 className="h-[44px] rounded-xl"
@@ -205,22 +205,20 @@ export function EditTripForm() {
           <Input type="number" step="0.01" placeholder="5 000" value={budget} onChange={(e) => setBudget(e.target.value)} />
         </FormSection>
 
-        <FormSection title="Тип финансирования" className="px-5 pb-5">
+        <FormSection title={t("trips.fundingType")} className="px-5 pb-5">
           <Select value={fundingMode} onValueChange={(value) => setFundingMode(value as FundingMode)}>
             <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="cash">Наличка (магазин дал деньги)</SelectItem>
-              <SelectItem value="debt">Долг (закуп за счет организации)</SelectItem>
+              <SelectItem value="cash">{t("trips.cashFundingShort")}</SelectItem>
+              <SelectItem value="debt">{t("trips.debtFunding")}</SelectItem>
             </SelectContent>
           </Select>
-          <FieldHint>
-            Наличка: закупка на деньги магазина. Долг: товар и доставка будут в задолженности магазина.
-          </FieldHint>
+          <FieldHint>{t("trips.fundingHint")}</FieldHint>
           {showDebtInput && (
             <div className="mt-3">
-              <p className="text-xs text-muted-foreground mb-1.5">Сумма долга (USD)</p>
+              <p className="text-xs text-muted-foreground mb-1.5">{t("trips.debtAmountLabel")}</p>
               <Input
                 type="number"
                 step="0.01"
@@ -232,16 +230,16 @@ export function EditTripForm() {
           )}
         </FormSection>
 
-        <FormRow label="Статус">
+        <FormRow label={t("common.status")}>
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent position="popper" className="z-[100]">
-              <SelectItem value="planned">Запланирована</SelectItem>
-              <SelectItem value="active">Активна</SelectItem>
-              <SelectItem value="completed">Завершена</SelectItem>
-              <SelectItem value="cancelled">Отменена</SelectItem>
+              <SelectItem value="planned">{t("tripsDetail.planned")}</SelectItem>
+              <SelectItem value="active">{t("tripsDetail.active")}</SelectItem>
+              <SelectItem value="completed">{t("tripsDetail.completed")}</SelectItem>
+              <SelectItem value="cancelled">{t("tripsDetail.cancelled")}</SelectItem>
             </SelectContent>
           </Select>
         </FormRow>
@@ -250,17 +248,17 @@ export function EditTripForm() {
       <FormCard className="p-4">
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Бюджет</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("trips.summaryBudget")}</p>
             <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">{budget || "—"} $</p>
           </div>
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Формат</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("trips.summaryFormat")}</p>
             <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">
-              {fundingMode === "debt" ? "Долг" : "Наличные"}
+              {fundingMode === "debt" ? t("trips.debtShort") : t("trips.cashShort")}
             </p>
           </div>
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Старый долг</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("trips.oldDebt")}</p>
             <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">
               {fundingMode === "debt" ? debtAmount || "—" : "0"} $
             </p>
@@ -268,12 +266,12 @@ export function EditTripForm() {
         </div>
         <div className="mt-3 flex items-center gap-2 rounded-[20px] border border-white/8 bg-white/[0.03] px-3 py-2 text-sm text-muted-foreground">
           <Wallet className="size-4 text-primary" />
-          История поездки сохранится, изменятся только актуальные параметры.
+          {t("trips.editHint")}
         </div>
       </FormCard>
 
       <Button type="submit" className="h-12 w-full rounded-[22px]" disabled={isSubmitting}>
-        {isSubmitting ? "Сохранение..." : "Сохранить"}
+        {isSubmitting ? t("common.saving") : t("common.save")}
       </Button>
     </form>
   );

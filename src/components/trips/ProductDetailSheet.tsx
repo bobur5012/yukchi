@@ -33,6 +33,15 @@ import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { useTranslations } from "@/lib/useTranslations";
 import { toast } from "sonner";
 import { getAvatarUrl } from "@/lib/utils";
+import {
+  getProductDeliveryPerKgPrice,
+  getProductDeliveryWeightValue,
+  getProductFixedDeliveryPrice,
+  getProductSaleUnitPrice,
+  getProductTotalDelivery,
+  getProductTotalSale,
+} from "@/lib/product-math";
+import { getLocalizedProductUnit } from "@/lib/product-units";
 
 interface ProductDetailSheetProps {
   open: boolean;
@@ -43,12 +52,6 @@ interface ProductDetailSheetProps {
   onProductUpdated?: (product: Product) => void;
   onProductDeleted?: () => void;
   canEdit?: boolean;
-}
-
-function toNum(value?: string | null): number {
-  if (!value) return 0;
-  const n = Number.parseFloat(value);
-  return Number.isFinite(n) ? n : 0;
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -113,6 +116,7 @@ export function ProductDetailSheet({
       return {
         quantity: 0,
         unit: t("products.defaultUnit"),
+        deliveryWeight: 0,
         sale: 0,
         fixedDelivery: 0,
         deliveryPerKg: 0,
@@ -124,21 +128,19 @@ export function ProductDetailSheet({
     }
 
     const quantity = product.quantity || 0;
-    const unit = product.unit || t("products.defaultUnit");
-    const sale = toNum(product.salePrice ?? product.salePriceUsd);
-    const fixedDelivery = toNum(product.costPrice ?? product.costPriceUsd);
-    const deliveryPerKg = toNum(product.pricePerKg ?? product.pricePerKgUsd);
+    const unit = getLocalizedProductUnit(t, product.unit);
+    const deliveryWeight = getProductDeliveryWeightValue(product);
+    const sale = getProductSaleUnitPrice(product);
+    const fixedDelivery = getProductFixedDeliveryPrice(product);
+    const deliveryPerKg = getProductDeliveryPerKgPrice(product);
 
-    const totalSale = sale > 0 ? sale * quantity : 0;
-    const totalDelivery = deliveryPerKg > 0
-      ? deliveryPerKg * quantity
-      : fixedDelivery > 0
-        ? fixedDelivery
-        : 0;
+    const totalSale = getProductTotalSale(product);
+    const totalDelivery = getProductTotalDelivery(product);
 
     return {
       quantity,
       unit,
+      deliveryWeight,
       sale,
       fixedDelivery,
       deliveryPerKg,
@@ -330,6 +332,15 @@ export function ProductDetailSheet({
                   value={computed.hasTotalSale ? formatAmount(computed.totalSale) : "—"}
                 />
                 <div className="border-t border-border/50" />
+                {computed.deliveryPerKg > 0 ? (
+                  <>
+                    <InfoRow
+                      label={t("products.deliveryKg")}
+                      value={computed.deliveryWeight > 0 ? `${computed.deliveryWeight.toFixed(2)} ${t("products.defaultKg")}` : "—"}
+                    />
+                    <div className="border-t border-border/50" />
+                  </>
+                ) : null}
                 <InfoRow label={`${t("products.delivery")} (${deliveryModeLabel})`} value={deliveryPriceLabel} />
                 <div className="border-t border-border/50" />
                 <InfoRow

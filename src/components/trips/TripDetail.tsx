@@ -32,6 +32,7 @@ import { DataErrorState } from "@/components/ui/data-error-state";
 import { ExpenseDetailSheet } from "./ExpenseDetailSheet";
 import { ProductDetailSheet } from "./ProductDetailSheet";
 import { VirtualList } from "@/components/ui/virtual-list";
+import { getLocalizedProductUnit } from "@/lib/product-units";
 
 interface TripDetailProps {
   tripId: string;
@@ -59,9 +60,9 @@ export function TripDetail({ tripId }: TripDetailProps) {
         setTrip(tripData ?? null);
         setProducts(productsData);
       })
-      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .catch((e) => setError(e instanceof Error ? e.message : t("common.loadError")))
       .finally(() => setLoading(false));
-  }, [tripId]);
+  }, [t, tripId]);
 
   useEffect(() => {
     load();
@@ -113,7 +114,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
                 </div>
                 <div className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-[12px] text-muted-foreground">
                   <Wallet className="size-3.5" />
-                  {oldDebt > 0 ? "Долг" : "Наличные"}
+                  {oldDebt > 0 ? t("trips.debtShort") : t("trips.cashShort")}
                 </div>
               </div>
             </div>
@@ -150,20 +151,20 @@ export function TripDetail({ tripId }: TripDetailProps) {
                 </div>
               </div>
               <div>
-                <p className="text-[13px] text-muted-foreground">Тип финансирования</p>
-                <p className="text-[16px] font-semibold">{oldDebt > 0 ? "Долг (за счет организации)" : "Наличка (деньги магазина)"}</p>
+                <p className="text-[13px] text-muted-foreground">{t("trips.fundingType")}</p>
+                <p className="text-[16px] font-semibold">{oldDebt > 0 ? t("trips.debtFunding") : t("trips.cashFunding")}</p>
               </div>
               <div className="grid grid-cols-3 gap-2 rounded-[22px] border border-white/8 bg-white/[0.04] p-3">
                 <div className="text-center">
-                  <p className="text-[11px] text-muted-foreground">Расход</p>
+                  <p className="text-[11px] text-muted-foreground">{t("tripsReport.expense")}</p>
                   <p className="text-[14px] font-semibold text-orange-500 tabular-nums">{formatAmount(spent)}</p>
                 </div>
                 <div className="text-center border-x border-border/40">
-                  <p className="text-[11px] text-muted-foreground">Приход</p>
+                  <p className="text-[11px] text-muted-foreground">{t("tripsReport.income")}</p>
                   <p className="text-[14px] font-semibold text-emerald-500 tabular-nums">+{formatAmount(income)}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-[11px] text-muted-foreground">Старый долг</p>
+                  <p className="text-[11px] text-muted-foreground">{t("trips.oldDebt")}</p>
                   <p className="text-[14px] font-semibold tabular-nums">{formatAmount(oldDebt)}</p>
                 </div>
               </div>
@@ -339,7 +340,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
                           <p className="font-semibold text-[15px] leading-tight break-words">{prod.name}</p>
                           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                             <span className="text-sm text-muted-foreground">
-                              {prod.quantity} {prod.unit ?? "шт"}
+                              {prod.quantity} {getLocalizedProductUnit(t, prod.unit)}
                             </span>
                             {prod.shop && (
                               <Badge variant="secondary" className="text-xs font-normal gap-1">

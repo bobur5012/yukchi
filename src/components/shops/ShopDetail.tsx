@@ -27,6 +27,7 @@ import {
 import { PaymentDetailSheet } from "./PaymentDetailSheet";
 import { ShopReminders } from "./ShopReminders";
 import { ProductDetailSheet } from "@/components/trips/ProductDetailSheet";
+import { getLocalizedProductUnit } from "@/lib/product-units";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { DataErrorState } from "@/components/ui/data-error-state";
@@ -263,7 +264,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-[15px] truncate">{p.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {p.quantity} {p.unit ?? t("products.defaultUnit")}
+                          {p.quantity} {getLocalizedProductUnit(t, p.unit)}
                           {p.salePrice && ` · ${p.salePrice} $`}
                         </p>
                       </div>

@@ -50,11 +50,11 @@ export function AddShopForm() {
     const numDebt = parseFloat(initialDebt);
 
     if (!name.trim()) {
-      toast.error("Название магазина обязательно");
+      toast.error(t("shops.nameRequired"));
       return;
     }
     if (!ownerName.trim()) {
-      toast.error("Имя владельца обязательно");
+      toast.error(t("shops.ownerRequired"));
       return;
     }
     if (!phoneNormalized) {
@@ -62,11 +62,11 @@ export function AddShopForm() {
       return;
     }
     if (!regionValue) {
-      toast.error("Регион обязателен");
+      toast.error(t("shops.regionRequired"));
       return;
     }
     if (isNaN(numDebt) || numDebt < 0) {
-      toast.error("Начальный долг обязателен");
+      toast.error(t("shops.initialDebtRequired"));
       return;
     }
 
@@ -100,11 +100,11 @@ export function AddShopForm() {
       <FormHero
         icon={<Store className="size-5" />}
         title={t("shops.add")}
-        description="Создайте магазин в более чистом Apple-like интерфейсе с быстрым вводом контактов и стартового долга."
+        description={t("shops.formHeroDescription")}
         meta={
           <>
             <FormMetaPill label={t("shops.shopName")} value={name.trim() || "—"} />
-            <FormMetaPill label="Регион" value={(region === OTHER_VALUE ? regionOther : region) || "—"} />
+            <FormMetaPill label={t("shops.regionLabel")} value={(region === OTHER_VALUE ? regionOther : region) || "—"} />
             <FormMetaPill label={t("shops.initialDebt")} value={initialDebt ? `${initialDebt} $` : "0 $"} />
           </>
         }
@@ -121,10 +121,10 @@ export function AddShopForm() {
           <FormRow label={t("shops.address")}>
             <Input placeholder={t("common.optional")} value={address} onChange={(e) => setAddress(e.target.value)} />
           </FormRow>
-          <FormRow label="Регион">
+          <FormRow label={t("shops.regionLabel")}>
             <Select value={region} onValueChange={setRegion}>
               <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-                <SelectValue placeholder="Выберите регион" />
+                <SelectValue placeholder={t("shops.selectRegion")} />
               </SelectTrigger>
               <SelectContent position="popper" className="z-[100]">
                 {REGIONS.map((r) => (
@@ -135,7 +135,7 @@ export function AddShopForm() {
             {showRegionOther && (
               <div className="mt-3">
                 <Input
-                  placeholder="Укажите регион"
+                  placeholder={t("shops.specifyRegion")}
                   value={regionOther}
                   onChange={(e) => setRegionOther(e.target.value)}
                   className="h-[44px] rounded-xl"
@@ -170,24 +170,24 @@ export function AddShopForm() {
       <FormCard className="p-4">
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Контакт</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("shops.summaryContact")}</p>
             <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">{phone || "—"}</p>
           </div>
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Локация</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("shops.summaryLocation")}</p>
             <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">
               {(region === OTHER_VALUE ? regionOther : region) || "—"}
             </p>
           </div>
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Старт</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("shops.summaryStart")}</p>
             <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">{initialDebt || "0"} $</p>
           </div>
         </div>
         <div className="mt-3 flex items-center gap-2 rounded-[20px] border border-white/8 bg-white/[0.03] px-3 py-2 text-sm text-muted-foreground">
           <MapPin className="size-4 text-primary" />
           <Wallet className="size-4 text-primary" />
-          После создания можно сразу вести долг и платежи внутри карточки магазина.
+          {t("shops.createHint")}
         </div>
       </FormCard>
 
@@ -204,7 +204,7 @@ export function AddShopForm() {
           parseFloat(initialDebt) < 0
         }
       >
-        {isSubmitting ? "Сохранение…" : t("shops.add")}
+        {isSubmitting ? t("common.saving") : t("shops.add")}
       </Button>
     </form>
   );

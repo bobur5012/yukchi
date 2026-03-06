@@ -55,9 +55,9 @@ export function TripsList() {
     setError(null);
     getTrips(1, 50)
       .then((r) => setTrips(r.trips))
-      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .catch((e) => setError(e instanceof Error ? e.message : t("common.loadError")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadTrips();
@@ -70,9 +70,9 @@ export function TripsList() {
       await deleteTrip(deleteId);
       setTrips((prev) => prev.filter((tr) => tr.id !== deleteId));
       setDeleteId(null);
-      toast.success("Поездка удалена");
+      toast.success(t("trips.deleted"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Ошибка удаления");
+      toast.error(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setDeleting(false);
     }
@@ -105,21 +105,21 @@ export function TripsList() {
               {t("nav.trips")}
             </h2>
             <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
-              Активные и запланированные поездки в более чистом Apple-like стиле.
+              {t("trips.listSubtitle")}
             </p>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-3 gap-2">
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Всего</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("trips.summaryTotal")}</p>
             <p className="mt-1 text-[16px] font-semibold tracking-[-0.03em]">{trips.length}</p>
           </div>
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Активные</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("trips.summaryActive")}</p>
             <p className="mt-1 text-[16px] font-semibold tracking-[-0.03em]">{activeTripsCount}</p>
           </div>
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">План</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("trips.summaryPlanned")}</p>
             <p className="mt-1 text-[16px] font-semibold tracking-[-0.03em]">{plannedTripsCount}</p>
           </div>
         </div>
@@ -148,7 +148,7 @@ export function TripsList() {
             const oldDebt = parseFloat(trip.oldDebt || "0");
             const remaining = budgetUsd - spent - oldDebt + income;
             const couriers = trip.tripCouriers ?? [];
-            const fundingLabel = oldDebt > 0 ? "Долг" : "Наличные";
+            const fundingLabel = oldDebt > 0 ? t("trips.debtShort") : t("trips.cashShort");
             const statusTone =
               trip.status === "active"
                 ? "border-emerald-500/24 bg-emerald-500/[0.04]"
@@ -235,7 +235,7 @@ export function TripsList() {
                     </div>
                     <div className="rounded-[20px] border border-orange-500/16 bg-orange-500/[0.08] p-3">
                       <p className="mb-0.5 flex items-center gap-1 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                        <TrendingDown className="size-3.5" /> Расход
+                        <TrendingDown className="size-3.5" /> {t("tripsReport.expense")}
                       </p>
                       <p className="text-[14px] font-semibold tabular-nums text-orange-400">
                         ${spent.toLocaleString("ru-RU", { maximumFractionDigits: 0 })}
@@ -243,7 +243,7 @@ export function TripsList() {
                     </div>
                     <div className="rounded-[20px] border border-emerald-500/16 bg-emerald-500/[0.08] p-3">
                       <p className="mb-0.5 flex items-center gap-1 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                        <TrendingUp className="size-3.5" /> Приход
+                        <TrendingUp className="size-3.5" /> {t("tripsReport.income")}
                       </p>
                       <p className="text-[14px] font-semibold tabular-nums text-emerald-400">
                         +${income.toLocaleString("ru-RU", { maximumFractionDigits: 0 })}
@@ -257,12 +257,12 @@ export function TripsList() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                        Финансирование
+                        {t("trips.fundingSummary")}
                       </p>
                       <p className="text-[13px] font-medium text-foreground">
                         {oldDebt > 0
-                          ? `Старый долг: $${oldDebt.toLocaleString("ru-RU", { maximumFractionDigits: 0 })}`
-                          : "Без старого долга"}
+                          ? `${t("trips.oldDebt")}: $${oldDebt.toLocaleString("ru-RU", { maximumFractionDigits: 0 })}`
+                          : t("trips.noOldDebt")}
                       </p>
                     </div>
                   </div>
@@ -298,17 +298,17 @@ export function TripsList() {
         <Dialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
           <DialogContent className="rounded-2xl sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Удалить поездку?</DialogTitle>
+              <DialogTitle>{t("trips.deleteTitle")}</DialogTitle>
             </DialogHeader>
             <p className="text-sm text-muted-foreground">
-              Поездка и все связанные данные будут удалены безвозвратно.
+              {t("trips.deleteDescription")}
             </p>
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => setDeleteId(null)}>
-                Отмена
+                {t("common.cancel")}
               </Button>
               <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-                {deleting ? "Удаление..." : "Удалить"}
+                {deleting ? t("trips.deleting") : t("trips.deleteAction")}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -69,7 +69,7 @@ const TEMPLATE_META: Array<{
   {
     key: "newProduct",
     labelKey: "settings.templateNewProduct",
-    vars: "{trip}, {shop}, {name}, {quantity}, {unit}, {salePrice}, {pricePerKg}, {deliveryMode}, {deliveryPrice}, {totalSale}, {totalDelivery}, {grandTotal}, {addedBy}, {createdAt}, {currency}",
+    vars: "{trip}, {shop}, {name}, {quantity}, {unit}, {deliveryKg}, {salePrice}, {pricePerKg}, {deliveryMode}, {deliveryPrice}, {totalSale}, {totalDelivery}, {grandTotal}, {addedBy}, {createdAt}, {currency}",
   },
   {
     key: "newShop",

@@ -92,10 +92,10 @@ export function ShopReminders({ shopId }: ShopRemindersProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="section-title">Напоминания</p>
+        <p className="section-title">{t("reminders.title")}</p>
         <Button size="sm" onClick={() => setAddOpen(true)} className="gap-1.5">
           <Plus className="h-4 w-4" />
-          Добавить
+          {t("reminders.add")}
         </Button>
       </div>
 
@@ -124,7 +124,7 @@ export function ShopReminders({ shopId }: ShopRemindersProps) {
                   </p>
                   {r.lastSentAt && (
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Отправлено: {formatDateSafe(r.lastSentAt, "d MMM yyyy", locale)}
+                      {t("reminders.sent")}: {formatDateSafe(r.lastSentAt, "d MMM yyyy", locale)}
                     </p>
                   )}
                 </div>
@@ -151,11 +151,11 @@ export function ShopReminders({ shopId }: ShopRemindersProps) {
       <Sheet open={addOpen} onOpenChange={setAddOpen}>
         <SheetContent side="bottom" className="rounded-t-2xl">
           <SheetHeader>
-            <SheetTitle>Добавить напоминание</SheetTitle>
+            <SheetTitle>{t("reminders.addReminder")}</SheetTitle>
           </SheetHeader>
           <div className="space-y-4 pt-4 pb-6">
             <div>
-              <p className="text-sm font-medium mb-1.5">Тип</p>
+              <p className="text-sm font-medium mb-1.5">{t("reminders.typeLabel")}</p>
               <Select
                 value={type}
                 onValueChange={(v) => setType(v as "monthly" | "one_time")}
@@ -164,14 +164,14 @@ export function ShopReminders({ shopId }: ShopRemindersProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="monthly">Ежемесячно</SelectItem>
-                  <SelectItem value="one_time">Одноразово</SelectItem>
+                  <SelectItem value="monthly">{t("reminders.monthlyOption")}</SelectItem>
+                  <SelectItem value="one_time">{t("reminders.oneTimeOption")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {type === "monthly" && (
               <div>
-                <p className="text-sm font-medium mb-1.5">День месяца (1–28)</p>
+                <p className="text-sm font-medium mb-1.5">{t("reminders.dayOfMonthLabel")}</p>
                 <Input
                   type="number"
                   min={1}
@@ -183,7 +183,7 @@ export function ShopReminders({ shopId }: ShopRemindersProps) {
             )}
             {type === "one_time" && (
               <div>
-                <p className="text-sm font-medium mb-1.5">Дата и время</p>
+                <p className="text-sm font-medium mb-1.5">{t("reminders.dateTimeLabel")}</p>
                 <Input
                   type="datetime-local"
                   value={reminderAt}

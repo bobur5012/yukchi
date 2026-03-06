@@ -15,6 +15,7 @@ export async function createProduct(data: {
   name: string;
   quantity: number;
   unit?: string;
+  deliveryKg?: string;
   costPrice?: string;
   salePrice?: string;
   pricePerKg?: string;
@@ -31,6 +32,7 @@ export async function updateProduct(
     name: string;
     quantity: number;
     unit: string;
+    deliveryKg: string;
     costPrice: string;
     salePrice: string;
     pricePerKg: string;

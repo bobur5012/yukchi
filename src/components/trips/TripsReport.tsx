@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Plane, Wallet, TrendingUp, AlertTriangle, TrendingDown, Package, Receipt, Calendar } from "lucide-react";
 import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { getLocalDateInputValue } from "@/lib/date-utils";
+import { getProductTotalDelivery, getProductTotalSale } from "@/lib/product-math";
 
 function toNum(v?: string | null): number {
   return Number.parseFloat(v || "0") || 0;
@@ -67,10 +68,8 @@ export function TripsReport() {
     }
   }
   const dayProductsTotal = dayProducts.reduce((s, p) => {
-    const sale = toNum(p.salePrice ?? p.salePriceUsd) * p.quantity;
-    const del = toNum(p.pricePerKg ?? p.pricePerKgUsd) > 0
-      ? toNum(p.pricePerKg ?? p.pricePerKgUsd) * p.quantity
-      : toNum(p.costPrice ?? p.costPriceUsd);
+    const sale = getProductTotalSale(p);
+    const del = getProductTotalDelivery(p);
     return s + sale + del;
   }, 0);
   const dayExpensesTotal = dayExpenses.reduce((s, { expense }) => s + toNum(expense.amountUsd ?? expense.amount), 0);
@@ -114,9 +113,9 @@ export function TripsReport() {
             <Calendar className="h-4 w-4" />
             <span className="text-sm font-medium">{t("tripsReport.reportForDay")}</span>
           </div>
-          <h2 className="text-[22px] font-semibold tracking-[-0.05em]">Trips Report</h2>
+          <h2 className="text-[22px] font-semibold tracking-[-0.05em]">{t("tripsReport.title")}</h2>
           <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
-            Ежедневная картина по товарам, расходам, доходам и остаткам поездок.
+            {t("tripsReport.subtitle")}
           </p>
           <Input
             type="date"
@@ -145,7 +144,7 @@ export function TripsReport() {
             </div>
             <div className="rounded-[20px] border border-white/8 bg-white/[0.04] p-3 text-center">
               <TrendingUp className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">Приходы</p>
+              <p className="text-xs text-muted-foreground">{t("tripsReport.incomes")}</p>
               <p className="text-lg font-bold tabular-nums text-emerald-600">{dayIncomes.length}</p>
               <p className="text-xs tabular-nums">+{formatAmount(dayIncomesTotal)}</p>
             </div>
@@ -157,10 +156,7 @@ export function TripsReport() {
                 <div className="space-y-1">
                   {dayProducts.map((p) => {
                     const trip = trips.find((t) => t.id === p.tripId);
-                    const total = toNum(p.salePrice ?? p.salePriceUsd) * p.quantity +
-                      (toNum(p.pricePerKg ?? p.pricePerKgUsd) > 0
-                        ? toNum(p.pricePerKg ?? p.pricePerKgUsd) * p.quantity
-                        : toNum(p.costPrice ?? p.costPriceUsd));
+                    const total = getProductTotalSale(p) + getProductTotalDelivery(p);
                     return (
                       <div key={p.id} className="flex justify-between rounded-[16px] border border-white/6 bg-white/[0.03] px-3 py-2">
                         <span className="truncate">{p.name}</span>
@@ -173,7 +169,7 @@ export function TripsReport() {
             )}
             {dayExpenses.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">Расходы</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">{t("tripsReport.expenses")}</p>
                 <div className="space-y-1">
                   {dayExpenses.map(({ trip, expense }) => (
                     <div key={expense.id} className="flex justify-between rounded-[16px] border border-white/6 bg-white/[0.03] px-3 py-2">
@@ -265,7 +261,7 @@ export function TripsReport() {
               <span>{totals.totalOldDebt.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Потрачено</span>
+              <span className="text-muted-foreground">{t("tripsReport.spent")}</span>
               <span className="text-orange-500">{totals.totalSpent.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $</span>
             </div>
             <div className="flex justify-between">

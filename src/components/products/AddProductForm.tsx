@@ -31,19 +31,9 @@ import { uploadProductImage } from "@/lib/api/storage";
 import type { Shop, Trip } from "@/types";
 import { useTranslations } from "@/lib/useTranslations";
 import { clearLocalDraft, readLocalDraft, writeLocalDraft } from "@/lib/local-draft";
+import { getLocalizedProductUnit, getProductUnitOptions, PRODUCT_UNIT_VALUES } from "@/lib/product-units";
 
 const NO_SHOP_VALUE = "none";
-
-const UNIT_OPTIONS = [
-  { value: "шт", label: "ШТ" },
-  { value: "кг", label: "КГ" },
-  { value: "грамм", label: "ГРАММ" },
-  { value: "л", label: "Л" },
-  { value: "м", label: "М" },
-  { value: "упаковка", label: "УПАКОВКА" },
-  { value: "коробка", label: "КОРОБКА" },
-  { value: "пачка", label: "ПАЧКА" },
-] as const;
 
 type DeliveryMode = "per_kg" | "fixed";
 
@@ -84,10 +74,11 @@ export function AddProductForm() {
 
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("1");
-  const [unit, setUnit] = useState<string>(UNIT_OPTIONS[0].value);
+  const [unit, setUnit] = useState<string>(PRODUCT_UNIT_VALUES[0]);
   const [salePrice, setSalePrice] = useState("");
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("per_kg");
   const [deliveryPrice, setDeliveryPrice] = useState("");
+  const [deliveryKg, setDeliveryKg] = useState("");
   const [description, setDescription] = useState("");
   const [tripId, setTripId] = useState(tripIdFromUrl);
   const [shopId, setShopId] = useState(shopIdFromUrl || NO_SHOP_VALUE);
@@ -106,6 +97,7 @@ export function AddProductForm() {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const draftKey = `product:new:${tripIdFromUrl || "no-trip"}:${shopIdFromUrl || "no-shop"}`;
+  const unitOptions = useMemo(() => getProductUnitOptions(t), [t]);
 
   useEffect(() => {
     setLoadingData(true);
@@ -132,6 +124,7 @@ export function AddProductForm() {
       salePrice: string;
       deliveryMode: DeliveryMode;
       deliveryPrice: string;
+      deliveryKg: string;
       description: string;
       tripId: string;
       shopId: string;
@@ -146,6 +139,7 @@ export function AddProductForm() {
     setSalePrice(draft.salePrice);
     setDeliveryMode(draft.deliveryMode);
     setDeliveryPrice(draft.deliveryPrice);
+    setDeliveryKg(draft.deliveryKg);
     setDescription(draft.description);
     setTripId(draft.tripId || tripIdFromUrl);
     setShopId(draft.shopId || shopIdFromUrl || NO_SHOP_VALUE);
@@ -168,6 +162,7 @@ export function AddProductForm() {
       salePrice,
       deliveryMode,
       deliveryPrice,
+      deliveryKg,
       description,
       tripId,
       shopId,
@@ -177,6 +172,7 @@ export function AddProductForm() {
   }, [
     deliveryMode,
     deliveryPrice,
+    deliveryKg,
     description,
     draftKey,
     imageFile,
@@ -205,12 +201,14 @@ export function AddProductForm() {
   const qtyInt = Number.isFinite(parsedQty) && parsedQty > 0 ? Math.floor(parsedQty) : 0;
   const sale = Number.parseFloat(salePrice) || 0;
   const delivery = Number.parseFloat(deliveryPrice) || 0;
+  const parsedDeliveryKg = Number.parseFloat(deliveryKg);
+  const deliveryWeight = Number.isFinite(parsedDeliveryKg) && parsedDeliveryKg > 0 ? parsedDeliveryKg : 0;
 
   const totalSale = sale > 0 && qty > 0 ? sale * qty : null;
   const totalDelivery = delivery > 0
     ? deliveryMode === "per_kg"
-      ? qty > 0
-        ? delivery * qty
+      ? deliveryWeight > 0
+        ? delivery * deliveryWeight
         : null
       : delivery
     : null;
@@ -250,6 +248,10 @@ export function AddProductForm() {
       toast.error(t("products.formRequired"));
       return;
     }
+    if (deliveryMode === "per_kg" && delivery > 0 && deliveryWeight <= 0) {
+      toast.error(t("products.deliveryKg"));
+      return;
+    }
     if (!imageFile) {
       toast.error(
         draftImageNeedsReselect
@@ -278,6 +280,7 @@ export function AddProductForm() {
         name: name.trim(),
         quantity: qtyInt,
         unit,
+        deliveryKg: deliveryMode === "per_kg" && deliveryWeight > 0 ? deliveryWeight.toFixed(2) : undefined,
         salePrice: sale > 0 ? sale.toFixed(2) : undefined,
         // Fixed delivery goes to costPrice; per-kg goes to pricePerKg.
         pricePerKg: deliveryMode === "per_kg" && delivery > 0 ? delivery.toFixed(2) : undefined,
@@ -326,7 +329,10 @@ export function AddProductForm() {
         meta={
           <>
             <FormMetaPill label={t("products.formProduct")} value={name.trim() || "—"} />
-            <FormMetaPill label={t("products.formQuantity")} value={qtyInt > 0 ? `${qtyInt} ${unit}` : "—"} />
+            <FormMetaPill
+              label={t("products.formQuantity")}
+              value={qtyInt > 0 ? `${qtyInt} ${getLocalizedProductUnit(t, unit)}` : "—"}
+            />
             <FormMetaPill label={t("products.formTotal")} value={formatMoney(totalFinal)} />
           </>
         }
@@ -434,7 +440,7 @@ export function AddProductForm() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {UNIT_OPTIONS.map((opt) => (
+                  {unitOptions.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.label}
                     </SelectItem>
@@ -475,6 +481,19 @@ export function AddProductForm() {
               onChange={(e) => setDeliveryPrice(e.target.value)}
             />
           </FormRow>
+
+          {deliveryMode === "per_kg" ? (
+            <FormRow label={t("products.deliveryKg")}>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="12"
+                value={deliveryKg}
+                onChange={(e) => setDeliveryKg(e.target.value)}
+              />
+            </FormRow>
+          ) : null}
 
           <p className="px-4 pb-2 text-xs text-muted-foreground">
             {t("products.deliveryHint")}
@@ -539,7 +558,10 @@ export function AddProductForm() {
         <FormSection title={t("products.calculationsTitle")}>
           <div className="overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.03]">
             <div className="px-3 pb-2">
-              <CalcRow label={t("products.formQuantity")} value={qty > 0 ? `${qty} ${unit}` : "—"} />
+              <CalcRow
+                label={t("products.formQuantity")}
+                value={qty > 0 ? `${qty} ${getLocalizedProductUnit(t, unit)}` : "—"}
+              />
               <CalcRow label={t("products.unitPriceRow")} value={sale > 0 ? `${sale.toFixed(2)} $` : "—"} />
               <CalcRow
                 label={t("products.totalProduct")}
@@ -554,11 +576,17 @@ export function AddProductForm() {
                 label={deliveryMode === "per_kg" ? t("products.deliveryPricePerKgShort") : t("products.deliveryFixedShort")}
                 value={delivery > 0 ? `${delivery.toFixed(2)} $` : "—"}
               />
+              {deliveryMode === "per_kg" ? (
+                <CalcRow
+                  label={t("products.deliveryKgShort")}
+                  value={deliveryWeight > 0 ? `${deliveryWeight.toFixed(2)} ${t("products.defaultKg")}` : "—"}
+                />
+              ) : null}
               <CalcRow
                 label={t("products.totalDelivery")}
                 formula={
                   deliveryMode === "per_kg"
-                    ? `${t("products.formQuantity")} × ${t("products.deliveryPerKg")} = ${qty > 0 ? qty : "—"} × ${delivery > 0 ? delivery.toFixed(2) : "—"}`
+                    ? `${t("products.deliveryKg")} × ${t("products.deliveryPerKg")} = ${deliveryWeight > 0 ? deliveryWeight.toFixed(2) : "—"} × ${delivery > 0 ? delivery.toFixed(2) : "—"}`
                     : t("products.deliveryFixed")
                 }
                 value={formatMoney(totalDelivery)}

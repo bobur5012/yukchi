@@ -15,12 +15,8 @@ import { VirtualList } from "@/components/ui/virtual-list";
 import { useTranslations } from "@/lib/useTranslations";
 import { getAvatarUrl } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-
-function toNum(value?: string | null): number {
-  if (!value) return 0;
-  const n = Number.parseFloat(value);
-  return Number.isFinite(n) ? n : 0;
-}
+import { getProductSaleUnitPrice, getProductTotalDelivery, getProductTotalSale } from "@/lib/product-math";
+import { getLocalizedProductUnit } from "@/lib/product-units";
 
 function formatCreatedAt(value?: string): string {
   if (!value) return "—";
@@ -54,7 +50,7 @@ export function ProductsList() {
         const prods = await getProductsByTrips(ids);
         setProducts(prods);
       })
-      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .catch((e) => setError(e instanceof Error ? e.message : t("common.loadError")))
       .finally(() => setLoading(false));
   };
 
@@ -73,7 +69,7 @@ export function ProductsList() {
       })
       .catch((e) => {
         if (active) {
-          setError(e instanceof Error ? e.message : "Ошибка загрузки");
+          setError(e instanceof Error ? e.message : t("common.loadError"));
         }
       })
       .finally(() => {
@@ -85,7 +81,7 @@ export function ProductsList() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [t]);
 
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -171,15 +167,9 @@ export function ProductsList() {
             gap={12}
             renderItem={(prod) => {
               const trip = trips.find((item) => item.id === prod.tripId);
-              const unitPrice = toNum(prod.salePrice ?? prod.salePriceUsd);
-              const totalProduct = unitPrice > 0 ? unitPrice * prod.quantity : 0;
-              const deliveryPerKg = toNum(prod.pricePerKg ?? prod.pricePerKgUsd);
-              const fixedDelivery = toNum(prod.costPrice ?? prod.costPriceUsd);
-              const totalDelivery = deliveryPerKg > 0
-                ? deliveryPerKg * prod.quantity
-                : fixedDelivery > 0
-                  ? fixedDelivery
-                  : 0;
+              const unitPrice = getProductSaleUnitPrice(prod);
+              const totalProduct = getProductTotalSale(prod);
+              const totalDelivery = getProductTotalDelivery(prod);
               const imageSrc = getAvatarUrl(prod.imageUrl, `${prod.id}-${prod.createdAt ?? "1"}`);
 
               return (
@@ -212,7 +202,7 @@ export function ProductsList() {
                           {prod.name}
                         </h3>
                         <div className="rounded-full border border-border/30 bg-background/50 px-2 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
-                          {prod.quantity} {prod.unit ?? "шт"}
+                          {prod.quantity} {getLocalizedProductUnit(t, prod.unit)}
                         </div>
                       </div>
 

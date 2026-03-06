@@ -11,10 +11,8 @@ import { Package, DollarSign, Truck, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getLocalDateInputValue } from "@/lib/date-utils";
 import { useFormattedAmount } from "@/lib/useFormattedAmount";
-
-function toNum(value?: string | null): number {
-  return Number.parseFloat(value || "0") || 0;
-}
+import { getProductTotalDelivery, getProductTotalSale } from "@/lib/product-math";
+import { getLocalizedProductUnit } from "@/lib/product-units";
 
 function isSameDay(a: string, b: string): boolean {
   const d1 = new Date(a);
@@ -56,12 +54,8 @@ export function ProductsReport() {
   }
 
   const totalQuantity = filteredProducts.reduce((sum, p) => sum + p.quantity, 0);
-  const totalSale = filteredProducts.reduce((sum, p) => sum + p.quantity * toNum(p.salePrice ?? p.salePriceUsd), 0);
-  const totalDelivery = filteredProducts.reduce((sum, p) => {
-    const perKgDelivery = toNum(p.pricePerKg ?? p.pricePerKgUsd);
-    if (perKgDelivery > 0) return sum + p.quantity * perKgDelivery;
-    return sum + toNum(p.costPrice ?? p.costPriceUsd);
-  }, 0);
+  const totalSale = filteredProducts.reduce((sum, p) => sum + getProductTotalSale(p), 0);
+  const totalDelivery = filteredProducts.reduce((sum, p) => sum + getProductTotalDelivery(p), 0);
   const grandTotal = totalSale + totalDelivery;
 
   const byTrip = trips
@@ -77,11 +71,11 @@ export function ProductsReport() {
         <CardContent className="p-4">
           <div className="flex items-center gap-2 text-muted-foreground mb-2">
             <Calendar className="h-4 w-4" />
-            <span className="text-sm font-medium">Фильтр по дате</span>
+            <span className="text-sm font-medium">{t("productsReport.dateFilter")}</span>
           </div>
-          <h2 className="text-[22px] font-semibold tracking-[-0.05em]">Products Report</h2>
+          <h2 className="text-[22px] font-semibold tracking-[-0.05em]">{t("productsReport.title")}</h2>
           <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
-            Картина по товарам, продажам и доставке в одном premium mobile блоке.
+            {t("productsReport.subtitle")}
           </p>
           <div className="flex gap-2">
             <Input
@@ -99,7 +93,7 @@ export function ProductsReport() {
           {selectedDate ? (
             <p className="text-xs text-muted-foreground mt-1">{t("productsReport.shownForDate")} {selectedDate}</p>
           ) : (
-            <p className="text-xs text-muted-foreground mt-1">Показаны все товары</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("productsReport.shownAll")}</p>
           )}
         </CardContent>
       </Card>
@@ -158,12 +152,8 @@ export function ProductsReport() {
           <h3 className="font-semibold mb-3">{t("productsReport.byTrips")}</h3>
           <div className="space-y-2">
             {byTrip.map(({ trip, products: prods }) => {
-              const tripSale = prods.reduce((sum, p) => sum + p.quantity * toNum(p.salePrice), 0);
-              const tripDelivery = prods.reduce((sum, p) => {
-                const perKg = toNum(p.pricePerKg);
-                if (perKg > 0) return sum + p.quantity * perKg;
-                return sum + toNum(p.costPrice);
-              }, 0);
+              const tripSale = prods.reduce((sum, p) => sum + getProductTotalSale(p), 0);
+              const tripDelivery = prods.reduce((sum, p) => sum + getProductTotalDelivery(p), 0);
               return (
                 <div key={trip.id} className="rounded-[20px] border border-white/8 bg-white/[0.03] px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
@@ -173,7 +163,7 @@ export function ProductsReport() {
                   <div className="mt-1 grid grid-cols-3 gap-2 text-xs">
                     <div className="text-muted-foreground">{t("productsReport.saleLabel")}</div>
                     <div className="text-muted-foreground">{t("productsReport.deliveryLabel")}</div>
-                    <div className="text-muted-foreground">Итого</div>
+                    <div className="text-muted-foreground">{t("productsReport.totalLabel")}</div>
                     <div className="font-medium tabular-nums text-emerald-500">{tripSale.toLocaleString("ru-RU", { maximumFractionDigits: 2 })} $</div>
                     <div className="font-medium tabular-nums">{tripDelivery.toLocaleString("ru-RU", { maximumFractionDigits: 2 })} $</div>
                     <div className="font-semibold tabular-nums">{(tripSale + tripDelivery).toLocaleString("ru-RU", { maximumFractionDigits: 2 })} $</div>
@@ -181,22 +171,20 @@ export function ProductsReport() {
                 </div>
               );
             })}
-            {byTrip.length === 0 && <p className="text-sm text-muted-foreground py-2">Нет товаров</p>}
+            {byTrip.length === 0 && <p className="text-sm text-muted-foreground py-2">{t("productsReport.noProducts")}</p>}
           </div>
         </CardContent>
       </Card>
 
       <Card className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_20px_42px_rgba(0,0,0,0.2)]">
         <CardContent className="p-4">
-          <h3 className="font-semibold mb-3">Детали по товарам</h3>
+          <h3 className="font-semibold mb-3">{t("productsReport.productDetails")}</h3>
           <div className="space-y-2 max-h-80 overflow-y-auto">
             {filteredProducts.length > 0 ? (
               filteredProducts.map((p) => {
                 const trip = trips.find((t) => t.id === p.tripId);
-                const sale = toNum(p.salePrice ?? p.salePriceUsd) * p.quantity;
-                const del = toNum(p.pricePerKg ?? p.pricePerKgUsd) > 0
-                  ? toNum(p.pricePerKg ?? p.pricePerKgUsd) * p.quantity
-                  : toNum(p.costPrice ?? p.costPriceUsd);
+                const sale = getProductTotalSale(p);
+                const del = getProductTotalDelivery(p);
                 const total = sale + del;
                 const createdDate = p.createdAt
                   ? new Date(p.createdAt).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
@@ -212,14 +200,14 @@ export function ProductsReport() {
                     <div className="text-right shrink-0">
                       <p className="font-semibold tabular-nums">{formatAmount(total)}</p>
                       <p className="text-xs text-muted-foreground">
-                        {p.quantity} {p.unit ?? "шт"}
+                        {p.quantity} {getLocalizedProductUnit(t, p.unit)}
                       </p>
                     </div>
                   </div>
                 );
               })
             ) : (
-              <p className="text-sm text-muted-foreground py-4 text-center">Нет товаров</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t("productsReport.noProducts")}</p>
             )}
           </div>
         </CardContent>

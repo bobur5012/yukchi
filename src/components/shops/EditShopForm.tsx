@@ -16,7 +16,14 @@ import { getShop, updateShop } from "@/lib/api/shops";
 import { getPhoneDigits } from "@/lib/phone-utils";
 import { useTranslations } from "@/lib/useTranslations";
 import { toast } from "sonner";
-import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
+import {
+  FormCard,
+  FormRow,
+  FormSection,
+  FormHero,
+  FormMetaPill,
+} from "@/components/ui/form-helpers";
+import { Store, Wallet } from "lucide-react";
 import { REGIONS } from "@/lib/constants";
 
 const OTHER_VALUE = "Другое";
@@ -110,6 +117,19 @@ export function EditShopForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
+      <FormHero
+        icon={<Store className="size-5" />}
+        title="Обновить магазин"
+        description="Отредактируйте контакты, регион и статус магазина в том же premium mobile стиле."
+        meta={
+          <>
+            <FormMetaPill label={t("shops.shopName")} value={name.trim() || "—"} />
+            <FormMetaPill label="Регион" value={(region === OTHER_VALUE ? regionOther : region) || "—"} />
+            <FormMetaPill label="Статус" value={status === "active" ? "Активен" : "Неактивен"} />
+          </>
+        }
+      />
+
       <FormCard>
         <FormSection>
           <FormRow label={t("shops.shopName")}>
@@ -175,7 +195,14 @@ export function EditShopForm() {
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting || !name.trim() || !ownerName.trim()}>
+      <FormCard className="p-4">
+        <div className="flex items-center gap-2 rounded-[20px] border border-white/8 bg-white/[0.03] px-3 py-2 text-sm text-muted-foreground">
+          <Wallet className="size-4 text-primary" />
+          История долга и платежей сохранится, обновятся только данные магазина.
+        </div>
+      </FormCard>
+
+      <Button type="submit" className="h-12 w-full rounded-[22px]" disabled={isSubmitting || !name.trim() || !ownerName.trim()}>
         {isSubmitting ? "Сохранение…" : "Сохранить"}
       </Button>
     </form>

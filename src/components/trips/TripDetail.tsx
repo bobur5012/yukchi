@@ -13,7 +13,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Receipt, Package, Store, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import {
+  Plus,
+  Receipt,
+  Package,
+  Store,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Plane,
+  Wallet,
+  CalendarDays,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getAvatarUrl } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -84,37 +94,66 @@ export function TripDetail({ tripId }: TripDetailProps) {
 
   return (
     <div className="space-y-4">
+      <Card className="overflow-hidden rounded-[30px] border border-white/8 bg-[linear-gradient(135deg,rgba(94,92,230,0.18)_0%,rgba(24,24,30,0.96)_42%,rgba(14,14,18,0.98)_100%)] shadow-[0_24px_48px_rgba(0,0,0,0.28)]">
+        <CardContent className="p-5">
+          <div className="flex items-start gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-[22px] border border-white/10 bg-white/[0.08] text-primary">
+              <Plane className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                {t(`tripsDetail.${trip.status}`)}
+              </p>
+              <h2 className="mt-1 text-[24px] font-semibold tracking-[-0.05em]">{trip.name}</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-[12px] text-muted-foreground">
+                  <CalendarDays className="size-3.5" />
+                  {formatDateSafe(trip.departureDate ?? "", "d MMMM yyyy", locale)}
+                  {trip.returnDate && ` - ${formatDateSafe(trip.returnDate, "d MMM yyyy", locale)}`}
+                </div>
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-[12px] text-muted-foreground">
+                  <Wallet className="size-3.5" />
+                  {oldDebt > 0 ? "Долг" : "Наличные"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="info" className="w-full">
-        <TabsList className="w-full grid grid-cols-3 rounded-2xl">
+        <TabsList className="grid w-full grid-cols-3 rounded-[24px] border border-white/8 bg-white/[0.04] p-1">
           <TabsTrigger value="info">{t("tripsDetail.info")}</TabsTrigger>
           <TabsTrigger value="expenses">{t("tripsDetail.expenses")}</TabsTrigger>
           <TabsTrigger value="products">{t("tripsDetail.products")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="info" className="mt-4">
-          <Card className="rounded-2xl card-premium">
-            <CardContent className="p-4 space-y-4">
-              <div>
-                <p className="text-[13px] text-muted-foreground">{t("tripsDetail.budget")}</p>
-                <p className="text-[20px] font-bold tabular-nums tracking-[-0.03em]">
-                  {formatAmount(budget)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[13px] text-muted-foreground">{t("tripsDetail.remaining")}</p>
-                <p
-                  className={`text-[20px] font-bold tabular-nums tracking-[-0.03em] ${
-                    remaining < 0 ? "text-destructive" : ""
-                  }`}
-                >
-                  {formatAmount(remaining)}
-                </p>
+          <Card className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_20px_42px_rgba(0,0,0,0.2)]">
+            <CardContent className="space-y-4 p-4">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-[22px] border border-white/8 bg-white/[0.04] p-4">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{t("tripsDetail.budget")}</p>
+                  <p className="mt-1 text-[21px] font-bold tabular-nums tracking-[-0.04em]">
+                    {formatAmount(budget)}
+                  </p>
+                </div>
+                <div className="rounded-[22px] border border-white/8 bg-white/[0.04] p-4">
+                  <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{t("tripsDetail.remaining")}</p>
+                  <p
+                    className={`mt-1 text-[21px] font-bold tabular-nums tracking-[-0.04em] ${
+                      remaining < 0 ? "text-destructive" : "text-emerald-400"
+                    }`}
+                  >
+                    {formatAmount(remaining)}
+                  </p>
+                </div>
               </div>
               <div>
                 <p className="text-[13px] text-muted-foreground">Тип финансирования</p>
                 <p className="text-[16px] font-semibold">{oldDebt > 0 ? "Долг (за счет организации)" : "Наличка (деньги магазина)"}</p>
               </div>
-              <div className="grid grid-cols-3 gap-2 rounded-xl border border-border/50 bg-muted/20 p-3">
+              <div className="grid grid-cols-3 gap-2 rounded-[22px] border border-white/8 bg-white/[0.04] p-3">
                 <div className="text-center">
                   <p className="text-[11px] text-muted-foreground">Расход</p>
                   <p className="text-[14px] font-semibold text-orange-500 tabular-nums">{formatAmount(spent)}</p>
@@ -137,7 +176,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
                     return (
                       <div
                         key={tc.id}
-                        className="flex items-center gap-3 rounded-xl bg-muted/30 px-3 py-2"
+                        className="flex items-center gap-3 rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2"
                       >
                         <Avatar className="size-10 shrink-0">
                           {tc.courier?.avatarUrl ? (
@@ -164,13 +203,13 @@ export function TripDetail({ tripId }: TripDetailProps) {
         <TabsContent value="expenses" className="mt-4">
           <div className="space-y-4">
             <div className="flex gap-2">
-              <Button asChild className="flex-1 min-w-0">
+              <Button asChild className="min-w-0 flex-1 rounded-[22px]">
                 <Link href={`/trips/${tripId}/expenses/new`} className="inline-flex items-center justify-center gap-2 min-w-0 truncate">
                   <ArrowDownCircle className="h-4 w-4 shrink-0" />
                   <span className="truncate">{t("tripsDetail.addExpense")}</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="flex-1 min-w-0 border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10">
+              <Button asChild variant="outline" className="min-w-0 flex-1 rounded-[22px] border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10">
                 <Link href={`/trips/${tripId}/expenses/new?type=income`} className="inline-flex items-center justify-center gap-2 min-w-0 truncate">
                   <ArrowUpCircle className="h-4 w-4 shrink-0" />
                   <span className="truncate">{t("tripsDetail.addIncome")}</span>
@@ -207,7 +246,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
                     const isIncome = (exp as Expense & { type?: string }).type === "income";
                     return (
                       <Card
-                        className={`rounded-2xl card-premium cursor-pointer active:scale-[0.99] ${isIncome ? "border-emerald-500/30" : ""}`}
+                        className={`cursor-pointer rounded-[24px] border shadow-[0_14px_28px_rgba(0,0,0,0.16)] active:scale-[0.99] ${isIncome ? "border-emerald-500/30 bg-emerald-500/[0.04]" : "border-white/8 bg-white/[0.03]"}`}
                         onClick={() => setExpenseDetail(exp)}
                       >
                         <CardContent className="p-4 flex items-center justify-between gap-3">
@@ -243,7 +282,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
         <TabsContent value="products" className="mt-4">
           <div className="space-y-2">
             {(role === "admin" || role === "courier") && (
-              <Button asChild className="w-full">
+              <Button asChild className="w-full rounded-[22px]">
                 <Link href={`/products/new?tripId=${tripId}`} className="inline-flex items-center justify-center gap-2">
                   <Plus className="h-4 w-4" />
                   {t("tripsDetail.addProduct")}
@@ -277,7 +316,7 @@ export function TripDetail({ tripId }: TripDetailProps) {
                 height="min(400px, 50vh)"
                 renderItem={(prod) => (
                   <Card
-                    className="rounded-2xl card-premium cursor-pointer active:scale-[0.99] overflow-hidden border-border/60 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]"
+                    className="cursor-pointer overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_14px_28px_rgba(0,0,0,0.16)] active:scale-[0.99]"
                     onClick={() => setProductDetail(prod)}
                   >
                     <CardContent className="p-0">

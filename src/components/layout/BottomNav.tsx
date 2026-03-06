@@ -9,7 +9,6 @@ import {
   Store,
   Package,
   Users,
-  User,
   MoreHorizontal,
   Plus,
 } from "lucide-react";
@@ -43,28 +42,27 @@ const courierMainNavItems = (t: (k: string) => string) => [
 const adminMoreItems = (t: (k: string) => string) => [
   { href: "/products", label: t("nav.products"),    icon: Package },
   { href: "/couriers", label: t("nav.couriers"),   icon: Users },
-  { href: "/profile",  label: t("nav.profile"),   icon: User },
 ];
 
 function MoreSheet({ onNavigate, t }: { onNavigate: () => void; t: (k: string) => string }) {
   return (
     <SheetContent
       side="bottom"
-      className="rounded-t-2xl border-t border-border/40 bg-card pb-safe"
+      className="rounded-t-[30px] border-t border-white/10 bg-[linear-gradient(180deg,rgba(28,28,34,0.98)_0%,rgba(16,16,20,0.96)_100%)] pb-safe shadow-[0_-18px_44px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
     >
-      <SheetHeader className="px-4 pt-4 pb-2">
-        <SheetTitle className="text-[17px] font-semibold">{t("nav.more")}</SheetTitle>
+      <SheetHeader className="px-4 pt-5 pb-2">
+        <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-white/10" />
+        <SheetTitle className="text-[18px] font-semibold tracking-[-0.03em]">{t("nav.more")}</SheetTitle>
       </SheetHeader>
-      <div className="flex flex-col pb-6 pt-1">
+      <div className="flex flex-col gap-2 pb-6 pt-2">
         {adminMoreItems(t).map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             onClick={onNavigate}
-            className="flex items-center gap-3 px-4 py-3.5 text-[16px] font-medium text-foreground
-              hover:bg-accent transition-colors active:bg-accent/80"
+            className="mx-3 flex items-center gap-3 rounded-[22px] border border-white/8 bg-white/[0.03] px-4 py-3.5 text-[15px] font-medium text-foreground transition-colors hover:bg-white/[0.06] active:bg-white/[0.08]"
           >
-            <div className="size-9 rounded-[10px] bg-primary/15 flex items-center justify-center shrink-0">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <Icon className="size-[18px] text-primary" />
             </div>
             {label}

@@ -15,7 +15,7 @@ export default function ProductsPage() {
   return (
     <div className="space-y-4">
       <Tabs defaultValue="list" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 rounded-2xl border border-border/30 bg-card/70 p-1">
+        <TabsList className="grid w-full grid-cols-2 rounded-[24px] border border-white/8 bg-white/[0.04] p-1">
           <TabsTrigger value="list">{t("tabs.list")}</TabsTrigger>
           <TabsTrigger value="report">{t("tabs.report")}</TabsTrigger>
         </TabsList>

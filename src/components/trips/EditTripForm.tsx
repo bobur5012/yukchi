@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,15 @@ import { getTrip, updateTrip } from "@/lib/api/trips";
 import { TURKEY_CITIES } from "@/lib/constants";
 import { useTranslations } from "@/lib/useTranslations";
 import { toast } from "sonner";
-import { FormCard, FormRow, FormSection, FieldHint } from "@/components/ui/form-helpers";
+import {
+  FormCard,
+  FormRow,
+  FormSection,
+  FieldHint,
+  FormHero,
+  FormMetaPill,
+} from "@/components/ui/form-helpers";
+import { Plane, Calendar, Wallet } from "lucide-react";
 
 const OTHER_VALUE = "Другое";
 type FundingMode = "cash" | "debt";
@@ -121,9 +129,26 @@ export function EditTripForm() {
 
   const showCityOther = city === OTHER_VALUE;
   const showDebtInput = fundingMode === "debt";
+  const durationDays = useMemo(() => {
+    if (!dateDeparture || !dateReturn || dateReturn < dateDeparture) return 0;
+    return Math.ceil((new Date(dateReturn).getTime() - new Date(dateDeparture).getTime()) / 86400000) + 1;
+  }, [dateDeparture, dateReturn]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
+      <FormHero
+        icon={<Plane className="size-5" />}
+        title="Обновить поездку"
+        description="Корректируйте даты, бюджет и формат финансирования в том же премиальном мобильном стиле."
+        meta={
+          <>
+            <FormMetaPill label={t("trips.departureDate")} value={dateDeparture || "—"} />
+            <FormMetaPill label={t("trips.returnDate")} value={dateReturn || "—"} />
+            <FormMetaPill label={t("trips.remaining")} value={durationDays > 0 ? `${durationDays} дн.` : "—"} />
+          </>
+        }
+      />
+
       <FormCard>
         <FormSection>
           <FormRow label={t("trips.name")}>
@@ -131,20 +156,27 @@ export function EditTripForm() {
           </FormRow>
         </FormSection>
 
-        <FormSection title={t("trips.dates")}>
+        <FormSection title={t("trips.dates")} className="px-5 pb-5">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className="text-xs text-muted-foreground mb-1.5">{t("trips.departureDate")}</p>
+              <div className="mb-1.5 flex items-center gap-2 text-xs text-muted-foreground">
+                <Calendar className="h-3.5 w-3.5" />
+                <span>{t("trips.departureDate")}</span>
+              </div>
               <Input type="date" value={dateDeparture} onChange={(e) => setDateDeparture(e.target.value)} />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1.5">{t("trips.returnDate")}</p>
+              <div className="mb-1.5 flex items-center gap-2 text-xs text-muted-foreground">
+                <Calendar className="h-3.5 w-3.5" />
+                <span>{t("trips.returnDate")}</span>
+              </div>
               <Input type="date" value={dateReturn} onChange={(e) => setDateReturn(e.target.value)} min={dateDeparture} />
             </div>
           </div>
+          {durationDays > 0 ? <FieldHint>{durationDays} дн.</FieldHint> : null}
         </FormSection>
 
-        <FormSection title="Город Турции">
+        <FormSection title="Город Турции" className="px-5 pb-5">
           <Select value={city} onValueChange={setCity}>
             <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
               <SelectValue placeholder="Выберите город" />
@@ -169,11 +201,11 @@ export function EditTripForm() {
           )}
         </FormSection>
 
-        <FormSection title={`${t("trips.budget")} (USD)`}>
+        <FormSection title={`${t("trips.budget")} (USD)`} className="px-5 pb-5">
           <Input type="number" step="0.01" placeholder="5 000" value={budget} onChange={(e) => setBudget(e.target.value)} />
         </FormSection>
 
-        <FormSection title="Тип финансирования">
+        <FormSection title="Тип финансирования" className="px-5 pb-5">
           <Select value={fundingMode} onValueChange={(value) => setFundingMode(value as FundingMode)}>
             <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
               <SelectValue />
@@ -215,7 +247,32 @@ export function EditTripForm() {
         </FormRow>
       </FormCard>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <FormCard className="p-4">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Бюджет</p>
+            <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">{budget || "—"} $</p>
+          </div>
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Формат</p>
+            <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">
+              {fundingMode === "debt" ? "Долг" : "Наличные"}
+            </p>
+          </div>
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Старый долг</p>
+            <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">
+              {fundingMode === "debt" ? debtAmount || "—" : "0"} $
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center gap-2 rounded-[20px] border border-white/8 bg-white/[0.03] px-3 py-2 text-sm text-muted-foreground">
+          <Wallet className="size-4 text-primary" />
+          История поездки сохранится, изменятся только актуальные параметры.
+        </div>
+      </FormCard>
+
+      <Button type="submit" className="h-12 w-full rounded-[22px]" disabled={isSubmitting}>
         {isSubmitting ? "Сохранение..." : "Сохранить"}
       </Button>
     </form>

@@ -22,6 +22,7 @@ import {
   Package,
   CreditCard,
   Plus,
+  Store,
 } from "lucide-react";
 import { PaymentDetailSheet } from "./PaymentDetailSheet";
 import { ShopReminders } from "./ShopReminders";
@@ -84,9 +85,30 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
 
   return (
     <div className="space-y-4">
+      <Card className="overflow-hidden rounded-[30px] border border-white/8 bg-[linear-gradient(135deg,rgba(94,92,230,0.18)_0%,rgba(24,24,30,0.96)_42%,rgba(14,14,18,0.98)_100%)] shadow-[0_24px_48px_rgba(0,0,0,0.28)]">
+        <CardContent className="p-5">
+          <div className="flex items-start gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-[22px] border border-white/10 bg-white/[0.08] text-primary">
+              <Store className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                {shop.status === "active" ? "Активен" : "Неактивен"}
+              </p>
+              <h2 className="mt-1 text-[24px] font-semibold tracking-[-0.05em]">{shop.name}</h2>
+              <p className="mt-1 text-[13px] leading-5 text-muted-foreground">{shop.ownerName}</p>
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-[12px] text-muted-foreground">
+                <Wallet className="size-3.5" />
+                {formatAmount(parseFloat(shop.debt || "0"))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="debt" className="w-full">
         <TabsList className={cn(
-          "w-full grid rounded-2xl",
+          "grid w-full rounded-[24px] border border-white/8 bg-white/[0.04] p-1",
           role === "admin" ? "grid-cols-4" : "grid-cols-3"
         )}>
           <TabsTrigger value="debt" className="flex items-center gap-1.5 min-w-0">
@@ -111,7 +133,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
 
         {/* ── DEBT TAB ─────────────────────────────────────── */}
         <TabsContent value="debt" className="mt-4">
-          <Card className="rounded-2xl card-premium">
+          <Card className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_20px_42px_rgba(0,0,0,0.2)]">
             <CardContent className="p-4 space-y-4">
 
               {/* Debt amount + status */}
@@ -134,14 +156,14 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
 
               {/* Action buttons — 2-column grid */}
               <div className="grid grid-cols-2 gap-3">
-                <Button asChild className="h-11 rounded-xl gap-2">
+                <Button asChild className="h-11 rounded-[22px] gap-2">
                   <Link href={`/shops/${shopId}/payments/new`}>
                     <ArrowUpCircle className="h-4 w-4" />
                     Внести оплату
                   </Link>
                 </Button>
                 {(role === "admin" || role === "courier") && (
-                  <Button asChild variant="outline" className="h-11 rounded-xl gap-2">
+                  <Button asChild variant="outline" className="h-11 rounded-[22px] gap-2">
                     <Link href={`/shops/${shopId}/debt/new`}>
                       <ArrowDownCircle className="h-4 w-4" />
                       {t("shops.addDebt")}
@@ -169,7 +191,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                       return (
                         <div
                           className={cn(
-                            "flex items-center gap-3 py-3 px-4 rounded-xl cursor-pointer transition-colors active:scale-[0.99]",
+                            "flex items-center gap-3 rounded-[20px] px-4 py-3 transition-colors cursor-pointer active:scale-[0.99]",
                             isPayment
                               ? "bg-emerald-500/8 hover:bg-emerald-500/12 border border-emerald-500/20"
                               : "bg-red-500/8 hover:bg-red-500/12 border border-red-500/20"
@@ -210,12 +232,12 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
 
         {/* ── PRODUCTS TAB ─────────────────────────────────── */}
         <TabsContent value="products" className="mt-4">
-          <Card className="rounded-2xl card-premium">
+          <Card className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_20px_42px_rgba(0,0,0,0.2)]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="section-title mb-0">Привязанные товары</p>
                 {(role === "admin" || role === "courier") && (
-                  <Button asChild size="sm">
+                    <Button asChild size="sm" className="rounded-[18px]">
                     <Link href={`/products/new?shopId=${shopId}`} className="inline-flex items-center gap-2">
                       <Plus className="h-4 w-4" />
                       {t("quickActions.addProduct")}
@@ -261,7 +283,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
         <TabsContent value="contacts" className="mt-4">
           <div className="space-y-3">
             {shop.phone && (
-              <Card className="rounded-2xl card-premium overflow-hidden">
+              <Card className="overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_16px_30px_rgba(0,0,0,0.16)]">
                 <CardContent className="p-0">
                   <a
                     href={`tel:${shop.phone}`}
@@ -283,7 +305,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
             )}
 
             {hasTelegramLink && (
-              <Card className="rounded-2xl card-premium overflow-hidden">
+              <Card className="overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_16px_30px_rgba(0,0,0,0.16)]">
                 <CardContent className="p-0">
                   <a
                     href={telegramUrl}
@@ -309,7 +331,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
             )}
 
             {shop.address && (
-              <Card className="rounded-2xl card-premium">
+              <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_16px_30px_rgba(0,0,0,0.16)]">
                 <CardContent className="p-4 flex items-start gap-4">
                   <div className="size-11 rounded-xl bg-violet-500/15 flex items-center justify-center shrink-0 mt-0.5">
                     <MapPin className="size-5 text-violet-500" />
@@ -323,7 +345,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
             )}
 
             {!shop.phone && !shop.address && (
-              <Card className="rounded-2xl card-premium">
+              <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_16px_30px_rgba(0,0,0,0.16)]">
                 <CardContent className="py-10 text-center text-muted-foreground">
                   {t("shops.contactsNotSet")}
                 </CardContent>

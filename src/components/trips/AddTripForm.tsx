@@ -19,7 +19,13 @@ import { useTranslations } from "@/lib/useTranslations";
 import { getLocalDateInputValue } from "@/lib/date-utils";
 import type { Courier } from "@/types";
 import { toast } from "sonner";
-import { FormCard, FormRow, FormSection, FieldHint } from "@/components/ui/form-helpers";
+import {
+  FormCard,
+  FormSection,
+  FieldHint,
+  FormHero,
+  FormMetaPill,
+} from "@/components/ui/form-helpers";
 import { cn } from "@/lib/utils";
 import { Plane, Calendar, Banknote, CreditCard } from "lucide-react";
 
@@ -155,8 +161,21 @@ export function AddTripForm() {
   const inputErrorClass = "border-destructive/70 focus-visible:ring-destructive/50";
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[360px] px-3 sm:px-0 space-y-5 pb-24">
-      <FormCard className="overflow-hidden shadow-[0_10px_24px_-18px_rgba(0,0,0,0.25)] dark:shadow-[0_10px_24px_-18px_rgba(0,0,0,0.6)]">
+    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[390px] px-2 sm:px-0 space-y-5 pb-24">
+      <FormHero
+        icon={<Plane className="size-5" />}
+        title={t("trips.create")}
+        description="Новая поездка с чистой структурой, понятным бюджетом и быстрым выбором курьеров."
+        meta={
+          <>
+            <FormMetaPill label={t("trips.departureDate")} value={dateDeparture || today} />
+            <FormMetaPill label={t("trips.returnDate")} value={dateReturn || today} />
+            <FormMetaPill label={t("trips.dates")} value={durationDays > 0 ? `${durationDays} дн.` : "—"} />
+          </>
+        }
+      />
+
+      <FormCard className="shadow-[0_20px_44px_rgba(0,0,0,0.24)]">
         <div className="px-4 pt-5 pb-1">
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <Plane className="h-4 w-4 text-primary" />
@@ -173,8 +192,8 @@ export function AddTripForm() {
           />
         </div>
 
-        <FormSection title={t("trips.dates")} className="px-4 pb-4 space-y-3">
-          <div className="space-y-3 pt-1">
+        <FormSection title={t("trips.dates")} className="px-5 pb-5">
+          <div className="grid grid-cols-2 gap-3 pt-1">
             <div>
               <div className="flex items-center gap-2 text-muted-foreground mb-1.5">
                 <Calendar className="h-3.5 w-3.5" />
@@ -211,7 +230,7 @@ export function AddTripForm() {
           )}
         </FormSection>
 
-        <FormSection title={t("trips.region")} className="px-4 pb-4 space-y-3">
+        <FormSection title={t("trips.region")} className="px-5 pb-5 space-y-3">
           <Select value={city} onValueChange={(v) => { setCity(v); if (fieldErrors.region) setFieldErrors((p) => ({ ...p, region: false })); }}>
             <SelectTrigger className={cn(selectClass, fieldErrors.region && "border-destructive/70")}>
               <SelectValue placeholder={t("trips.selectRegion")} />
@@ -241,7 +260,7 @@ export function AddTripForm() {
           )}
         </FormSection>
 
-        <FormSection title={`${t("trips.budget")} (USD)`} className="px-4 pb-4 space-y-3">
+        <FormSection title={`${t("trips.budget")} (USD)`} className="px-5 pb-5 space-y-3">
           <Input
             type="number"
             step="0.01"
@@ -256,7 +275,7 @@ export function AddTripForm() {
           />
         </FormSection>
 
-        <FormSection title={t("trips.fundingType")} className="px-4 pb-4 space-y-3">
+        <FormSection title={t("trips.fundingType")} className="px-5 pb-5 space-y-3">
           <Select value={fundingMode} onValueChange={(value) => setFundingMode(value as FundingMode)}>
             <SelectTrigger className={selectClass}>
               <SelectValue />
@@ -301,15 +320,36 @@ export function AddTripForm() {
         </FormSection>
       </FormCard>
 
-      <FormCard className="overflow-hidden shadow-[0_10px_24px_-18px_rgba(0,0,0,0.25)] dark:shadow-[0_10px_24px_-18px_rgba(0,0,0,0.6)]">
-        <FormSection title={t("trips.couriers")} className="px-4 pb-4">
+      <FormCard className="shadow-[0_20px_44px_rgba(0,0,0,0.24)]">
+        <FormSection title={t("trips.couriers")} className="px-5 pb-5">
           <CourierSelectList couriers={couriers} selectedIds={courierIds} onToggle={toggleCourier} />
         </FormSection>
       </FormCard>
 
+      <FormCard className="p-4">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Бюджет</p>
+            <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">
+              {budget ? `${budget} $` : "—"}
+            </p>
+          </div>
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Формат</p>
+            <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">
+              {fundingMode === "debt" ? "Долг" : "Наличные"}
+            </p>
+          </div>
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Курьеры</p>
+            <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">{courierIds.length || 0}</p>
+          </div>
+        </div>
+      </FormCard>
+
       <Button
         type="submit"
-        className="w-full h-12 rounded-xl text-[15px] font-semibold shadow-lg"
+        className="h-12 w-full rounded-[22px] text-[15px] font-semibold shadow-[0_18px_34px_rgba(94,92,230,0.34)]"
         disabled={isSubmitting}
       >
         {isSubmitting ? "Сохранение..." : t("trips.create")}

@@ -15,7 +15,7 @@ export default function TripsPage() {
   return (
     <div className="space-y-4">
       <Tabs defaultValue="list" className="w-full">
-        <TabsList className="w-full grid grid-cols-2 rounded-2xl">
+        <TabsList className="grid w-full grid-cols-2 rounded-[24px] border border-white/8 bg-white/[0.04] p-1">
           <TabsTrigger value="list">{t("tabs.list")}</TabsTrigger>
           <TabsTrigger value="report">{t("tabs.report")}</TabsTrigger>
         </TabsList>

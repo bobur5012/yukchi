@@ -16,7 +16,14 @@ import { getPhoneDigits } from "@/lib/phone-utils";
 import { useTranslations } from "@/lib/useTranslations";
 import { createShop, addDebtEntry } from "@/lib/api/shops";
 import { toast } from "sonner";
-import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
+import {
+  FormCard,
+  FormRow,
+  FormSection,
+  FormHero,
+  FormMetaPill,
+} from "@/components/ui/form-helpers";
+import { Store, MapPin, Wallet } from "lucide-react";
 import { REGIONS } from "@/lib/constants";
 
 const OTHER_VALUE = "Другое";
@@ -90,6 +97,19 @@ export function AddShopForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
+      <FormHero
+        icon={<Store className="size-5" />}
+        title={t("shops.add")}
+        description="Создайте магазин в более чистом Apple-like интерфейсе с быстрым вводом контактов и стартового долга."
+        meta={
+          <>
+            <FormMetaPill label={t("shops.shopName")} value={name.trim() || "—"} />
+            <FormMetaPill label="Регион" value={(region === OTHER_VALUE ? regionOther : region) || "—"} />
+            <FormMetaPill label={t("shops.initialDebt")} value={initialDebt ? `${initialDebt} $` : "0 $"} />
+          </>
+        }
+      />
+
       <FormCard>
         <FormSection>
           <FormRow label={t("shops.shopName")}>
@@ -147,9 +167,33 @@ export function AddShopForm() {
         </FormSection>
       </FormCard>
 
+      <FormCard className="p-4">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Контакт</p>
+            <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">{phone || "—"}</p>
+          </div>
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Локация</p>
+            <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">
+              {(region === OTHER_VALUE ? regionOther : region) || "—"}
+            </p>
+          </div>
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Старт</p>
+            <p className="mt-1 text-[14px] font-semibold tracking-[-0.03em]">{initialDebt || "0"} $</p>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center gap-2 rounded-[20px] border border-white/8 bg-white/[0.03] px-3 py-2 text-sm text-muted-foreground">
+          <MapPin className="size-4 text-primary" />
+          <Wallet className="size-4 text-primary" />
+          После создания можно сразу вести долг и платежи внутри карточки магазина.
+        </div>
+      </FormCard>
+
       <Button
         type="submit"
-        className="w-full"
+        className="h-12 w-full rounded-[22px]"
         disabled={
           isSubmitting ||
           !name.trim() ||

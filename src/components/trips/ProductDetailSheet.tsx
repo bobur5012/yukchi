@@ -225,29 +225,29 @@ export function ProductDetailSheet({
           onOpenChange(nextOpen);
         }}
       >
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto">
+        <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-[30px] border-t border-white/10 bg-[linear-gradient(180deg,rgba(28,28,34,0.98)_0%,rgba(16,16,20,0.96)_100%)] shadow-[0_-18px_44px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
           <SheetHeader className="flex-row items-center justify-between gap-2">
             <SheetTitle className="truncate">{product.name}</SheetTitle>
             {canEdit && (
               <div className="flex gap-2 shrink-0">
                 {editing ? (
                   <>
-                    <Button size="sm" variant="outline" onClick={() => setEditing(false)} disabled={saving}>
+                    <Button size="sm" variant="outline" className="rounded-[18px]" onClick={() => setEditing(false)} disabled={saving}>
                       Отмена
                     </Button>
-                    <Button size="sm" onClick={handleSaveEdit} disabled={saving}>
+                    <Button size="sm" className="rounded-[18px]" onClick={handleSaveEdit} disabled={saving}>
                       {saving ? "..." : "Сохранить"}
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
+                    <Button size="sm" variant="ghost" className="rounded-[18px]" onClick={() => setEditing(true)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-destructive hover:text-destructive"
+                      className="rounded-[18px] text-destructive hover:text-destructive"
                       onClick={() => setDeleteConfirmOpen(true)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -263,7 +263,7 @@ export function ProductDetailSheet({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="relative block w-full overflow-hidden rounded-xl border border-border/60 bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="relative block w-full overflow-hidden rounded-[24px] border border-white/8 bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <img
                   src={imageSrc}
@@ -276,7 +276,7 @@ export function ProductDetailSheet({
                 </span>
               </button>
             ) : (
-              <div className="h-44 rounded-xl border border-border/60 bg-muted flex items-center justify-center">
+              <div className="flex h-44 items-center justify-center rounded-[24px] border border-white/8 bg-muted">
                 <Package className="h-12 w-12 text-muted-foreground/50" />
               </div>
             )}
@@ -313,7 +313,7 @@ export function ProductDetailSheet({
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border border-border/60 bg-card/60 p-3">
+              <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-3">
                 <InfoRow label="Название" value={product.name} />
                 <div className="border-t border-border/50" />
                 <InfoRow label="Количество" value={`${computed.quantity} ${computed.unit}`} />
@@ -364,7 +364,7 @@ export function ProductDetailSheet({
                     value={shopId ?? "none"}
                     onValueChange={(v) => setShopId(v === "none" ? null : v)}
                   >
-                    <SelectTrigger>
+                  <SelectTrigger className="rounded-[18px]">
                       <SelectValue placeholder="Выберите магазин" />
                     </SelectTrigger>
                     <SelectContent>
@@ -378,6 +378,7 @@ export function ProductDetailSheet({
                   </Select>
                   <Button
                     size="sm"
+                    className="rounded-[18px]"
                     onClick={handleAttachShop}
                     disabled={saving || (shopId ?? "none") === (product.shopId ?? product.shop?.id ?? "none")}
                   >

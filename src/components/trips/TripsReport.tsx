@@ -108,38 +108,42 @@ export function TripsReport() {
 
   return (
     <div className="space-y-4">
-      <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+      <Card className="overflow-hidden rounded-[30px] border border-white/8 bg-[linear-gradient(135deg,rgba(94,92,230,0.18)_0%,rgba(24,24,30,0.96)_42%,rgba(14,14,18,0.98)_100%)] shadow-[0_24px_48px_rgba(0,0,0,0.28)]">
         <CardContent className="p-4">
-          <div className="flex items-center gap-2 text-muted-foreground mb-2">
+          <div className="mb-3 flex items-center gap-2 text-muted-foreground">
             <Calendar className="h-4 w-4" />
             <span className="text-sm font-medium">{t("tripsReport.reportForDay")}</span>
           </div>
+          <h2 className="text-[22px] font-semibold tracking-[-0.05em]">Trips Report</h2>
+          <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
+            Ежедневная картина по товарам, расходам, доходам и остаткам поездок.
+          </p>
           <Input
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="h-11 rounded-xl"
+            className="mt-4 h-11 rounded-[22px] border-white/10 bg-white/[0.04]"
           />
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+      <Card className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_20px_42px_rgba(0,0,0,0.2)]">
         <CardContent className="p-4">
           <h3 className="font-semibold mb-3">{t("tripsReport.activityFor")} {selectedDate}</h3>
           <div className="grid gap-3 grid-cols-3 mb-4">
-            <div className="rounded-xl bg-muted/40 p-3 text-center">
+            <div className="rounded-[20px] border border-white/8 bg-white/[0.04] p-3 text-center">
               <Package className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">{t("tripsReport.products")}</p>
               <p className="text-lg font-bold tabular-nums text-emerald-600">{dayProducts.length}</p>
               <p className="text-xs tabular-nums">{formatAmount(dayProductsTotal)}</p>
             </div>
-            <div className="rounded-xl bg-muted/40 p-3 text-center">
+            <div className="rounded-[20px] border border-white/8 bg-white/[0.04] p-3 text-center">
               <Receipt className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">{t("tripsReport.expenses")}</p>
               <p className="text-lg font-bold tabular-nums text-orange-500">{dayExpenses.length}</p>
               <p className="text-xs tabular-nums">{formatAmount(dayExpensesTotal)}</p>
             </div>
-            <div className="rounded-xl bg-muted/40 p-3 text-center">
+            <div className="rounded-[20px] border border-white/8 bg-white/[0.04] p-3 text-center">
               <TrendingUp className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">Приходы</p>
               <p className="text-lg font-bold tabular-nums text-emerald-600">{dayIncomes.length}</p>
@@ -158,7 +162,7 @@ export function TripsReport() {
                         ? toNum(p.pricePerKg ?? p.pricePerKgUsd) * p.quantity
                         : toNum(p.costPrice ?? p.costPriceUsd));
                     return (
-                      <div key={p.id} className="flex justify-between py-1.5 px-2 rounded-lg bg-muted/20">
+                      <div key={p.id} className="flex justify-between rounded-[16px] border border-white/6 bg-white/[0.03] px-3 py-2">
                         <span className="truncate">{p.name}</span>
                         <span className="shrink-0 tabular-nums">{trip?.name} — {formatAmount(total)}</span>
                       </div>
@@ -172,7 +176,7 @@ export function TripsReport() {
                 <p className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">Расходы</p>
                 <div className="space-y-1">
                   {dayExpenses.map(({ trip, expense }) => (
-                    <div key={expense.id} className="flex justify-between py-1.5 px-2 rounded-lg bg-muted/20">
+                    <div key={expense.id} className="flex justify-between rounded-[16px] border border-white/6 bg-white/[0.03] px-3 py-2">
                       <span className="truncate">{(expense as Expense & { description?: string }).description || t("tripsReport.expense")}</span>
                       <span className="shrink-0 tabular-nums text-orange-500">{trip.name} — {formatAmount(toNum(expense.amountUsd ?? expense.amount))}</span>
                     </div>
@@ -185,7 +189,7 @@ export function TripsReport() {
                 <p className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">{t("tripsReport.incomes")}</p>
                 <div className="space-y-1">
                   {dayIncomes.map(({ trip, expense }) => (
-                    <div key={expense.id} className="flex justify-between py-1.5 px-2 rounded-lg bg-muted/20">
+                    <div key={expense.id} className="flex justify-between rounded-[16px] border border-white/6 bg-white/[0.03] px-3 py-2">
                       <span className="truncate">{(expense as Expense & { description?: string }).description || t("tripsReport.income")}</span>
                       <span className="shrink-0 tabular-nums text-emerald-600">+{formatAmount(toNum(expense.amountUsd ?? expense.amount))} — {trip.name}</span>
                     </div>
@@ -201,7 +205,7 @@ export function TripsReport() {
       </Card>
 
       <div className="grid gap-4 grid-cols-2">
-        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+        <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Plane className="h-4 w-4" />
@@ -211,7 +215,7 @@ export function TripsReport() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+        <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Wallet className="h-4 w-4" />
@@ -223,7 +227,7 @@ export function TripsReport() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+        <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <TrendingDown className="h-4 w-4" />
@@ -235,7 +239,7 @@ export function TripsReport() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+        <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <TrendingUp className="h-4 w-4" />
@@ -248,7 +252,7 @@ export function TripsReport() {
         </Card>
       </div>
 
-      <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+      <Card className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_20px_42px_rgba(0,0,0,0.2)]">
         <CardContent className="p-4">
           <h3 className="font-semibold mb-3">{t("tripsReport.budgetSummary")}</h3>
           <div className="space-y-2 text-sm">
@@ -279,7 +283,7 @@ export function TripsReport() {
       </Card>
 
       {overBudget.length > 0 && (
-        <Card className="rounded-2xl border-amber-500/30">
+        <Card className="rounded-[28px] border border-amber-500/30 bg-amber-500/[0.06] shadow-[0_18px_34px_rgba(0,0,0,0.16)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-2">
               <AlertTriangle className="h-5 w-5" />

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import imageCompression from "browser-image-compression";
-import { ImagePlus, Camera, X } from "lucide-react";
+import { ImagePlus, Camera, X, Package } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormCard, FormRow, FormSection } from "@/components/ui/form-helpers";
+import {
+  FormCard,
+  FormRow,
+  FormSection,
+  FormHero,
+  FormMetaPill,
+} from "@/components/ui/form-helpers";
 
 import { createProduct } from "@/lib/api/products";
 import { getTrips } from "@/lib/api/trips";
@@ -233,11 +239,24 @@ export function AddProductForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
+      <FormHero
+        icon={<Package className="size-5" />}
+        title="Добавить товар"
+        description="Фото, поездка, магазин и расчеты собраны в более чистой Apple-like форме."
+        meta={
+          <>
+            <FormMetaPill label="Товар" value={name.trim() || "—"} />
+            <FormMetaPill label="Кол-во" value={qtyInt > 0 ? `${qtyInt} ${unit}` : "—"} />
+            <FormMetaPill label="Итог" value={formatMoney(totalFinal)} />
+          </>
+        }
+      />
+
       <FormCard>
         <FormSection title="Фото">
           <div className="space-y-2 px-4 pb-4">
             {imagePreview ? (
-              <div className="relative overflow-hidden rounded-xl">
+              <div className="relative overflow-hidden rounded-[24px] border border-white/8">
                 <img src={imagePreview} alt="Превью товара" className="h-40 w-full object-cover" />
                 <button
                   type="button"
@@ -267,7 +286,7 @@ export function AddProductForm() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-[44px] flex-1 rounded-xl text-[15px]"
+                  className="h-[44px] flex-1 rounded-[20px] text-[15px]"
                   onClick={() => galleryInputRef.current?.click()}
                 >
                   <ImagePlus className="size-4" /> Галерея
@@ -275,7 +294,7 @@ export function AddProductForm() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-[44px] flex-1 rounded-xl text-[15px]"
+                  className="h-[44px] flex-1 rounded-[20px] text-[15px]"
                   onClick={() => cameraInputRef.current?.click()}
                 >
                   <Camera className="size-4" /> Камера
@@ -433,7 +452,7 @@ export function AddProductForm() {
 
       <FormCard>
         <FormSection title="Расчеты">
-          <div className="overflow-hidden rounded-xl border border-border/60 bg-muted/20">
+          <div className="overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.03]">
             <div className="px-3 pb-2">
               <CalcRow label="Количество" value={qty > 0 ? `${qty} ${unit}` : "—"} />
               <CalcRow label="Цена товара за 1 ед" value={sale > 0 ? `${sale.toFixed(2)} $` : "—"} />
@@ -467,7 +486,7 @@ export function AddProductForm() {
         </FormSection>
       </FormCard>
 
-      <Button type="submit" className="w-full" disabled={!canSubmit}>
+      <Button type="submit" className="h-12 w-full rounded-[22px]" disabled={!canSubmit}>
         {isSubmitting ? "Сохранение..." : "Добавить товар"}
       </Button>
     </form>

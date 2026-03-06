@@ -17,7 +17,7 @@ import {
   Trash2,
   User,
   Wallet,
-  Building2,
+  Sparkles,
 } from "lucide-react";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { DataErrorState } from "@/components/ui/data-error-state";
@@ -102,9 +102,11 @@ export function ShopsList() {
     );
   }
 
+  const totalDebt = filteredShops.reduce((sum, shop) => sum + Number.parseFloat(shop.debt || "0"), 0);
+
   return (
     <div className="space-y-4">
-      <div className="rounded-[26px] border border-border/35 bg-card/95 p-4 shadow-[0_12px_28px_rgba(0,0,0,0.14)]">
+      <div className="overflow-hidden rounded-[30px] border border-white/8 bg-[linear-gradient(135deg,rgba(94,92,230,0.18)_0%,rgba(24,24,30,0.96)_42%,rgba(14,14,18,0.98)_100%)] p-4 shadow-[0_24px_48px_rgba(0,0,0,0.28)]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[20px] font-semibold tracking-[-0.04em]">
@@ -114,7 +116,7 @@ export function ShopsList() {
               {t("shops.searchHint")}
             </p>
           </div>
-          <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <div className="flex size-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.08] text-primary">
             <Store className="size-4.5" />
           </div>
         </div>
@@ -125,8 +127,27 @@ export function ShopsList() {
             placeholder={t("shops.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-11 rounded-2xl border-border/35 bg-background/60 pl-10"
+            className="h-11 rounded-2xl border-white/10 bg-white/[0.04] pl-10"
           />
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Всего</p>
+            <p className="mt-1 text-[15px] font-semibold tracking-[-0.03em]">{filteredShops.length}</p>
+          </div>
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Активные</p>
+            <p className="mt-1 text-[15px] font-semibold tracking-[-0.03em]">
+              {filteredShops.filter((shop) => shop.status === "active").length}
+            </p>
+          </div>
+          <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Долг</p>
+            <p className="mt-1 truncate text-[15px] font-semibold tracking-[-0.03em]">
+              {totalDebt.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $
+            </p>
+          </div>
         </div>
       </div>
 
@@ -151,11 +172,11 @@ export function ShopsList() {
               shop.status === "active" ? t("couriers.active") : t("couriers.inactive");
 
             return (
-              <div className="overflow-hidden rounded-[22px] border border-border/35 bg-card/95 shadow-[0_10px_22px_rgba(0,0,0,0.12)]">
+              <div className="overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
                 <Link href={`/shops/${shop.id}`} className="block p-3">
                   <div className="flex items-start gap-2.5">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary">
-                      <Building2 className="size-4" />
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.06] text-primary">
+                      <Sparkles className="size-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
@@ -179,7 +200,7 @@ export function ShopsList() {
                       </div>
 
                       <div className="mt-2 flex items-center justify-between gap-2">
-                        <div className="min-w-0 rounded-[16px] border border-amber-500/20 bg-amber-500/10 px-2.5 py-2">
+                        <div className="min-w-0 rounded-[18px] border border-amber-500/20 bg-amber-500/10 px-2.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                           <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                             <Wallet className="size-3" />
                             <span>{t("shops.debt")}</span>

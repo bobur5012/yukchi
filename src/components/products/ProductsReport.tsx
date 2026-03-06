@@ -73,21 +73,25 @@ export function ProductsReport() {
 
   return (
     <div className="space-y-4">
-      <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+      <Card className="overflow-hidden rounded-[30px] border border-white/8 bg-[linear-gradient(135deg,rgba(94,92,230,0.18)_0%,rgba(24,24,30,0.96)_42%,rgba(14,14,18,0.98)_100%)] shadow-[0_24px_48px_rgba(0,0,0,0.28)]">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 text-muted-foreground mb-2">
             <Calendar className="h-4 w-4" />
             <span className="text-sm font-medium">Фильтр по дате</span>
           </div>
+          <h2 className="text-[22px] font-semibold tracking-[-0.05em]">Products Report</h2>
+          <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
+            Картина по товарам, продажам и доставке в одном premium mobile блоке.
+          </p>
           <div className="flex gap-2">
             <Input
               type="date"
               value={selectedDate ?? ""}
               onChange={(e) => setSelectedDate(e.target.value || null)}
-              className="h-11 rounded-xl flex-1"
+              className="h-11 flex-1 rounded-[22px] border-white/10 bg-white/[0.04]"
             />
             {selectedDate && (
-              <Button variant="outline" size="sm" onClick={() => setSelectedDate(null)} className="shrink-0">
+              <Button variant="outline" size="sm" onClick={() => setSelectedDate(null)} className="shrink-0 rounded-[18px]">
                 {t("productsReport.reset")}
               </Button>
             )}
@@ -101,7 +105,7 @@ export function ProductsReport() {
       </Card>
 
       <div className="grid gap-4 grid-cols-2">
-        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+        <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Package className="h-4 w-4" />
@@ -112,7 +116,7 @@ export function ProductsReport() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+        <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <DollarSign className="h-4 w-4" />
@@ -124,7 +128,7 @@ export function ProductsReport() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+        <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Truck className="h-4 w-4" />
@@ -136,7 +140,7 @@ export function ProductsReport() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+        <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <DollarSign className="h-4 w-4" />
@@ -149,7 +153,7 @@ export function ProductsReport() {
         </Card>
       </div>
 
-      <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+      <Card className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_20px_42px_rgba(0,0,0,0.2)]">
         <CardContent className="p-4">
           <h3 className="font-semibold mb-3">{t("productsReport.byTrips")}</h3>
           <div className="space-y-2">
@@ -161,7 +165,7 @@ export function ProductsReport() {
                 return sum + toNum(p.costPrice);
               }, 0);
               return (
-                <div key={trip.id} className="rounded-xl bg-muted/30 px-3 py-2.5">
+                <div key={trip.id} className="rounded-[20px] border border-white/8 bg-white/[0.03] px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-medium truncate">{trip.name}</p>
                     <p className="text-xs text-muted-foreground shrink-0">{prods.length} {t("productsReport.productsCount")}</p>
@@ -182,7 +186,7 @@ export function ProductsReport() {
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+      <Card className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_20px_42px_rgba(0,0,0,0.2)]">
         <CardContent className="p-4">
           <h3 className="font-semibold mb-3">Детали по товарам</h3>
           <div className="space-y-2 max-h-80 overflow-y-auto">
@@ -198,7 +202,7 @@ export function ProductsReport() {
                   ? new Date(p.createdAt).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
                   : "—";
                 return (
-                  <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-xl bg-muted/30 text-sm">
+                  <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 rounded-[18px] border border-white/6 bg-white/[0.03] px-3 py-2 text-sm">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium truncate">{p.name}</p>
                       <p className="text-xs text-muted-foreground">

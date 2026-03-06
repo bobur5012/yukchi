@@ -51,8 +51,24 @@ export function ShopsReport() {
 
   return (
     <div className="space-y-4">
+      <Card className="overflow-hidden rounded-[30px] border border-white/8 bg-[linear-gradient(135deg,rgba(94,92,230,0.18)_0%,rgba(24,24,30,0.96)_42%,rgba(14,14,18,0.98)_100%)] shadow-[0_24px_48px_rgba(0,0,0,0.28)]">
+        <CardContent className="p-5">
+          <div className="flex items-start gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-[22px] border border-white/10 bg-white/[0.08] text-primary">
+              <Store className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-[22px] font-semibold tracking-[-0.05em]">Shops Report</h2>
+              <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
+                Долги, оплаты и текущая картина по магазинам в едином premium mobile стиле.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 grid-cols-2">
-        <Card className="rounded-2xl">
+        <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Wallet className="h-4 w-4" />
@@ -61,7 +77,7 @@ export function ShopsReport() {
             <p className="text-2xl font-bold">{totalDebt.toLocaleString()} $</p>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl">
+        <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -77,13 +93,13 @@ export function ShopsReport() {
         </Card>
       </div>
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_20px_42px_rgba(0,0,0,0.2)]">
         <CardContent className="p-4">
           <h3 className="font-semibold mb-3">{t("shopsReport.topDebtors")}</h3>
           <div className="space-y-2">
             {sortedByDebt.slice(0, 5).map((shop) => (
               <Link key={shop.id} href={`/shops/${shop.id}`}>
-                <div className="flex justify-between items-center py-2 px-3 rounded-xl hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between rounded-[18px] px-3 py-2 transition-colors hover:bg-white/[0.04]">
                   <div className="min-w-0">
                     <p className="font-medium truncate">{shop.name}</p>
                     <p className="text-xs text-muted-foreground">{shop.ownerName}</p>
@@ -105,7 +121,7 @@ export function ShopsReport() {
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border-border/60 bg-card/95 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.8)]">
+      <Card className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_20px_42px_rgba(0,0,0,0.2)]">
         <CardContent className="p-4">
           <h3 className="font-semibold mb-3">Движение по долгам (кто, когда)</h3>
           <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -118,7 +134,7 @@ export function ShopsReport() {
                 allEntries.slice(0, 20).map(({ shop, entry }) => (
                   <div
                     key={entry.id}
-                    className="flex flex-wrap items-center justify-between gap-2 py-2 px-3 rounded-xl bg-muted/30 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-[18px] border border-white/6 bg-white/[0.03] px-3 py-2 text-sm"
                   >
                     <div className="min-w-0">
                       <p className="font-medium truncate">{shop.name}</p>
@@ -145,7 +161,7 @@ export function ShopsReport() {
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-[24px] border border-white/8 bg-white/[0.03] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
         <CardContent className="p-4">
           <h3 className="font-semibold mb-3">Статистика</h3>
           <div className="flex flex-wrap gap-2">

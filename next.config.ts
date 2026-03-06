@@ -36,13 +36,7 @@ export default withPWA({
       },
       {
         urlPattern: /^https?:\/\/[^/]+\/api\/.*/i,
-        handler: "NetworkFirst",
-        options: {
-          cacheName: "yukchi-api-cache",
-          expiration: { maxEntries: 100, maxAgeSeconds: 10 * 60 },
-          networkTimeoutSeconds: 10,
-          cacheableResponse: { statuses: [0, 200] },
-        },
+        handler: "NetworkOnly",
       },
     ],
   },

@@ -79,6 +79,7 @@ export function Header({ title }: HeaderProps) {
   const { t } = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(user?.avatarUrl ?? null);
@@ -90,7 +91,7 @@ export function Header({ title }: HeaderProps) {
   useEffect(() => {
     let cancelled = false;
 
-    if (!user?.id) {
+    if (!hasHydrated || !user?.id) {
       return;
     }
 
@@ -114,7 +115,7 @@ export function Header({ title }: HeaderProps) {
     return () => {
       cancelled = true;
     };
-  }, [updateUser, user?.avatarUrl, user?.id]);
+  }, [hasHydrated, updateUser, user?.avatarUrl, user?.id]);
 
   const handleBack = () => {
     if (backHref) router.push(backHref);

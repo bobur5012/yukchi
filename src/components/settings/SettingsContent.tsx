@@ -38,57 +38,57 @@ function SectionCard({ title, children }: { title: string; children: React.React
 
 const TEMPLATE_META: Array<{
   key: keyof MessageTemplates;
-  label: string;
+  labelKey: string;
   vars: string;
 }> = [
   {
     key: "newDebt",
-    label: "🔴 Новый долг",
+    labelKey: "settings.templateNewDebt",
     vars: "{shop}, {amount}, {currency}, {courier}, {description}, {totalDebt}, {date}",
   },
   {
     key: "paymentReceived",
-    label: "✅ Оплата получена",
+    labelKey: "settings.templatePaymentReceived",
     vars: "{shop}, {amount}, {currency}, {courier}, {remainingDebt}, {date}",
   },
   {
     key: "newTrip",
-    label: "✈️ Новая поездка",
+    labelKey: "settings.templateNewTrip",
     vars: "{name}, {region}, {budget}, {currency}, {couriers}, {departureDate}",
   },
   {
     key: "tripUpdated",
-    label: "✏️ Поездка обновлена",
+    labelKey: "settings.templateTripUpdated",
     vars: "{name}, {status}, {courier}",
   },
   {
     key: "newExpense",
-    label: "💸 Новый расход",
+    labelKey: "settings.templateNewExpense",
     vars: "{trip}, {description}, {amount}, {currency}, {courier}",
   },
   {
     key: "newProduct",
-    label: "📦 Новый товар",
+    labelKey: "settings.templateNewProduct",
     vars: "{trip}, {shop}, {name}, {quantity}, {unit}, {salePrice}, {pricePerKg}, {deliveryMode}, {deliveryPrice}, {totalSale}, {totalDelivery}, {grandTotal}, {addedBy}, {createdAt}, {currency}",
   },
   {
     key: "newShop",
-    label: "🏪 Новый магазин",
+    labelKey: "settings.templateNewShop",
     vars: "{name}, {owner}, {phone}, {address}",
   },
   {
     key: "newCourier",
-    label: "🚀 Новый курьер",
+    labelKey: "settings.templateNewCourier",
     vars: "{name}, {phone}",
   },
   {
     key: "courierAssigned",
-    label: "🔗 Курьер назначен",
+    labelKey: "settings.templateCourierAssigned",
     vars: "{trip}, {courier}",
   },
   {
     key: "tripReminder",
-    label: "⏰ Напоминание о поездке",
+    labelKey: "settings.templateTripReminder",
     vars: "{trip}, {departureDate}, {days}",
   },
 ];
@@ -148,9 +148,9 @@ export function SettingsContent({ role = "admin", hideNotifications = false }: S
     setSavingTemplates(true);
     try {
       await updateMessageTemplates(messageTemplates);
-      toast.success("Шаблоны сохранены");
+      toast.success(t("settings.templatesSaved"));
     } catch {
-      toast.success("Шаблоны сохранены локально");
+      toast.success(t("settings.templatesSavedLocal"));
     } finally {
       setSavingTemplates(false);
     }
@@ -158,7 +158,7 @@ export function SettingsContent({ role = "admin", hideNotifications = false }: S
 
   const handleResetTemplates = () => {
     setMessageTemplates(DEFAULT_TEMPLATES);
-    toast.success("Шаблоны сброшены к стандартным");
+    toast.success(t("settings.templatesReset"));
   };
 
   const handleEnablePush = async () => {
@@ -293,9 +293,9 @@ export function SettingsContent({ role = "admin", hideNotifications = false }: S
             {t("settings.templatesHint")}
           </p>
 
-          {TEMPLATE_META.map(({ key, label, vars }) => (
+          {TEMPLATE_META.map(({ key, labelKey, vars }) => (
             <div key={key} className="space-y-1.5">
-              <label className="text-[13px] font-medium block">{label}</label>
+              <label className="text-[13px] font-medium block">{t(labelKey)}</label>
               <Textarea
                 rows={4}
                 value={messageTemplates[key] ?? ""}

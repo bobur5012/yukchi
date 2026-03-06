@@ -15,6 +15,7 @@ import {
 import { AvatarPicker } from "@/components/ui/avatar-picker";
 import { getCourier, updateCourier } from "@/lib/api/couriers";
 import { uploadAvatar } from "@/lib/api/storage";
+import { updateUserPasswordByAdmin } from "@/lib/api/users";
 import { getPhoneDigits } from "@/lib/phone-utils";
 import { useTranslations } from "@/lib/useTranslations";
 import type { Courier } from "@/types";
@@ -38,6 +39,9 @@ export function EditCourierForm() {
   const [phone, setPhone]     = useState("");
   const [avatar, setAvatar]   = useState("");
   const [status, setStatus]   = useState<"active" | "inactive">("active");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [updatingPassword, setUpdatingPassword] = useState(false);
 
   useEffect(() => {
     if (!id) { setLoading(false); return; }
@@ -91,7 +95,7 @@ export function EditCourierForm() {
             try {
               return await uploadAvatar(f);
             } catch {
-              toast.error("Ошибка загрузки изображения");
+              toast.error(t("profile.avatarUploadError"));
               throw new Error("Upload failed");
             }
           }}
@@ -120,8 +124,58 @@ export function EditCourierForm() {
         </FormSection>
       </FormCard>
 
+      <FormCard>
+        <FormSection title={t("couriers.passwordSection")}>
+          <FormRow label={t("profile.newPassword")}>
+            <Input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder={t("couriers.passwordPlaceholder")}
+            />
+          </FormRow>
+          <FormRow label={t("profile.confirmPassword")}>
+            <Input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder={t("profile.confirmPassword")}
+            />
+          </FormRow>
+          <Button
+            type="button"
+            variant="secondary"
+            className="mx-4 h-11 rounded-2xl"
+            disabled={updatingPassword}
+            onClick={async () => {
+              if (!newPassword || !confirmPassword) {
+                toast.error(t("common.fillRequiredFields"));
+                return;
+              }
+              if (newPassword !== confirmPassword) {
+                toast.error(t("profile.passwordMismatch"));
+                return;
+              }
+              setUpdatingPassword(true);
+              try {
+                await updateUserPasswordByAdmin(id, newPassword);
+                setNewPassword("");
+                setConfirmPassword("");
+                toast.success(t("couriers.passwordUpdated"));
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : t("common.error"));
+              } finally {
+                setUpdatingPassword(false);
+              }
+            }}
+          >
+            {updatingPassword ? t("couriers.passwordSaving") : t("couriers.passwordSaveAction")}
+          </Button>
+        </FormSection>
+      </FormCard>
+
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Сохранение…" : t("common.save")}
+        {isSubmitting ? t("common.saving") : t("common.save")}
       </Button>
     </form>
   );

@@ -6,9 +6,9 @@ import { useRouter, usePathname } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { useTranslations } from "@/lib/useTranslations";
 import { useAuthStore } from "@/stores/auth";
-import { getCourier } from "@/lib/api/couriers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAvatarUrl } from "@/lib/utils";
+import { getCurrentUserProfile } from "@/lib/api/users";
 
 const TITLE_KEYS: Record<string, string> = {
   "/dashboard":     "titles.home",
@@ -80,7 +80,8 @@ export function Header({ title }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
-  const [courierAvatarUrl, setCourierAvatarUrl] = useState<string | null>(null);
+  const updateUser = useAuthStore((state) => state.updateUser);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(user?.avatarUrl ?? null);
   const titleKey = getTitleKey(pathname);
   const displayTitle = title ?? (titleKey.startsWith("titles.") || titleKey.startsWith("nav.") ? t(titleKey) : titleKey);
   const showBack = shouldShowBack(pathname);
@@ -89,26 +90,31 @@ export function Header({ title }: HeaderProps) {
   useEffect(() => {
     let cancelled = false;
 
-    if (user?.role !== "courier" || !user.id) {
+    if (!user?.id) {
       return;
     }
 
-    getCourier(user.id)
-      .then((courier) => {
+    getCurrentUserProfile()
+      .then((profile) => {
         if (!cancelled) {
-          setCourierAvatarUrl(courier.avatarUrl ?? null);
+          setProfileAvatarUrl(profile.avatarUrl ?? null);
+          updateUser({
+            name: profile.name,
+            phone: profile.phone,
+            avatarUrl: profile.avatarUrl ?? null,
+          });
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setCourierAvatarUrl(null);
+          setProfileAvatarUrl(user.avatarUrl ?? null);
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [user?.id, user?.role]);
+  }, [updateUser, user?.avatarUrl, user?.id]);
 
   const handleBack = () => {
     if (backHref) router.push(backHref);
@@ -117,7 +123,7 @@ export function Header({ title }: HeaderProps) {
 
   const avatarSrc =
     user?.role === "courier"
-      ? getAvatarUrl(courierAvatarUrl, courierAvatarUrl ?? user.id)
+      ? getAvatarUrl(profileAvatarUrl ?? user.avatarUrl ?? null, user.id)
       : undefined;
   const avatarFallback = getInitials(user?.name ?? t("common.user"));
 

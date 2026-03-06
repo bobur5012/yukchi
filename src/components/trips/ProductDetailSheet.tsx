@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormattedAmount } from "@/lib/useFormattedAmount";
+import { useTranslations } from "@/lib/useTranslations";
 import { toast } from "sonner";
 import { getAvatarUrl } from "@/lib/utils";
 
@@ -83,6 +84,7 @@ export function ProductDetailSheet({
   canEdit = true,
 }: ProductDetailSheetProps) {
   const { formatAmount } = useFormattedAmount();
+  const { t } = useTranslations();
   const [shops, setShops] = useState<Shop[]>([]);
   const [shopId, setShopId] = useState<string | null>(product?.shopId ?? product?.shop?.id ?? null);
   const [saving, setSaving] = useState(false);
@@ -110,7 +112,7 @@ export function ProductDetailSheet({
     if (!product) {
       return {
         quantity: 0,
-        unit: "шт",
+        unit: t("products.defaultUnit"),
         sale: 0,
         fixedDelivery: 0,
         deliveryPerKg: 0,
@@ -122,7 +124,7 @@ export function ProductDetailSheet({
     }
 
     const quantity = product.quantity || 0;
-    const unit = product.unit || "шт";
+    const unit = product.unit || t("products.defaultUnit");
     const sale = toNum(product.salePrice ?? product.salePriceUsd);
     const fixedDelivery = toNum(product.costPrice ?? product.costPriceUsd);
     const deliveryPerKg = toNum(product.pricePerKg ?? product.pricePerKgUsd);
@@ -145,7 +147,7 @@ export function ProductDetailSheet({
       hasTotalSale: totalSale > 0,
       hasTotalDelivery: totalDelivery > 0,
     };
-  }, [product]);
+  }, [product, t]);
 
   const handleAttachShop = async () => {
     if (!product) return;
@@ -154,9 +156,9 @@ export function ProductDetailSheet({
       const updated = await updateProduct(product.id, { shopId: shopId || null });
       onProductUpdated?.(updated);
       onOpenChange(false);
-      toast.success("Привязка магазина обновлена");
+      toast.success(t("products.shopLinkUpdated"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Ошибка");
+      toast.error(e instanceof Error ? e.message : t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -166,7 +168,7 @@ export function ProductDetailSheet({
     if (!product) return;
     const q = Number.parseInt(editQuantity, 10);
     if (!editName.trim() || Number.isNaN(q) || q < 1) {
-      toast.error("Заполните название и количество");
+      toast.error(t("products.formRequired"));
       return;
     }
     setSaving(true);
@@ -179,9 +181,9 @@ export function ProductDetailSheet({
       });
       onProductUpdated?.(updated);
       setEditing(false);
-      toast.success("Товар обновлен");
+      toast.success(t("products.updated"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Ошибка");
+      toast.error(e instanceof Error ? e.message : t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -195,9 +197,9 @@ export function ProductDetailSheet({
       onProductDeleted?.();
       setDeleteConfirmOpen(false);
       onOpenChange(false);
-      toast.success("Товар удален");
+      toast.success(t("products.deleted"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Ошибка");
+      toast.error(e instanceof Error ? e.message : t("common.error"));
     } finally {
       setDeleting(false);
     }
@@ -206,9 +208,9 @@ export function ProductDetailSheet({
   if (!product) return null;
 
   const imageSrc = getAvatarUrl(product.imageUrl, `${product.id}-${product.createdAt ?? "1"}`);
-  const deliveryModeLabel = computed.deliveryPerKg > 0 ? "За кг" : computed.fixedDelivery > 0 ? "Фикс" : "—";
+  const deliveryModeLabel = computed.deliveryPerKg > 0 ? t("products.deliveryPerKg") : computed.fixedDelivery > 0 ? t("products.deliveryFixedShort") : "—";
   const deliveryPriceLabel = computed.deliveryPerKg > 0
-    ? `${formatAmount(computed.deliveryPerKg)} / кг`
+    ? `${formatAmount(computed.deliveryPerKg)} / ${t("products.defaultKg")}`
     : computed.fixedDelivery > 0
       ? formatAmount(computed.fixedDelivery)
       : "—";
@@ -233,10 +235,10 @@ export function ProductDetailSheet({
                 {editing ? (
                   <>
                     <Button size="sm" variant="outline" className="rounded-[18px]" onClick={() => setEditing(false)} disabled={saving}>
-                      Отмена
+                      {t("common.cancel")}
                     </Button>
                     <Button size="sm" className="rounded-[18px]" onClick={handleSaveEdit} disabled={saving}>
-                      {saving ? "..." : "Сохранить"}
+                      {saving ? "..." : t("common.save")}
                     </Button>
                   </>
                 ) : (
@@ -272,7 +274,7 @@ export function ProductDetailSheet({
                 />
                 <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-[11px] text-white">
                   <Expand className="h-3 w-3" />
-                  Увеличить
+                  {t("products.zoomImage")}
                 </span>
               </button>
             ) : (
@@ -284,15 +286,15 @@ export function ProductDetailSheet({
             {editing ? (
               <div className="space-y-3">
                 <div>
-                  <p className="text-[13px] text-muted-foreground mb-1.5">Название</p>
+                  <p className="text-[13px] text-muted-foreground mb-1.5">{t("products.formName")}</p>
                   <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="rounded-xl" />
                 </div>
                 <div>
-                  <p className="text-[13px] text-muted-foreground mb-1.5">Количество</p>
+                  <p className="text-[13px] text-muted-foreground mb-1.5">{t("products.formQuantity")}</p>
                   <Input type="number" min={1} value={editQuantity} onChange={(e) => setEditQuantity(e.target.value)} className="rounded-xl" />
                 </div>
                 <div>
-                  <p className="text-[13px] text-muted-foreground mb-1.5">Цена товара ($)</p>
+                  <p className="text-[13px] text-muted-foreground mb-1.5">{t("products.formSalePrice")}</p>
                   <Input
                     type="number"
                     step="0.01"
@@ -303,7 +305,7 @@ export function ProductDetailSheet({
                   />
                 </div>
                 <div>
-                  <p className="text-[13px] text-muted-foreground mb-1.5">Описание</p>
+                  <p className="text-[13px] text-muted-foreground mb-1.5">{t("products.formDescription")}</p>
                   <Textarea
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
@@ -314,36 +316,36 @@ export function ProductDetailSheet({
               </div>
             ) : (
               <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-3">
-                <InfoRow label="Название" value={product.name} />
+                <InfoRow label={t("products.formName")} value={product.name} />
                 <div className="border-t border-border/50" />
-                <InfoRow label="Количество" value={`${computed.quantity} ${computed.unit}`} />
+                <InfoRow label={t("products.formQuantity")} value={`${computed.quantity} ${computed.unit}`} />
                 <div className="border-t border-border/50" />
                 <InfoRow
-                  label="Цена товара"
+                  label={t("products.formSalePrice")}
                   value={computed.sale > 0 ? formatAmount(computed.sale) : "—"}
                 />
                 <div className="border-t border-border/50" />
                 <InfoRow
-                  label="Общая цена товара"
+                  label={t("products.totalProduct")}
                   value={computed.hasTotalSale ? formatAmount(computed.totalSale) : "—"}
                 />
                 <div className="border-t border-border/50" />
-                <InfoRow label={`Доставка (${deliveryModeLabel})`} value={deliveryPriceLabel} />
+                <InfoRow label={`${t("products.delivery")} (${deliveryModeLabel})`} value={deliveryPriceLabel} />
                 <div className="border-t border-border/50" />
                 <InfoRow
-                  label="Общая доставка"
+                  label={t("products.totalDelivery")}
                   value={computed.hasTotalDelivery ? formatAmount(computed.totalDelivery) : "—"}
                 />
                 <div className="border-t border-border/50" />
-                <InfoRow label="Время создания" value={formatCreatedAt(product.createdAt)} />
+                <InfoRow label={t("products.createdAt")} value={formatCreatedAt(product.createdAt)} />
                 <div className="border-t border-border/50" />
-                <InfoRow label="Магазин" value={product.shop?.name || "—"} />
+                <InfoRow label={t("titles.shop")} value={product.shop?.name || "—"} />
                 <div className="border-t border-border/50" />
-                <InfoRow label="Поездка" value={trip?.name || "—"} />
+                <InfoRow label={t("titles.trip")} value={trip?.name || "—"} />
                 {courierName ? (
                   <>
                     <div className="border-t border-border/50" />
-                    <InfoRow label="Курьер" value={courierName} />
+                    <InfoRow label={t("common.courier")} value={courierName} />
                   </>
                 ) : null}
               </div>
@@ -351,24 +353,24 @@ export function ProductDetailSheet({
 
             {!editing && product.description ? (
               <div>
-                <p className="text-[13px] text-muted-foreground mb-1">Описание</p>
+                <p className="text-[13px] text-muted-foreground mb-1">{t("products.formDescription")}</p>
                 <p className="text-[15px] text-foreground whitespace-pre-wrap break-words">{product.description}</p>
               </div>
             ) : null}
 
             {!editing && (
               <div>
-                <p className="text-[13px] text-muted-foreground mb-2">Привязать к магазину</p>
+                <p className="text-[13px] text-muted-foreground mb-2">{t("products.linkToShop")}</p>
                 <div className="flex gap-2">
                   <Select
                     value={shopId ?? "none"}
                     onValueChange={(v) => setShopId(v === "none" ? null : v)}
                   >
                   <SelectTrigger className="rounded-[18px]">
-                      <SelectValue placeholder="Выберите магазин" />
+                      <SelectValue placeholder={t("shops.selectShop")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Не привязан</SelectItem>
+                      <SelectItem value="none">{t("products.notLinked")}</SelectItem>
                       {shops.map((s) => (
                         <SelectItem key={s.id} value={s.id}>
                           {s.name}
@@ -382,11 +384,11 @@ export function ProductDetailSheet({
                     onClick={handleAttachShop}
                     disabled={saving || (shopId ?? "none") === (product.shopId ?? product.shop?.id ?? "none")}
                   >
-                    {saving ? "Сохранение..." : "Сохранить"}
+                    {saving ? t("common.saving") : t("common.save")}
                   </Button>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  При привязке товара к магазину долг магазина пересчитывается автоматически.
+                  {t("products.linkHint")}
                 </p>
               </div>
             )}
@@ -397,7 +399,7 @@ export function ProductDetailSheet({
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-[95vw] p-2 sm:max-w-4xl">
           <DialogHeader className="sr-only">
-            <DialogTitle>Фото товара</DialogTitle>
+            <DialogTitle>{t("products.photoSection")}</DialogTitle>
           </DialogHeader>
           {imageSrc ? (
             <img
@@ -412,15 +414,15 @@ export function ProductDetailSheet({
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <DialogContent className="rounded-2xl max-w-[90vw]">
           <DialogHeader>
-            <DialogTitle>Удалить товар?</DialogTitle>
-            <DialogDescription>Товар «{product.name}» будет удален безвозвратно.</DialogDescription>
+            <DialogTitle>{t("products.deleteTitle")}</DialogTitle>
+            <DialogDescription>{t("products.deleteDescription").replace("{{name}}", product.name)}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)} disabled={deleting}>
-              Отмена
+              {t("common.cancel")}
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-              {deleting ? "Удаление..." : "Удалить"}
+              {deleting ? t("products.deleting") : t("products.deleteAction")}
             </Button>
           </DialogFooter>
         </DialogContent>

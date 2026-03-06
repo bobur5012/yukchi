@@ -17,7 +17,6 @@ import {
   Trash2,
   User,
   Wallet,
-  Sparkles,
 } from "lucide-react";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { DataErrorState } from "@/components/ui/data-error-state";
@@ -55,9 +54,9 @@ export function ShopsList() {
     setError(null);
     getShops(1, 100)
       .then((r) => setShops(r.shops))
-      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .catch((e) => setError(e instanceof Error ? e.message : t("common.loadError")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadShops();
@@ -82,9 +81,9 @@ export function ShopsList() {
       await deleteShop(deleteId);
       setShops((prev) => prev.filter((s) => s.id !== deleteId));
       setDeleteId(null);
-      toast.success("Магазин удалён");
+      toast.success(t("shops.deleted"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Ошибка удаления");
+      toast.error(err instanceof Error ? err.message : t("shops.deleteError"));
     } finally {
       setDeleting(false);
     }
@@ -133,17 +132,17 @@ export function ShopsList() {
 
         <div className="mt-4 grid grid-cols-3 gap-2">
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Всего</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("shops.totalCount")}</p>
             <p className="mt-1 text-[15px] font-semibold tracking-[-0.03em]">{filteredShops.length}</p>
           </div>
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Активные</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("shops.activeCount")}</p>
             <p className="mt-1 text-[15px] font-semibold tracking-[-0.03em]">
               {filteredShops.filter((shop) => shop.status === "active").length}
             </p>
           </div>
           <div className="rounded-[20px] border border-white/8 bg-white/[0.04] px-3 py-2">
-            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">Долг</p>
+            <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{t("shops.debtTotal")}</p>
             <p className="mt-1 truncate text-[15px] font-semibold tracking-[-0.03em]">
               {totalDebt.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} $
             </p>
@@ -162,7 +161,7 @@ export function ShopsList() {
       ) : (
         <VirtualList
           items={filteredShops}
-          estimateSize={156}
+          estimateSize={136}
           gap={12}
           renderItem={(shop) => {
             const phoneDigits = shop.phone?.replace(/\D/g, "") || "";
@@ -173,15 +172,15 @@ export function ShopsList() {
 
             return (
               <div className="overflow-hidden rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_18px_34px_rgba(0,0,0,0.18)]">
-                <Link href={`/shops/${shop.id}`} className="block p-3">
+                <Link href={`/shops/${shop.id}`} className="block p-2.5">
                   <div className="flex items-start gap-2.5">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.06] text-primary">
-                      <Sparkles className="size-4" />
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.06] text-primary">
+                      <Store className="size-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <h3 className="truncate text-[16px] font-semibold tracking-[-0.03em]">
+                          <h3 className="truncate text-[15px] font-semibold tracking-[-0.03em]">
                             {shop.name}
                           </h3>
                           <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-muted-foreground">
@@ -200,22 +199,22 @@ export function ShopsList() {
                       </div>
 
                       <div className="mt-2 flex items-center justify-between gap-2">
-                        <div className="min-w-0 rounded-[18px] border border-amber-500/20 bg-amber-500/10 px-2.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                        <div className="min-w-0 rounded-[18px] border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                           <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                             <Wallet className="size-3" />
                             <span>{t("shops.debt")}</span>
                           </div>
-                          <p className="mt-0.5 truncate text-[15px] font-semibold tabular-nums">
+                          <p className="mt-0.5 truncate text-[14px] font-semibold tabular-nums">
                             {Number.parseFloat(shop.debt || "0").toLocaleString("ru-RU", {
                               maximumFractionDigits: 2,
                             })} USD
                           </p>
                         </div>
                         {shop.address ? (
-                          <div className="min-w-0 flex-1 text-right text-[11px] text-muted-foreground">
+                          <div className="min-w-0 flex-1 text-right text-[10px] text-muted-foreground">
                             <div className="inline-flex items-center gap-1.5">
                               <MapPin className="size-3 shrink-0" />
-                              <span className="line-clamp-2">{shop.address}</span>
+                              <span className="line-clamp-1">{shop.address}</span>
                             </div>
                           </div>
                         ) : null}
@@ -224,7 +223,7 @@ export function ShopsList() {
                   </div>
                 </Link>
 
-                <div className="flex items-center gap-2 border-t border-border/30 px-3 py-2.5">
+                <div className="flex items-center gap-2 border-t border-border/30 px-2.5 py-2">
                   {telUrl ? (
                     <Button variant="secondary" className="h-10 flex-1 rounded-2xl justify-center gap-2 bg-emerald-500/12 text-emerald-400 hover:bg-emerald-500/18" asChild>
                       <a href={telUrl}>
@@ -278,21 +277,21 @@ export function ShopsList() {
       <Dialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <DialogContent className="rounded-2xl sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Удалить магазин?</DialogTitle>
+            <DialogTitle>{t("shops.deleteTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Магазин будет помечен как неактивный. Данные сохранятся.
+            {t("shops.deleteDescription")}
           </p>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setDeleteId(null)}>
-              Отмена
+              {t("common.cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleting}
             >
-              {deleting ? "Удаление…" : "Удалить"}
+              {deleting ? t("shops.deleting") : t("shops.deleteAction")}
             </Button>
           </DialogFooter>
         </DialogContent>

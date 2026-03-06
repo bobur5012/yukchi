@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { PaymentDetailSheet } from "./PaymentDetailSheet";
 import { ShopReminders } from "./ShopReminders";
+import { ProductDetailSheet } from "@/components/trips/ProductDetailSheet";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { DataErrorState } from "@/components/ui/data-error-state";
@@ -45,15 +46,16 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [entryDetail, setEntryDetail] = useState<ShopDebtEntry | null>(null);
+  const [productDetail, setProductDetail] = useState<NonNullable<Shop["products"]>[number] | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
     getShop(shopId)
       .then((data) => setShop(data ?? null))
-      .catch((e) => setError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .catch((e) => setError(e instanceof Error ? e.message : t("common.loadError")))
       .finally(() => setLoading(false));
-  }, [shopId]);
+  }, [shopId, t]);
 
   useEffect(() => {
     load();
@@ -70,7 +72,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
   if (!shop) {
     return (
       <div className="py-12 text-center text-muted-foreground">
-        Магазин не найден
+        {t("shops.notFound")}
       </div>
     );
   }
@@ -93,7 +95,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-                {shop.status === "active" ? "Активен" : "Неактивен"}
+                {shop.status === "active" ? t("couriers.active") : t("couriers.inactive")}
               </p>
               <h2 className="mt-1 text-[24px] font-semibold tracking-[-0.05em]">{shop.name}</h2>
               <p className="mt-1 text-[13px] leading-5 text-muted-foreground">{shop.ownerName}</p>
@@ -138,7 +140,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
 
               {/* Debt amount + status */}
               <div>
-                <p className="text-sm text-muted-foreground">Общая сумма долга</p>
+                <p className="text-sm text-muted-foreground">{t("shops.debtTotal")}</p>
                 <p className="text-[26px] font-bold tabular-nums tracking-[-0.03em]">
                   {formatAmount(parseFloat(shop.debt || "0"))}
                 </p>
@@ -150,7 +152,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                       : "bg-muted text-muted-foreground"
                   )}
                 >
-                  {shop.status === "active" ? "Активен" : "Неактивен"}
+                  {shop.status === "active" ? t("couriers.active") : t("couriers.inactive")}
                 </span>
               </div>
 
@@ -159,7 +161,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                 <Button asChild className="h-11 rounded-[22px] gap-2">
                   <Link href={`/shops/${shopId}/payments/new`}>
                     <ArrowUpCircle className="h-4 w-4" />
-                    Внести оплату
+                    {t("shops.makePayment")}
                   </Link>
                 </Button>
                 {(role === "admin" || role === "courier") && (
@@ -174,12 +176,12 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
 
               {/* Payment history */}
               <div>
-                <p className="section-title mb-3">История платежей</p>
+                <p className="section-title mb-3">{t("shops.paymentHistory")}</p>
                 {allEntries.length === 0 ? (
                   <EmptyState
                     icon={Wallet}
-                    title="Нет записей"
-                    description="Записи появятся здесь"
+                    title={t("shops.noEntries")}
+                    description={t("shops.noEntriesDescription")}
                   />
                 ) : (
                   <VirtualList
@@ -235,7 +237,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
           <Card className="rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(28,28,34,0.96)_0%,rgba(20,20,26,0.92)_100%)] shadow-[0_20px_42px_rgba(0,0,0,0.2)]">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="section-title mb-0">Привязанные товары</p>
+                <p className="section-title mb-0">{t("shops.linkedProducts")}</p>
                 {(role === "admin" || role === "courier") && (
                     <Button asChild size="sm" className="rounded-[18px]">
                     <Link href={`/products/new?shopId=${shopId}`} className="inline-flex items-center gap-2">
@@ -254,13 +256,14 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                   {shop.products?.map((p) => (
                     <div
                       key={p.id}
-                      className="flex items-center gap-3 py-3 px-4 rounded-xl bg-muted/50"
+                      className="flex cursor-pointer items-center gap-3 rounded-xl bg-muted/50 px-4 py-3 transition-colors hover:bg-muted/70"
+                      onClick={() => setProductDetail(p)}
                     >
                       <Package className="h-5 w-5 text-muted-foreground shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-[15px] truncate">{p.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {p.quantity} {p.unit ?? "шт"}
+                          {p.quantity} {p.unit ?? t("products.defaultUnit")}
                           {p.salePrice && ` · ${p.salePrice} $`}
                         </p>
                       </div>
@@ -293,11 +296,11 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                       <Phone className="size-5 text-emerald-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-muted-foreground mb-0.5">Телефон</p>
+                      <p className="text-xs text-muted-foreground mb-0.5">{t("common.phone")}</p>
                       <p className="font-semibold text-[15px] truncate">{shop.phone}</p>
                     </div>
                     <span className="text-sm font-medium text-emerald-500 shrink-0">
-                      Позвонить
+                      {t("shops.callAction")}
                     </span>
                   </a>
                 </CardContent>
@@ -323,7 +326,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                       </p>
                     </div>
                     <span className="text-sm font-medium text-sky-500 shrink-0">
-                      Открыть чат
+                      {t("shops.openChat")}
                     </span>
                   </a>
                 </CardContent>
@@ -337,7 +340,7 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
                     <MapPin className="size-5 text-violet-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground mb-0.5">Адрес</p>
+                      <p className="text-xs text-muted-foreground mb-0.5">{t("shops.address")}</p>
                     <p className="font-semibold text-[15px]">{shop.address}</p>
                   </div>
                 </CardContent>
@@ -370,6 +373,38 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
             : null
         }
         currency="USD"
+      />
+      <ProductDetailSheet
+        open={!!productDetail}
+        onOpenChange={(open) => !open && setProductDetail(null)}
+        product={productDetail ?? null}
+        trip={null}
+        canEdit
+        onProductUpdated={(updated) => {
+          setShop((current) =>
+            current
+              ? {
+                  ...current,
+                  products: current.products?.map((item) =>
+                    item.id === updated.id ? { ...item, ...updated } : item
+                  ),
+                }
+              : current
+          );
+          setProductDetail(updated);
+        }}
+        onProductDeleted={() => {
+          if (!productDetail) return;
+          setShop((current) =>
+            current
+              ? {
+                  ...current,
+                  products: current.products?.filter((item) => item.id !== productDetail.id),
+                }
+              : current
+          );
+          setProductDetail(null);
+        }}
       />
     </div>
   );

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, ImagePlus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/lib/useTranslations";
 
 async function cropToSquare(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -54,6 +55,7 @@ interface AvatarPickerProps {
 }
 
 export function AvatarPicker({ value, onChange, placeholder = "?", className, onUpload }: AvatarPickerProps) {
+  const { t } = useTranslations();
   const galleryRef = useRef<HTMLInputElement>(null);
   const cameraRef  = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -83,7 +85,7 @@ export function AvatarPicker({ value, onChange, placeholder = "?", className, on
       {/* Avatar preview — tap to open gallery */}
       <button type="button" onClick={() => !uploading && galleryRef.current?.click()} className="relative group" disabled={uploading}>
         <Avatar className="size-[80px]">
-          {value ? <AvatarImage src={value} alt="Аватар" /> : null}
+          {value ? <AvatarImage src={value} alt={t("profile.avatarAlt")} /> : null}
           <AvatarFallback className="text-[22px] font-semibold bg-muted text-muted-foreground">
             {placeholder}
           </AvatarFallback>
@@ -103,13 +105,13 @@ export function AvatarPicker({ value, onChange, placeholder = "?", className, on
         <input ref={cameraRef}  type="file" accept="image/*" capture="environment" className="sr-only" onChange={handleFile} />
 
         <Button type="button" variant="secondary" size="sm" className="h-[36px] rounded-[10px] text-[13px]" onClick={() => galleryRef.current?.click()} disabled={uploading}>
-          <ImagePlus className="size-3.5" />Галерея
+          <ImagePlus className="size-3.5" />{t("profile.gallery")}
         </Button>
         <Button type="button" variant="secondary" size="sm" className="h-[36px] rounded-[10px] text-[13px]" onClick={() => cameraRef.current?.click()} disabled={uploading}>
-          <Camera className="size-3.5" />Камера
+          <Camera className="size-3.5" />{t("profile.camera")}
         </Button>
         {value && (
-          <Button type="button" variant="ghost" size="sm" className="h-[36px] rounded-[10px] text-[13px] text-destructive" onClick={() => onChange(null)}>
+          <Button type="button" variant="ghost" size="sm" className="h-[36px] rounded-[10px] text-[13px] text-destructive" onClick={() => onChange(null)} title={t("profile.removeAvatar")}>
             <Trash2 className="size-3.5" />
           </Button>
         )}

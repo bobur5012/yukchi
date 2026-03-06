@@ -9,6 +9,14 @@ import { useTranslations } from "@/lib/useTranslations";
 import { Receipt, Wallet, Package, Activity } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const PAGE_SIZE = 6;
 
@@ -23,10 +31,12 @@ function ActivityItemRow({
   item,
   locale,
   t,
+  onOpen,
 }: {
   item: ActivityItem;
   locale: "ru" | "uz";
   t: (k: string) => string;
+  onOpen: (item: ActivityItem) => void;
 }) {
   const who = item.createdByUser?.name ?? t("activity.unknown");
   let href = "#";
@@ -44,11 +54,12 @@ function ActivityItemRow({
   }
 
   return (
-    <Link href={href}>
-      <motion.div
-        className="flex items-center gap-3 px-4 py-2.5 hover:bg-accent/40 transition-colors active:bg-accent"
-        whileTap={{ backgroundColor: "var(--accent)" }}
-      >
+    <motion.button
+      type="button"
+      className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-accent/40 transition-colors active:bg-accent"
+      whileTap={{ backgroundColor: "var(--accent)" }}
+      onClick={() => onOpen(item)}
+    >
         <div className="flex size-10 shrink-0 items-center justify-center rounded-[14px] bg-primary/12">
           {item.type === "expense" && <Receipt className="size-[16px] text-primary" />}
           {item.type === "debt" && <Wallet className="size-[16px] text-primary" />}
@@ -60,9 +71,56 @@ function ActivityItemRow({
             {formatDateSafe(item.createdAt, "d MMM, HH:mm", locale)}
           </p>
         </div>
-      </motion.div>
-    </Link>
+    </motion.button>
   );
+}
+
+function getActivityDetails(
+  item: ActivityItem,
+  locale: "ru" | "uz",
+  t: (k: string) => string
+) {
+  const who = item.createdByUser?.name ?? t("activity.unknown");
+  let href = "#";
+  let label = "";
+  let locationLabel = "";
+
+  if (item.type === "expense") {
+    href = item.trip ? `/trips/${item.trip.id}` : "#";
+    label =
+      interpolate(t("activity.addedExpense"), {
+        who,
+        amount: item.amount ?? "0",
+      }) +
+      (item.trip ? ` ${t("activity.inTrip")} «${item.trip.name}»` : "");
+    locationLabel = item.trip?.name ?? "—";
+  } else if (item.type === "debt") {
+    href = item.shop ? `/shops/${item.shop.id}` : "#";
+    label =
+      interpolate(t("activity.addedDebt"), {
+        who,
+        amount: item.amount ?? "0",
+      }) +
+      (item.shop ? ` ${t("activity.inShop")} «${item.shop.name}»` : "");
+    locationLabel = item.shop?.name ?? "—";
+  } else {
+    href = item.trip ? `/trips/${item.trip.id}` : "#";
+    label =
+      interpolate(t("activity.addedProduct"), {
+        who,
+        name: item.name ?? "",
+      }) +
+      (item.trip ? ` ${t("activity.inTrip")} «${item.trip.name}»` : "");
+    locationLabel = item.trip?.name ?? "—";
+  }
+
+  return {
+    href,
+    label,
+    description: "description" in item ? item.description ?? "" : "",
+    locationLabel,
+    dateLabel: formatDateSafe(item.createdAt, "d MMMM yyyy, HH:mm", locale),
+  };
 }
 
 export function ActivityFeed() {
@@ -70,6 +128,7 @@ export function ActivityFeed() {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [selectedItem, setSelectedItem] = useState<ActivityItem | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -143,7 +202,13 @@ export function ActivityFeed() {
         <>
           <div className="divide-y divide-border/30">
           {pagedItems.map((item) => (
-            <ActivityItemRow key={`${item.type}-${item.id}`} item={item} locale={locale} t={t} />
+            <ActivityItemRow
+              key={`${item.type}-${item.id}`}
+              item={item}
+              locale={locale}
+              t={t}
+              onOpen={setSelectedItem}
+            />
           ))}
           </div>
           {totalPages > 1 ? (
@@ -175,6 +240,50 @@ export function ActivityFeed() {
           ) : null}
         </>
       )}
+      <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
+        <DialogContent className="rounded-[28px] border-white/10 bg-[linear-gradient(180deg,rgba(28,28,34,0.98)_0%,rgba(16,16,20,0.96)_100%)] text-foreground shadow-[0_18px_44px_rgba(0,0,0,0.35)]">
+          {selectedItem ? (
+            (() => {
+              const details = getActivityDetails(selectedItem, locale, t);
+              return (
+                <>
+                  <DialogHeader>
+                    <DialogTitle>{t("activity.detailTitle")}</DialogTitle>
+                    <DialogDescription className="text-muted-foreground">
+                      {details.dateLabel}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <p className="text-[15px] font-medium leading-6 text-foreground">
+                      {details.label}
+                    </p>
+                    {details.description ? (
+                      <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-3">
+                        <p className="text-[12px] uppercase tracking-[0.08em] text-muted-foreground">
+                          {t("common.comment")}
+                        </p>
+                        <p className="mt-1 whitespace-pre-wrap break-words text-[14px]">
+                          {details.description}
+                        </p>
+                      </div>
+                    ) : null}
+                    <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-3 text-[13px] text-muted-foreground">
+                      {t("activity.locationLabel")}: {details.locationLabel}
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    {details.href !== "#" ? (
+                      <Button asChild className="rounded-2xl">
+                        <Link href={details.href}>{t("activity.openSource")}</Link>
+                      </Button>
+                    ) : null}
+                  </DialogFooter>
+                </>
+              );
+            })()
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

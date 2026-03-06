@@ -29,6 +29,8 @@ import { getTrips } from "@/lib/api/trips";
 import { getShops } from "@/lib/api/shops";
 import { uploadProductImage } from "@/lib/api/storage";
 import type { Shop, Trip } from "@/types";
+import { useTranslations } from "@/lib/useTranslations";
+import { clearLocalDraft, readLocalDraft, writeLocalDraft } from "@/lib/local-draft";
 
 const NO_SHOP_VALUE = "none";
 
@@ -75,6 +77,7 @@ function CalcRow({ label, formula, value, highlight = false }: CalcRowProps) {
 export function AddProductForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslations();
 
   const tripIdFromUrl = searchParams.get("tripId") ?? "";
   const shopIdFromUrl = searchParams.get("shopId") ?? "";
@@ -97,9 +100,12 @@ export function AddProductForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [dataError, setDataError] = useState<string | null>(null);
+  const [draftRecovered, setDraftRecovered] = useState(false);
+  const [draftImageNeedsReselect, setDraftImageNeedsReselect] = useState(false);
 
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const draftKey = `product:new:${tripIdFromUrl || "no-trip"}:${shopIdFromUrl || "no-shop"}`;
 
   useEffect(() => {
     setLoadingData(true);
@@ -109,9 +115,9 @@ export function AddProductForm() {
         setTrips(tripsRes.trips);
         setShops(shopsRes.shops);
       })
-      .catch((e) => setDataError(e instanceof Error ? e.message : "Ошибка загрузки"))
+      .catch((e) => setDataError(e instanceof Error ? e.message : t("common.loadError")))
       .finally(() => setLoadingData(false));
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (tripIdFromUrl) setTripId(tripIdFromUrl);
@@ -119,10 +125,69 @@ export function AddProductForm() {
   }, [tripIdFromUrl, shopIdFromUrl]);
 
   useEffect(() => {
+    const draft = readLocalDraft<{
+      name: string;
+      quantity: string;
+      unit: string;
+      salePrice: string;
+      deliveryMode: DeliveryMode;
+      deliveryPrice: string;
+      description: string;
+      tripId: string;
+      shopId: string;
+      imagePreview: string | null;
+      imageNeedsReselect: boolean;
+    }>(draftKey);
+    if (!draft) return;
+
+    setName(draft.name);
+    setQuantity(draft.quantity);
+    setUnit(draft.unit);
+    setSalePrice(draft.salePrice);
+    setDeliveryMode(draft.deliveryMode);
+    setDeliveryPrice(draft.deliveryPrice);
+    setDescription(draft.description);
+    setTripId(draft.tripId || tripIdFromUrl);
+    setShopId(draft.shopId || shopIdFromUrl || NO_SHOP_VALUE);
+    setImagePreview(draft.imagePreview);
+    setDraftImageNeedsReselect(Boolean(draft.imageNeedsReselect));
+    setDraftRecovered(true);
+  }, [draftKey, shopIdFromUrl, tripIdFromUrl]);
+
+  useEffect(() => {
     return () => {
-      if (imagePreview) URL.revokeObjectURL(imagePreview);
+      if (imagePreview?.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
     };
   }, [imagePreview]);
+
+  useEffect(() => {
+    writeLocalDraft(draftKey, {
+      name,
+      quantity,
+      unit,
+      salePrice,
+      deliveryMode,
+      deliveryPrice,
+      description,
+      tripId,
+      shopId,
+      imagePreview,
+      imageNeedsReselect: Boolean(imagePreview && !imageFile),
+    });
+  }, [
+    deliveryMode,
+    deliveryPrice,
+    description,
+    draftKey,
+    imageFile,
+    imagePreview,
+    name,
+    quantity,
+    salePrice,
+    shopId,
+    tripId,
+    unit,
+  ]);
 
   const activeTrips = useMemo(
     () => trips.filter((trip) => trip.status === "active" || trip.status === "planned"),
@@ -156,27 +221,41 @@ export function AddProductForm() {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith("image/")) return;
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    if (imagePreview?.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
     setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview(objectUrl);
+    setDraftImageNeedsReselect(false);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setImagePreview(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
     e.target.value = "";
   };
 
   const clearImage = () => {
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    if (imagePreview?.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
     setImageFile(null);
     setImagePreview(null);
+    setDraftImageNeedsReselect(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name.trim() || qtyInt <= 0 || !tripId) {
-      toast.error("Заполните название, количество и поездку");
+      toast.error(t("products.formRequired"));
       return;
     }
     if (!imageFile) {
-      toast.error("Фото товара обязательно");
+      toast.error(
+        draftImageNeedsReselect
+          ? t("products.reselectPhoto")
+          : t("products.photoRequired")
+      );
       return;
     }
 
@@ -209,17 +288,18 @@ export function AddProductForm() {
         description: description.trim() || undefined,
       });
 
-      toast.success("Товар добавлен");
+      clearLocalDraft(draftKey);
+      toast.success(t("products.created"));
       router.push("/products");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Ошибка");
+      toast.error(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (loadingData) {
-    return <div className="py-12 text-center text-muted-foreground">Загрузка...</div>;
+    return <div className="py-12 text-center text-muted-foreground">{t("common.loading")}</div>;
   }
 
   if (dataError) {
@@ -229,7 +309,7 @@ export function AddProductForm() {
           {dataError}
         </div>
         <Button variant="outline" onClick={() => window.location.reload()}>
-          Повторить
+          {t("common.retry")}
         </Button>
       </div>
     );
@@ -241,23 +321,23 @@ export function AddProductForm() {
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
       <FormHero
         icon={<Package className="size-5" />}
-        title="Добавить товар"
-        description="Фото, поездка, магазин и расчеты собраны в более чистой Apple-like форме."
+        title={t("titles.newProduct")}
+        description={t("products.formHeroDescription")}
         meta={
           <>
-            <FormMetaPill label="Товар" value={name.trim() || "—"} />
-            <FormMetaPill label="Кол-во" value={qtyInt > 0 ? `${qtyInt} ${unit}` : "—"} />
-            <FormMetaPill label="Итог" value={formatMoney(totalFinal)} />
+            <FormMetaPill label={t("products.formProduct")} value={name.trim() || "—"} />
+            <FormMetaPill label={t("products.formQuantity")} value={qtyInt > 0 ? `${qtyInt} ${unit}` : "—"} />
+            <FormMetaPill label={t("products.formTotal")} value={formatMoney(totalFinal)} />
           </>
         }
       />
 
       <FormCard>
-        <FormSection title="Фото">
+        <FormSection title={t("products.photoSection")}>
           <div className="space-y-2 px-4 pb-4">
             {imagePreview ? (
               <div className="relative overflow-hidden rounded-[24px] border border-white/8">
-                <img src={imagePreview} alt="Превью товара" className="h-40 w-full object-cover" />
+                <img src={imagePreview} alt={t("products.photoPreview")} className="h-40 w-full object-cover" />
                 <button
                   type="button"
                   onClick={clearImage}
@@ -289,7 +369,7 @@ export function AddProductForm() {
                   className="h-[44px] flex-1 rounded-[20px] text-[15px]"
                   onClick={() => galleryInputRef.current?.click()}
                 >
-                  <ImagePlus className="size-4" /> Галерея
+                  <ImagePlus className="size-4" /> {t("profile.gallery")}
                 </Button>
                 <Button
                   type="button"
@@ -297,28 +377,33 @@ export function AddProductForm() {
                   className="h-[44px] flex-1 rounded-[20px] text-[15px]"
                   onClick={() => cameraInputRef.current?.click()}
                 >
-                  <Camera className="size-4" /> Камера
+                  <Camera className="size-4" /> {t("profile.camera")}
                 </Button>
               </div>
             )}
-            <p className="text-xs text-muted-foreground">Фото обязательно</p>
+            <p className="text-xs text-muted-foreground">
+              {draftRecovered ? t("products.draftRecovered") : t("products.photoRequiredHint")}
+            </p>
+            {draftImageNeedsReselect ? (
+              <p className="text-xs text-amber-400">{t("products.reselectPhotoHint")}</p>
+            ) : null}
           </div>
         </FormSection>
       </FormCard>
 
       <FormCard>
         <FormSection>
-          <FormRow label="Название">
+          <FormRow label={t("products.formName")}>
             <Input
-              placeholder="Название товара"
+              placeholder={t("products.formNamePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </FormRow>
 
-          <FormRow label="Описание (необязательно)">
+          <FormRow label={t("products.formDescription")}>
             <Textarea
-              placeholder="Описание товара"
+              placeholder={t("products.formDescriptionPlaceholder")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -329,7 +414,7 @@ export function AddProductForm() {
           <div className="grid grid-cols-2 gap-3 px-4 py-3">
             <div>
               <p className="mb-1.5 text-[13px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-                Количество
+                {t("products.formQuantity")}
               </p>
               <Input
                 type="number"
@@ -342,7 +427,7 @@ export function AddProductForm() {
             </div>
             <div>
               <p className="mb-1.5 text-[13px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-                Единица
+                {t("products.formUnit")}
               </p>
               <Select value={unit} onValueChange={setUnit}>
                 <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
@@ -359,7 +444,7 @@ export function AddProductForm() {
             </div>
           </div>
 
-          <FormRow label="Цена товара ($)">
+          <FormRow label={t("products.formSalePrice")}>
             <Input
               type="number"
               step="0.01"
@@ -369,19 +454,19 @@ export function AddProductForm() {
             />
           </FormRow>
 
-          <FormRow label="Тип цены доставки">
+          <FormRow label={t("products.deliveryType")}>
             <Select value={deliveryMode} onValueChange={(v) => setDeliveryMode(v as DeliveryMode)}>
               <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="per_kg">За кг</SelectItem>
-                <SelectItem value="fixed">Фиксированная цена</SelectItem>
+                <SelectItem value="per_kg">{t("products.deliveryPerKg")}</SelectItem>
+                <SelectItem value="fixed">{t("products.deliveryFixed")}</SelectItem>
               </SelectContent>
             </Select>
           </FormRow>
 
-          <FormRow label={deliveryMode === "per_kg" ? "Цена доставки за кг ($)" : "Фиксированная цена доставки ($)"}>
+          <FormRow label={deliveryMode === "per_kg" ? t("products.deliveryPricePerKg") : t("products.deliveryPriceFixed")}>
             <Input
               type="number"
               step="0.01"
@@ -392,17 +477,17 @@ export function AddProductForm() {
           </FormRow>
 
           <p className="px-4 pb-2 text-xs text-muted-foreground">
-            Расчет по кг выполняется всегда как: количество × цена за кг (даже если единица не “кг”).
+            {t("products.deliveryHint")}
           </p>
         </FormSection>
       </FormCard>
 
       <FormCard>
         <FormSection>
-          <FormRow label="Поездка">
+          <FormRow label={t("titles.trip")}>
             <Select value={tripId} onValueChange={setTripId}>
               <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-                <SelectValue placeholder="Выберите поездку" />
+                <SelectValue placeholder={t("products.selectTrip")} />
               </SelectTrigger>
               <SelectContent>
                 {activeTrips.map((trip) => (
@@ -414,7 +499,7 @@ export function AddProductForm() {
             </Select>
           </FormRow>
 
-          <FormRow label="Магазин (необязательно)">
+          <FormRow label={t("products.optionalShop")}>
             <Select
               value={shopId}
               onValueChange={setShopId}
@@ -423,7 +508,7 @@ export function AddProductForm() {
               }}
             >
               <SelectTrigger className="h-[44px] rounded-xl border-border bg-muted/50 text-[16px]">
-                <SelectValue placeholder="Выберите магазин" />
+                <SelectValue placeholder={t("shops.selectShop")} />
               </SelectTrigger>
               <SelectContent>
                 <div className="sticky top-0 z-20 border-b bg-popover p-2">
@@ -431,18 +516,18 @@ export function AddProductForm() {
                     value={shopSearch}
                     onChange={(e) => setShopSearch(e.target.value)}
                     onKeyDown={(e) => e.stopPropagation()}
-                    placeholder="Поиск магазина..."
+                    placeholder={t("products.searchShopPlaceholder")}
                     className="h-9 rounded-lg"
                   />
                 </div>
-                <SelectItem value={NO_SHOP_VALUE}>Не привязан</SelectItem>
+                <SelectItem value={NO_SHOP_VALUE}>{t("products.notLinked")}</SelectItem>
                 {filteredShops.map((shop) => (
                   <SelectItem key={shop.id} value={shop.id}>
                     {shop.name}
                   </SelectItem>
                 ))}
                 {filteredShops.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">Ничего не найдено</div>
+                  <div className="px-3 py-2 text-sm text-muted-foreground">{t("shops.emptyFilteredTitle")}</div>
                 ) : null}
               </SelectContent>
             </Select>
@@ -451,14 +536,14 @@ export function AddProductForm() {
       </FormCard>
 
       <FormCard>
-        <FormSection title="Расчеты">
+        <FormSection title={t("products.calculationsTitle")}>
           <div className="overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.03]">
             <div className="px-3 pb-2">
-              <CalcRow label="Количество" value={qty > 0 ? `${qty} ${unit}` : "—"} />
-              <CalcRow label="Цена товара за 1 ед" value={sale > 0 ? `${sale.toFixed(2)} $` : "—"} />
+              <CalcRow label={t("products.formQuantity")} value={qty > 0 ? `${qty} ${unit}` : "—"} />
+              <CalcRow label={t("products.unitPriceRow")} value={sale > 0 ? `${sale.toFixed(2)} $` : "—"} />
               <CalcRow
-                label="Итого товар"
-                formula={`Количество × Цена = ${qty > 0 ? qty : "—"} × ${sale > 0 ? sale.toFixed(2) : "—"}`}
+                label={t("products.totalProduct")}
+                formula={`${t("products.formQuantity")} × ${t("products.formSalePrice")} = ${qty > 0 ? qty : "—"} × ${sale > 0 ? sale.toFixed(2) : "—"}`}
                 value={formatMoney(totalSale)}
                 highlight
               />
@@ -466,28 +551,28 @@ export function AddProductForm() {
               <div className="border-t border-border/60" />
 
               <CalcRow
-                label={deliveryMode === "per_kg" ? "Цена доставки за кг" : "Фиксированная доставка"}
+                label={deliveryMode === "per_kg" ? t("products.deliveryPricePerKgShort") : t("products.deliveryFixedShort")}
                 value={delivery > 0 ? `${delivery.toFixed(2)} $` : "—"}
               />
               <CalcRow
-                label="Итого доставка"
+                label={t("products.totalDelivery")}
                 formula={
                   deliveryMode === "per_kg"
-                    ? `Количество × Цена за кг = ${qty > 0 ? qty : "—"} × ${delivery > 0 ? delivery.toFixed(2) : "—"}`
-                    : "Фиксированная стоимость"
+                    ? `${t("products.formQuantity")} × ${t("products.deliveryPerKg")} = ${qty > 0 ? qty : "—"} × ${delivery > 0 ? delivery.toFixed(2) : "—"}`
+                    : t("products.deliveryFixed")
                 }
                 value={formatMoney(totalDelivery)}
               />
 
               <div className="border-t border-border/60" />
-              <CalcRow label="Общий итог" value={formatMoney(totalFinal)} highlight />
+              <CalcRow label={t("products.formTotal")} value={formatMoney(totalFinal)} highlight />
             </div>
           </div>
         </FormSection>
       </FormCard>
 
       <Button type="submit" className="h-12 w-full rounded-[22px]" disabled={!canSubmit}>
-        {isSubmitting ? "Сохранение..." : "Добавить товар"}
+        {isSubmitting ? t("products.savingProduct") : t("products.createAction")}
       </Button>
     </form>
   );

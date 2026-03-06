@@ -5,6 +5,7 @@ export interface AuthUser {
   role: "admin" | "courier";
   name?: string;
   phone?: string;
+  avatarUrl?: string | null;
 }
 
 export interface LoginResponse {

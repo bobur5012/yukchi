@@ -24,7 +24,7 @@ export function PaymentDetailSheet({
   payment,
   currency,
 }: PaymentDetailSheetProps) {
-  const { locale } = useTranslations();
+  const { locale, t } = useTranslations();
   const { formatAmount } = useFormattedAmount();
   if (!payment) return null;
 
@@ -32,28 +32,28 @@ export function PaymentDetailSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="rounded-t-2xl">
         <SheetHeader>
-          <SheetTitle>Платёж</SheetTitle>
+          <SheetTitle>{t("activity.payment")}</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 px-4 pb-6">
           <div>
-            <p className="text-[13px] text-muted-foreground">Сумма</p>
+            <p className="text-[13px] text-muted-foreground">{t("common.amount")}</p>
             <p className="text-[20px] font-semibold tabular-nums tracking-[-0.03em]">
               {formatAmount(Math.abs(parseFloat(payment.amount || "0")))}
             </p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Дата</p>
+            <p className="text-sm text-muted-foreground">{t("products.createdAt")}</p>
             <p className="font-medium">{formatDateSafe(payment.date, "d MMMM yyyy", locale)}</p>
           </div>
           {payment.comment && (
             <div>
-              <p className="text-sm text-muted-foreground">Комментарий</p>
+              <p className="text-sm text-muted-foreground">{t("common.comment")}</p>
               <p className="font-medium">{payment.comment}</p>
             </div>
           )}
           {payment.createdBy && (
             <div>
-              <p className="text-sm text-muted-foreground">Кто внёс</p>
+              <p className="text-sm text-muted-foreground">{t("shops.createdBy")}</p>
               <p className="font-medium">{payment.createdBy}</p>
             </div>
           )}

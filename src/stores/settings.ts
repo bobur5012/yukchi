@@ -27,6 +27,8 @@ export interface MessageTemplates {
   newTrip: string;
   tripUpdated: string;
   newExpense: string;
+  tripExpense: string;
+  tripIncome: string;
   newProduct: string;
   newShop: string;
   newCourier: string;
@@ -46,25 +48,29 @@ interface SettingsState {
 
 export const DEFAULT_TEMPLATES: MessageTemplates = {
   newDebt:
-    "🔴 *Новый долг*\n📦 Магазин: {shop}\n💰 Сумма: {amount} {currency}\n👤 Добавил: {courier}\n📝 Описание: {description}\n💳 Итого долг: {totalDebt}\n📅 Дата: {date}",
+    "____________________________________________\n🔴 *Qarz: -{amount} {currency}*\n🏬 {shop}\n💳 Jami: {totalDebt}\n👤 {courier} • {date}",
   paymentReceived:
-    "✅ *Оплата получена*\n📦 Магазин: {shop}\n💰 Сумма: {amount} {currency}\n👤 Принял: {courier}\n💳 Остаток долга: {remainingDebt}\n📅 Дата: {date}",
+    "____________________________________________\n✅ *To'lov qabul qilindi*\n\n🏬 {shop}\n💰 +{amount} {currency}\n\n👤 {courier}\n💳 Qarz: {remainingDebt}\n\n📅 {date}",
   newTrip:
-    "✈️ *Новая поездка*\n📛 Название: {name}\n📍 Регион: {region}\n💰 Бюджет: {budget} {currency}\n👥 Курьеры: {couriers}\n📅 Вылет: {departureDate}",
+    "____________________________________________\n✈️ *Safar: {name}*\n\n📍 {region}\n💰 {budget} {currency}\n\n👥 {couriers}\n📅 {departureDate}",
   tripUpdated:
-    "✏️ *Поездка обновлена*\n✈️ {name}\n📊 Статус: {status}\n👤 Обновил: {courier}",
+    "✏️ *Sayohat yangilandi*\n✈️ {name}\n📊 Holat: {status}\n👤 Yangilagan: {courier}",
   newExpense:
-    "💸 *Новый расход*\n✈️ Поездка: {trip}\n📝 Описание: {description}\n💰 Сумма: {amount} {currency}\n👤 Добавил: {courier}",
+    "💸 *Yangi xarajat*\n✈️ Sayohat: {trip}\n📝 Tavsif: {description}\n💰 Summa: {amount} {currency}\n👤 Qo'shgan: {courier}",
+  tripExpense:
+    "_______________________________________________\n💸 *Xarajat: {amount} {currency}*\n\n✈️ {trip}\n📝 {description}\n\n👤 {courier} • {date}",
+  tripIncome:
+    "______________________________________________\n💰 *Sayohat kirimi*\n\n✈️ {trip}\n📝 {description}\n\n➕ {amount} {currency}\n👤 {courier} • {date}",
   newProduct:
-    "📦 *Yangi mahsulot*\n✈️ Safar: {trip}\n🏬 Do'kon: {shop}\n🏷 Nomi: {name}\n🔢 Miqdor: {quantity} {unit}\n⚖️ Vazn: {deliveryKg} kg\n💵 Sotuv narxi: {salePrice} {currency}\n🚚 Dostavka turi: {deliveryMode}\n🚚 Dostavka narxi: {deliveryPrice} {currency}\n⚖️ 1 kg narxi: {pricePerKg} {currency}\n🧾 Mahsulot jami: {totalSale} {currency}\n🚚 Dostavka jami: {totalDelivery} {currency}\n💰 Umumiy jami: {grandTotal} {currency}\n👤 Qo'shgan: {addedBy}\n🕒 Sana: {createdAt}",
+    "________________________________________\n📦 *{name} — {quantity} {unit}*\n\n✈️ {trip} | 🏬 {shop}\n\n💵 {saleLine}\n🚚 {deliveryLine}\n\n🧾 Tovar: {totalSale} {currency}\n🚚 Dostavka: {totalDelivery} {currency}\n💰 Jami: {grandTotal} {currency}\n\n👤 {addedBy} • {createdAt}",
   newShop:
-    "🏪 *Новый магазин*\n📛 Название: {name}\n👤 Владелец: {owner}\n📞 Телефон: {phone}\n📍 Адрес: {address}",
+    "🏪 *Yangi do'kon*\n📛 Nomi: {name}\n👤 Egasi: {owner}\n📞 Telefon: {phone}\n📍 Manzil: {address}",
   newCourier:
-    "🚀 *Новый курьер*\n👤 Имя: {name}\n📞 Телефон: {phone}",
+    "🚀 *Yangi kuryer*\n👤 Ismi: {name}\n📞 Telefon: {phone}",
   courierAssigned:
-    "🔗 *Курьер назначен на поездку*\n✈️ Поездка: {trip}\n👤 Курьер: {courier}",
+    "🔗 *Kuryer sayohatga tayinlandi*\n✈️ Sayohat: {trip}\n👤 Kuryer: {courier}",
   tripReminder:
-    "⏰ *Напоминание о поездке*\n✈️ {trip}\n📅 Дата вылета: {departureDate}\n⏳ Через: {days} дн.",
+    "⏰ *Sayohat eslatmasi*\n✈️ {trip}\n📅 Uchish sanasi: {departureDate}\n⏳ Qoldi: {days} kun",
 };
 
 export const useSettingsStore = create<SettingsState>()(

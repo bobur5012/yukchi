@@ -67,9 +67,19 @@ const TEMPLATE_META: Array<{
     vars: "{trip}, {description}, {amount}, {currency}, {courier}",
   },
   {
+    key: "tripExpense",
+    labelKey: "settings.templateTripExpense",
+    vars: "{trip}, {description}, {amount}, {currency}, {courier}, {date}",
+  },
+  {
+    key: "tripIncome",
+    labelKey: "settings.templateTripIncome",
+    vars: "{trip}, {description}, {amount}, {currency}, {courier}, {date}",
+  },
+  {
     key: "newProduct",
     labelKey: "settings.templateNewProduct",
-    vars: "{trip}, {shop}, {name}, {quantity}, {unit}, {deliveryKg}, {salePrice}, {pricePerKg}, {deliveryMode}, {deliveryPrice}, {totalSale}, {totalDelivery}, {grandTotal}, {addedBy}, {createdAt}, {currency}",
+    vars: "{trip}, {shop}, {name}, {quantity}, {unit}, {deliveryKg}, {salePrice}, {pricePerKg}, {deliveryMode}, {deliveryPrice}, {saleLine}, {deliveryLine}, {totalSale}, {totalDelivery}, {grandTotal}, {addedBy}, {createdAt}, {currency}",
   },
   {
     key: "newShop",

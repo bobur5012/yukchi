@@ -283,6 +283,8 @@
     "templateNewTrip": "✈️ Новая поездка",
     "templateTripUpdated": "✏️ Поездка обновлена",
     "templateNewExpense": "💸 Новый расход",
+    "templateTripExpense": "💸 Расход поездки",
+    "templateTripIncome": "💰 Приход поездки",
     "templateNewProduct": "📦 Новый товар",
     "templateNewShop": "🏪 Новый магазин",
     "templateNewCourier": "🚀 Новый курьер",

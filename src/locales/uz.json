@@ -516,6 +516,8 @@
     "templateNewTrip": "✈️ Yangi sayohat",
     "templateTripUpdated": "✏️ Sayohat yangilandi",
     "templateNewExpense": "💸 Yangi xarajat",
+    "templateTripExpense": "💸 Sayohat xarajati",
+    "templateTripIncome": "💰 Sayohat kirimi",
     "templateNewProduct": "📦 Yangi mahsulot",
     "templateNewShop": "🏪 Yangi do'kon",
     "templateNewCourier": "🚀 Yangi kuryer",

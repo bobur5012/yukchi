@@ -53,14 +53,18 @@ export function QuickActionsSheet({ open, onOpenChange }: QuickActionsSheetProps
   const isCourier = role === "courier";
 
   const actionItems = [
-    {
-      label: t("quickActions.newTrip"),
-      href: "/trips/new",
-      icon: Plane,
-    },
+    ...(isAdmin
+      ? [
+          {
+            label: t("quickActions.newTrip"),
+            href: "/trips/new",
+            icon: Plane,
+          },
+          { label: t("quickActions.addShop"), href: "/shops/new", icon: Store },
+        ]
+      : []),
     ...(isAdmin || isCourier
       ? [
-          { label: t("quickActions.addShop"), href: "/shops/new", icon: Store },
           {
             label: t("quickActions.addDebt"),
             icon: Wallet,

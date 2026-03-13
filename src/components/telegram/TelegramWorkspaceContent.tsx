@@ -4,13 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslations } from "@/lib/useTranslations";
 import {
   checkTelegramConnection,
   disconnectTelegramClient,
   getMessageTemplates,
-  getTelegramClientLogs,
   getTelegramClientSettings,
   getTelegramSettings,
   sendTelegramClientCode,
@@ -19,7 +17,6 @@ import {
   updateTelegramSettings,
   verifyTelegramClientCode,
   verifyTelegramClientPassword,
-  type TelegramClientLog,
 } from "@/lib/api/settings";
 import { getNotificationLogs, sendBotTestMessage, type NotificationLogEntry } from "@/lib/api/notifications";
 import { useSettingsStore, DEFAULT_TEMPLATES, type MessageTemplates } from "@/stores/settings";
@@ -114,6 +111,28 @@ const TEMPLATE_META: Array<{
   },
 ];
 
+const DEBTOR_TEMPLATE_META: Array<{
+  key: keyof MessageTemplates;
+  labelKey: string;
+  vars: string;
+}> = [
+  {
+    key: "debtorGreeting",
+    labelKey: "telegram.debtorGreeting",
+    vars: "{owner}, {shop}",
+  },
+  {
+    key: "debtorPaymentReceived",
+    labelKey: "telegram.debtorPaymentReceived",
+    vars: "{owner}, {shop}, {amount}, {currency}, {remainingDebt}",
+  },
+  {
+    key: "debtorReminder",
+    labelKey: "telegram.debtorReminder",
+    vars: "{owner}, {shop}, {debt}",
+  },
+];
+
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-border/30 bg-card">
@@ -148,6 +167,11 @@ function buildTelegramPreview(message?: string | null): string {
     .trim();
 }
 
+function buildClientRecipient(log: NotificationLogEntry): string {
+  const parts = [log.shop?.name, log.shop?.phone].filter((value): value is string => Boolean(value?.trim()));
+  return parts.length > 0 ? parts.join(" • ") : "-";
+}
+
 export function TelegramWorkspaceContent() {
   const { t } = useTranslations();
   const userRole = useAuthStore((state) => state.user?.role);
@@ -166,8 +190,7 @@ export function TelegramWorkspaceContent() {
     connected: false,
     hasSession: false,
   });
-  const [telegramClientLogs, setTelegramClientLogs] = useState<TelegramClientLog[]>([]);
-  const [botNotificationLogs, setBotNotificationLogs] = useState<NotificationLogEntry[]>([]);
+  const [clientNotificationLogs, setClientNotificationLogs] = useState<NotificationLogEntry[]>([]);
   const [savingTelegramClient, setSavingTelegramClient] = useState(false);
   const [sendingClientCode, setSendingClientCode] = useState(false);
   const [verifyingClientCode, setVerifyingClientCode] = useState(false);
@@ -195,20 +218,16 @@ export function TelegramWorkspaceContent() {
       hasSession: response.hasSession,
       lastError: response.lastError,
       isCodeViaApp: response.isCodeViaApp,
-      code: response.status === "connected" ? "" : prev.code,
-      password: response.status === "connected" ? "" : prev.password,
+      code: response.status === "pending_code" ? prev.code : "",
+      password: response.status === "password_required" ? prev.password : "",
     }));
   };
 
   const loadReports = useCallback(async () => {
     setLoadingReports(true);
     try {
-      const [clientLogs, notificationLogs] = await Promise.all([
-        getTelegramClientLogs(),
-        getNotificationLogs({ channel: "bot", limit: 50 }),
-      ]);
-      setTelegramClientLogs(clientLogs);
-      setBotNotificationLogs(notificationLogs);
+      const notificationLogs = await getNotificationLogs({ channel: "client", limit: 50 });
+      setClientNotificationLogs(notificationLogs);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t("common.loadError"));
     } finally {
@@ -567,63 +586,77 @@ export function TelegramWorkspaceContent() {
       </SectionCard>
 
       <SectionCard title={t("telegram.reportsTitle")}>
-        <Tabs defaultValue="client" className="space-y-3">
-          <TabsList className="grid h-auto grid-cols-2 rounded-2xl">
-            <TabsTrigger value="client">{t("telegram.clientReports")}</TabsTrigger>
-            <TabsTrigger value="bot">{t("telegram.botReports")}</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="client" className="space-y-2">
-            {telegramClientLogs.length === 0 ? (
-              <p className="text-[12px] text-muted-foreground">{t("settings.noLogs")}</p>
-            ) : (
-              telegramClientLogs.map((log) => (
+        <div className="space-y-2">
+          {clientNotificationLogs.length === 0 ? (
+            <p className="text-[12px] text-muted-foreground">{t("settings.noLogs")}</p>
+          ) : (
+            clientNotificationLogs.map((log) => {
+              const eventAt = log.sentAt ?? log.createdAt;
+              return (
                 <div key={log.id} className="rounded-2xl border border-border/30 bg-muted/20 p-3">
-                  <div className="flex items-center justify-between gap-2 text-[12px]">
-                    <span className="font-medium">{log.phone}</span>
-                    <span className="text-muted-foreground">{formatDateTime(log.createdAt)}</span>
+                  <div className="flex flex-wrap items-start justify-between gap-3 text-[12px]">
+                    <div className="space-y-1">
+                      <p className="text-muted-foreground">{t("telegram.reportRecipient")}</p>
+                      <p className="font-medium">{buildClientRecipient(log)}</p>
+                    </div>
+                    <div className="space-y-1 text-right">
+                      <p className="text-muted-foreground">{t("telegram.reportDateTime")}</p>
+                      <p>{formatDateTime(eventAt)}</p>
+                    </div>
                   </div>
-                  <p className="mt-2 whitespace-pre-wrap text-[12px] leading-relaxed">
+                  <p className="mt-3 whitespace-pre-wrap text-[12px] leading-relaxed">
                     {buildTelegramPreview(log.message)}
                   </p>
                   <p className="mt-2 text-[11px] text-muted-foreground">
                     {t("common.status")}: {log.status}
-                    {log.floodWaitSeconds ? ` • wait ${log.floodWaitSeconds}s` : ""}
                     {log.error ? ` • ${log.error}` : ""}
                   </p>
                 </div>
-              ))
-            )}
-          </TabsContent>
-
-          <TabsContent value="bot" className="space-y-2">
-            {botNotificationLogs.length === 0 ? (
-              <p className="text-[12px] text-muted-foreground">{t("telegram.noChannelLogs")}</p>
-            ) : (
-              botNotificationLogs.map((log) => (
-                <div key={log.id} className="rounded-2xl border border-border/30 bg-muted/20 p-3">
-                  <div className="flex items-center justify-between gap-2 text-[12px]">
-                    <span className="font-medium">{log.shop?.name ?? t("telegram.channelLabel")}</span>
-                    <span className="text-muted-foreground">{formatDateTime(log.createdAt)}</span>
-                  </div>
-                  <p className="mt-2 whitespace-pre-wrap text-[12px] leading-relaxed">
-                    {buildTelegramPreview(log.message)}
-                  </p>
-                  <p className="mt-2 text-[11px] text-muted-foreground">
-                    {t("common.status")}: {log.status}
-                    {log.sentAt ? ` • ${t("telegram.sentAt")}: ${formatDateTime(log.sentAt)}` : ""}
-                    {log.error ? ` • ${log.error}` : ""}
-                  </p>
-                </div>
-              ))
-            )}
-          </TabsContent>
-        </Tabs>
+              );
+            })
+          )}
+        </div>
 
         <Button variant="outline" className="h-[44px] w-full rounded-[13px]" onClick={loadReports} disabled={loadingReports}>
           <Send className="mr-2 size-4" />
           {loadingReports ? "..." : t("telegram.refreshReports")}
         </Button>
+      </SectionCard>
+
+      <SectionCard title={t("telegram.debtorTemplatesTitle")}>
+        <p className="text-[13px] leading-relaxed text-muted-foreground">{t("telegram.debtorTemplatesHint")}</p>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          {DEBTOR_TEMPLATE_META.map(({ key, labelKey, vars }) => (
+            <div key={key} className="space-y-1.5">
+              <label className="block text-[13px] font-medium">{t(labelKey)}</label>
+              <Textarea
+                rows={6}
+                value={messageTemplates[key] ?? ""}
+                onChange={(e) => setMessageTemplate(key, e.target.value)}
+                className="font-mono text-[13px] leading-snug"
+              />
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                <span className="font-medium">{t("settings.variables")}:</span> {vars}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <Button className="h-[44px] flex-1 rounded-[13px]" onClick={handleSaveTemplates} disabled={savingTemplates}>
+            {savingTemplates ? t("settings.savingTemplates") : t("settings.saveTemplates")}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-[44px] rounded-[13px] shrink-0"
+            onClick={handleResetTemplates}
+            title={t("settings.resetToDefaults")}
+          >
+            <RotateCcw className="size-4" />
+          </Button>
+        </div>
       </SectionCard>
     </div>
   );

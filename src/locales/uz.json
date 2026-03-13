@@ -572,6 +572,8 @@
     "reportsTitle": "Telegram hisobotlari",
     "clientReports": "Client",
     "botReports": "Kanal",
+    "reportRecipient": "Kimga yuborildi",
+    "reportDateTime": "Sana va vaqt",
     "refreshReports": "Hisobotlarni yangilash",
     "disconnectClient": "Clientni uzish",
     "clientDisconnected": "Telegram client uzildi",
@@ -579,6 +581,11 @@
     "noChannelLogs": "Kanal loglari hali yo'q",
     "channelLabel": "Telegram kanal",
     "sentAt": "Yuborilgan",
+    "debtorTemplatesTitle": "Qarzdor uchun shablonlar",
+    "debtorTemplatesHint": "Salomlashuv, to'lov va qarz eslatmasi uchun alohida shablonlar.",
+    "debtorGreeting": "Salomlashuv",
+    "debtorPaymentReceived": "To'lov xabari",
+    "debtorReminder": "Qarz",
     "adminOnly": "Bu sahifa faqat administratorlar uchun."
   }
 }

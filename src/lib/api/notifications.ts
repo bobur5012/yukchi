@@ -11,7 +11,7 @@ export interface NotificationLogEntry {
   sentAt?: string | null;
   createdAt: string;
   updatedAt: string;
-  shop?: { id: string; name: string } | null;
+  shop?: { id: string; name: string; phone: string } | null;
 }
 
 export async function getNotificationLogs(params?: {

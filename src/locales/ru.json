@@ -572,6 +572,8 @@
     "reportsTitle": "Отчёты Telegram",
     "clientReports": "Клиент",
     "botReports": "Канал",
+    "reportRecipient": "Кому отправлен",
+    "reportDateTime": "Дата и время",
     "refreshReports": "Обновить отчёты",
     "disconnectClient": "Отключить клиент",
     "clientDisconnected": "Telegram client отключён",
@@ -579,6 +581,11 @@
     "noChannelLogs": "Логов канала пока нет",
     "channelLabel": "Telegram канал",
     "sentAt": "Отправлено",
+    "debtorTemplatesTitle": "Шаблоны для должника",
+    "debtorTemplatesHint": "Отдельные шаблоны для приветствия, сообщения о платеже и напоминания о долге.",
+    "debtorGreeting": "Приветствие",
+    "debtorPaymentReceived": "Внесение платежка",
+    "debtorReminder": "Долг",
     "adminOnly": "Эта страница доступна только администраторам."
   }
 }

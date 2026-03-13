@@ -34,6 +34,9 @@ export interface MessageTemplates {
   newCourier: string;
   courierAssigned: string;
   tripReminder: string;
+  debtorGreeting: string;
+  debtorPaymentReceived: string;
+  debtorReminder: string;
 }
 
 interface SettingsState {
@@ -71,6 +74,12 @@ export const DEFAULT_TEMPLATES: MessageTemplates = {
     "🔗 *Kuryer sayohatga tayinlandi*\n✈️ Sayohat: {trip}\n👤 Kuryer: {courier}",
   tripReminder:
     "⏰ *Sayohat eslatmasi*\n✈️ {trip}\n📅 Uchish sanasi: {departureDate}\n⏳ Qoldi: {days} kun",
+  debtorGreeting:
+    "Assalomu alaykum, {owner}! {shop} do'koni bo'yicha siz bilan bog'landik.",
+  debtorPaymentReceived:
+    "Assalomu alaykum, {owner}! {shop} bo'yicha {amount} {currency} to'lov qabul qilindi. Qolgan qarz: {remainingDebt} {currency}.",
+  debtorReminder:
+    "Assalomu alaykum, {owner}! {shop} bo'yicha joriy qarzingiz: {debt} USD. Iltimos, to'lovni amalga oshiring.",
 };
 
 export const useSettingsStore = create<SettingsState>()(

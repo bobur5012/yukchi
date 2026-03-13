@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import imageCompression from "browser-image-compression";
-import { ImagePlus, Camera, X, Package } from "lucide-react";
+import { ImagePlus, Camera, X, Package, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -34,11 +34,27 @@ import { clearLocalDraft, readLocalDraft, writeLocalDraft } from "@/lib/local-dr
 import { getLocalizedProductUnit, getProductUnitOptions, PRODUCT_UNIT_VALUES } from "@/lib/product-units";
 
 const NO_SHOP_VALUE = "none";
+const MAX_PRODUCT_IMAGES = 15;
 
 type DeliveryMode = "per_kg" | "fixed";
 
 function formatMoney(value: number | null): string {
   return value === null ? "—" : `${value.toFixed(2)} $`;
+}
+
+function formatKgValue(value: string): string {
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return value;
+  return parsed.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
+}
+
+async function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 }
 
 type CalcRowProps = {
@@ -78,21 +94,22 @@ export function AddProductForm() {
   const [salePrice, setSalePrice] = useState("");
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>("per_kg");
   const [deliveryPrice, setDeliveryPrice] = useState("");
-  const [deliveryKg, setDeliveryKg] = useState("");
+  const [deliveryKgInput, setDeliveryKgInput] = useState("");
+  const [deliveryKgValues, setDeliveryKgValues] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [tripId, setTripId] = useState(tripIdFromUrl);
   const [shopId, setShopId] = useState(shopIdFromUrl || NO_SHOP_VALUE);
   const [shopSearch, setShopSearch] = useState("");
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [dataError, setDataError] = useState<string | null>(null);
   const [draftRecovered, setDraftRecovered] = useState(false);
-  const [draftImageNeedsReselect, setDraftImageNeedsReselect] = useState(false);
+  const [draftImagesNeedReselect, setDraftImagesNeedReselect] = useState(false);
 
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -124,12 +141,13 @@ export function AddProductForm() {
       salePrice: string;
       deliveryMode: DeliveryMode;
       deliveryPrice: string;
-      deliveryKg: string;
+      deliveryKgInput: string;
+      deliveryKgValues: string[];
       description: string;
       tripId: string;
       shopId: string;
-      imagePreview: string | null;
-      imageNeedsReselect: boolean;
+      imagePreviews: string[];
+      imagesNeedReselect: boolean;
     }>(draftKey);
     if (!draft) return;
 
@@ -139,20 +157,15 @@ export function AddProductForm() {
     setSalePrice(draft.salePrice);
     setDeliveryMode(draft.deliveryMode);
     setDeliveryPrice(draft.deliveryPrice);
-    setDeliveryKg(draft.deliveryKg);
+    setDeliveryKgInput(draft.deliveryKgInput);
+    setDeliveryKgValues(draft.deliveryKgValues ?? []);
     setDescription(draft.description);
     setTripId(draft.tripId || tripIdFromUrl);
     setShopId(draft.shopId || shopIdFromUrl || NO_SHOP_VALUE);
-    setImagePreview(draft.imagePreview);
-    setDraftImageNeedsReselect(Boolean(draft.imageNeedsReselect));
+    setImagePreviews(draft.imagePreviews ?? []);
+    setDraftImagesNeedReselect(Boolean(draft.imagesNeedReselect));
     setDraftRecovered(true);
   }, [draftKey, shopIdFromUrl, tripIdFromUrl]);
-
-  useEffect(() => {
-    return () => {
-      if (imagePreview?.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
-    };
-  }, [imagePreview]);
 
   useEffect(() => {
     writeLocalDraft(draftKey, {
@@ -162,21 +175,23 @@ export function AddProductForm() {
       salePrice,
       deliveryMode,
       deliveryPrice,
-      deliveryKg,
+      deliveryKgInput,
+      deliveryKgValues,
       description,
       tripId,
       shopId,
-      imagePreview,
-      imageNeedsReselect: Boolean(imagePreview && !imageFile),
+      imagePreviews,
+      imagesNeedReselect: imagePreviews.length > 0 && imageFiles.length === 0,
     });
   }, [
     deliveryMode,
     deliveryPrice,
-    deliveryKg,
+    deliveryKgInput,
+    deliveryKgValues,
     description,
     draftKey,
-    imageFile,
-    imagePreview,
+    imageFiles,
+    imagePreviews,
     name,
     quantity,
     salePrice,
@@ -201,8 +216,7 @@ export function AddProductForm() {
   const qtyInt = Number.isFinite(parsedQty) && parsedQty > 0 ? Math.floor(parsedQty) : 0;
   const sale = Number.parseFloat(salePrice) || 0;
   const delivery = Number.parseFloat(deliveryPrice) || 0;
-  const parsedDeliveryKg = Number.parseFloat(deliveryKg);
-  const deliveryWeight = Number.isFinite(parsedDeliveryKg) && parsedDeliveryKg > 0 ? parsedDeliveryKg : 0;
+  const deliveryWeight = deliveryKgValues.reduce((sum, value) => sum + (Number.parseFloat(value) || 0), 0);
 
   const totalSale = sale > 0 && qty > 0 ? sale * qty : null;
   const totalDelivery = delivery > 0
@@ -216,29 +230,50 @@ export function AddProductForm() {
     ? (totalSale ?? 0) + (totalDelivery ?? 0)
     : null;
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith("image/")) return;
-    if (imagePreview?.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
-    setImageFile(file);
-    const objectUrl = URL.createObjectURL(file);
-    setImagePreview(objectUrl);
-    setDraftImageNeedsReselect(false);
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setImagePreview(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files ?? []).filter((file) => file.type.startsWith("image/"));
     e.target.value = "";
+    if (selectedFiles.length === 0) return;
+
+    const availableSlots = draftImagesNeedReselect ? MAX_PRODUCT_IMAGES : MAX_PRODUCT_IMAGES - imagePreviews.length;
+    if (availableSlots <= 0) {
+      toast.error(t("products.photoLimitReached"));
+      return;
+    }
+
+    const nextFiles = selectedFiles.slice(0, availableSlots);
+    if (selectedFiles.length > availableSlots) {
+      toast.error(t("products.photoLimitExceeded"));
+    }
+
+    const nextPreviews = await Promise.all(nextFiles.map((file) => readFileAsDataUrl(file)));
+
+    setImageFiles((prev) => (draftImagesNeedReselect ? nextFiles : [...prev, ...nextFiles].slice(0, MAX_PRODUCT_IMAGES)));
+    setImagePreviews((prev) => (draftImagesNeedReselect ? nextPreviews : [...prev, ...nextPreviews].slice(0, MAX_PRODUCT_IMAGES)));
+    setDraftImagesNeedReselect(false);
   };
 
-  const clearImage = () => {
-    if (imagePreview?.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
-    setImageFile(null);
-    setImagePreview(null);
-    setDraftImageNeedsReselect(false);
+  const removeImage = (index: number) => {
+    const nextPreviews = imagePreviews.filter((_, itemIndex) => itemIndex !== index);
+    setImageFiles((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
+    setImagePreviews(nextPreviews);
+    if (nextPreviews.length === 0) {
+      setDraftImagesNeedReselect(false);
+    }
+  };
+
+  const handleAddDeliveryKg = () => {
+    const parsedValue = Number.parseFloat(deliveryKgInput);
+    if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
+      toast.error(t("products.deliveryKgInvalid"));
+      return;
+    }
+    setDeliveryKgValues((prev) => [...prev, parsedValue.toFixed(2)]);
+    setDeliveryKgInput("");
+  };
+
+  const removeDeliveryKg = (index: number) => {
+    setDeliveryKgValues((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -252,10 +287,10 @@ export function AddProductForm() {
       toast.error(t("products.deliveryKg"));
       return;
     }
-    if (!imageFile) {
+    if (imageFiles.length === 0) {
       toast.error(
-        draftImageNeedsReselect
-          ? t("products.reselectPhoto")
+        draftImagesNeedReselect
+          ? t("products.reselectPhotos")
           : t("products.photoRequired")
       );
       return;
@@ -263,23 +298,26 @@ export function AddProductForm() {
 
     setIsSubmitting(true);
     try {
-      let fileForUpload: File | Blob = imageFile;
-      try {
-        fileForUpload = await imageCompression(imageFile, {
-          maxSizeMB: 1,
-          maxWidthOrHeight: 1920,
-          useWebWorker: true,
-        });
-      } catch {
-        // keep original file when compression fails
+      const imageUrls: string[] = [];
+      for (const imageFile of imageFiles) {
+        let fileForUpload: File | Blob = imageFile;
+        try {
+          fileForUpload = await imageCompression(imageFile, {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+          });
+        } catch {
+          // keep original file when compression fails
+        }
+        imageUrls.push(await uploadProductImage(fileForUpload));
       }
-
-      const imageUrl = await uploadProductImage(fileForUpload);
 
       await createProduct({
         name: name.trim(),
         quantity: qtyInt,
         unit,
+        deliveryKgValues: deliveryMode === "per_kg" ? deliveryKgValues : [],
         deliveryKg: deliveryMode === "per_kg" && deliveryWeight > 0 ? deliveryWeight.toFixed(2) : undefined,
         salePrice: sale > 0 ? sale.toFixed(2) : undefined,
         // Fixed delivery goes to costPrice; per-kg goes to pricePerKg.
@@ -287,7 +325,8 @@ export function AddProductForm() {
         costPrice: deliveryMode === "fixed" && delivery > 0 ? delivery.toFixed(2) : undefined,
         tripId,
         shopId: shopId !== NO_SHOP_VALUE ? shopId : undefined,
-        imageUrl,
+        imageUrl: imageUrls[0],
+        imageUrls,
         description: description.trim() || undefined,
       });
 
@@ -318,7 +357,7 @@ export function AddProductForm() {
     );
   }
 
-  const canSubmit = !!imageFile && !!name.trim() && qtyInt > 0 && !!tripId && !isSubmitting;
+  const canSubmit = imageFiles.length > 0 && !!name.trim() && qtyInt > 0 && !!tripId && !isSubmitting;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">
@@ -341,34 +380,42 @@ export function AddProductForm() {
       <FormCard>
         <FormSection title={t("products.photoSection")}>
           <div className="space-y-2 px-4 pb-4">
-            {imagePreview ? (
-              <div className="relative overflow-hidden rounded-[24px] border border-white/8">
-                <img src={imagePreview} alt={t("products.photoPreview")} className="h-40 w-full object-cover" />
-                <button
-                  type="button"
-                  onClick={clearImage}
-                  className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/50"
-                >
-                  <X className="size-3.5 text-white" />
-                </button>
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              onChange={handleImageSelect}
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              onChange={handleImageSelect}
+            />
+
+            {imagePreviews.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2">
+                {imagePreviews.map((preview, index) => (
+                  <div key={`${preview.slice(0, 40)}-${index}`} className="relative overflow-hidden rounded-[20px] border border-white/8">
+                    <img src={preview} alt={`${t("products.photoPreview")} ${index + 1}`} className="h-28 w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/50"
+                    >
+                      <X className="size-3.5 text-white" />
+                    </button>
+                  </div>
+                ))}
               </div>
-            ) : (
+            ) : null}
+
+            {imagePreviews.length < MAX_PRODUCT_IMAGES ? (
               <div className="flex gap-2">
-                <input
-                  ref={galleryInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={handleImageSelect}
-                />
-                <input
-                  ref={cameraInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  className="sr-only"
-                  onChange={handleImageSelect}
-                />
                 <Button
                   type="button"
                   variant="outline"
@@ -386,12 +433,16 @@ export function AddProductForm() {
                   <Camera className="size-4" /> {t("profile.camera")}
                 </Button>
               </div>
-            )}
+            ) : null}
+
             <p className="text-xs text-muted-foreground">
-              {draftRecovered ? t("products.draftRecovered") : t("products.photoRequiredHint")}
+              {draftRecovered ? t("products.draftRecovered") : t("products.photoRequiredHint")} {t("products.photoLimitHint")}
             </p>
-            {draftImageNeedsReselect ? (
-              <p className="text-xs text-amber-400">{t("products.reselectPhotoHint")}</p>
+            <p className="text-xs text-muted-foreground">
+              {t("products.photoCount").replace("{{count}}", String(imagePreviews.length)).replace("{{max}}", String(MAX_PRODUCT_IMAGES))}
+            </p>
+            {draftImagesNeedReselect ? (
+              <p className="text-xs text-amber-400">{t("products.reselectPhotosHint")}</p>
             ) : null}
           </div>
         </FormSection>
@@ -483,16 +534,44 @@ export function AddProductForm() {
           </FormRow>
 
           {deliveryMode === "per_kg" ? (
-            <FormRow label={t("products.deliveryKg")}>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="12"
-                value={deliveryKg}
-                onChange={(e) => setDeliveryKg(e.target.value)}
-              />
-            </FormRow>
+            <>
+              <FormRow label={t("products.deliveryKg")}>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder={t("products.deliveryKgInputPlaceholder")}
+                    value={deliveryKgInput}
+                    onChange={(e) => setDeliveryKgInput(e.target.value)}
+                  />
+                  <Button type="button" variant="outline" className="rounded-xl px-4" onClick={handleAddDeliveryKg}>
+                    <Plus className="size-4" />
+                  </Button>
+                </div>
+              </FormRow>
+
+              <div className="px-4 pb-3">
+                <p className="mb-2 text-xs text-muted-foreground">{t("products.deliveryKgBatchHint")}</p>
+                {deliveryKgValues.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {deliveryKgValues.map((value, index) => (
+                      <div
+                        key={`${value}-${index}`}
+                        className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-muted/40 px-3 py-1.5 text-sm"
+                      >
+                        <span>+{formatKgValue(value)} {t("products.defaultKg")}</span>
+                        <button type="button" onClick={() => removeDeliveryKg(index)} className="text-muted-foreground transition-colors hover:text-foreground">
+                          <X className="size-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">{t("products.deliveryKgEmpty")}</p>
+                )}
+              </div>
+            </>
           ) : null}
 
           <p className="px-4 pb-2 text-xs text-muted-foreground">
@@ -586,7 +665,7 @@ export function AddProductForm() {
                 label={t("products.totalDelivery")}
                 formula={
                   deliveryMode === "per_kg"
-                    ? `${t("products.deliveryKg")} × ${t("products.deliveryPerKg")} = ${deliveryWeight > 0 ? deliveryWeight.toFixed(2) : "—"} × ${delivery > 0 ? delivery.toFixed(2) : "—"}`
+                    ? `${deliveryKgValues.length > 0 ? deliveryKgValues.map((value) => formatKgValue(value)).join(" + ") : "—"} × ${t("products.deliveryPerKg")} = ${deliveryWeight > 0 ? deliveryWeight.toFixed(2) : "—"} × ${delivery > 0 ? delivery.toFixed(2) : "—"}`
                     : t("products.deliveryFixed")
                 }
                 value={formatMoney(totalDelivery)}

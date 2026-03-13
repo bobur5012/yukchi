@@ -10,7 +10,17 @@ export function getProductQuantityValue(quantity?: number | null): number {
   return quantity && quantity > 0 ? quantity : 0;
 }
 
-export function getProductDeliveryWeightValue(product: Pick<Product, "deliveryKg" | "quantity">): number {
+export function getProductDeliveryKgValues(product: Pick<Product, "deliveryKgValues">): number[] {
+  return (product.deliveryKgValues ?? [])
+    .map((value) => toNum(value))
+    .filter((value) => value > 0);
+}
+
+export function getProductDeliveryWeightValue(
+  product: Pick<Product, "deliveryKgValues" | "deliveryKg" | "quantity">
+): number {
+  const kgValuesTotal = getProductDeliveryKgValues(product).reduce((sum, value) => sum + value, 0);
+  if (kgValuesTotal > 0) return kgValuesTotal;
   const deliveryKg = toNum(product.deliveryKg);
   if (deliveryKg > 0) return deliveryKg;
   return getProductQuantityValue(product.quantity);
@@ -35,7 +45,7 @@ export function getProductTotalSale(product: Pick<Product, "quantity" | "salePri
 }
 
 export function getProductTotalDelivery(
-  product: Pick<Product, "quantity" | "deliveryKg" | "pricePerKg" | "pricePerKgUsd" | "costPrice" | "costPriceUsd">
+  product: Pick<Product, "quantity" | "deliveryKgValues" | "deliveryKg" | "pricePerKg" | "pricePerKgUsd" | "costPrice" | "costPriceUsd">
 ): number {
   const deliveryPerKg = getProductDeliveryPerKgPrice(product);
   if (deliveryPerKg > 0) {

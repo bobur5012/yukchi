@@ -25,6 +25,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { getProductCoverImageUrl } from "@/lib/product-media";
 import { getAvatarUrl } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ListSkeleton } from "@/components/ui/skeleton";
@@ -323,10 +324,10 @@ export function TripDetail({ tripId }: TripDetailProps) {
                     <CardContent className="p-0">
                       <div className="flex gap-4 p-4">
                         <div className="w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-muted">
-                          {prod.imageUrl ? (
+                          {getProductCoverImageUrl(prod) ? (
                             <img
-                              key={`${prod.id}-${prod.imageUrl ?? "no-image"}`}
-                              src={getAvatarUrl(prod.imageUrl, `${prod.id}-${prod.imageUrl ?? ""}`)}
+                              key={`${prod.id}-${getProductCoverImageUrl(prod) ?? "no-image"}`}
+                              src={getProductCoverImageUrl(prod)}
                               alt={prod.name}
                               className="w-full h-full object-cover"
                             />

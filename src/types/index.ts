@@ -49,6 +49,7 @@ export interface Product {
   quantity: number;
   unit?: string;
   deliveryKg?: string;
+  deliveryKgValues?: string[];
   costPrice: string;
   costPriceUsd: string;
   salePrice?: string;
@@ -56,6 +57,7 @@ export interface Product {
   pricePerKg?: string;
   pricePerKgUsd?: string;
   imageUrl?: string;
+  imageUrls?: string[];
   description?: string;
   shopId?: string | null;
   shop?: { id: string; name: string };

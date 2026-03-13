@@ -32,8 +32,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFormattedAmount } from "@/lib/useFormattedAmount";
 import { useTranslations } from "@/lib/useTranslations";
 import { toast } from "sonner";
-import { getAvatarUrl } from "@/lib/utils";
 import {
+  getProductDeliveryKgValues,
   getProductDeliveryPerKgPrice,
   getProductDeliveryWeightValue,
   getProductFixedDeliveryPrice,
@@ -42,6 +42,7 @@ import {
   getProductTotalSale,
 } from "@/lib/product-math";
 import { getLocalizedProductUnit } from "@/lib/product-units";
+import { getProductResolvedImageUrls } from "@/lib/product-media";
 
 interface ProductDetailSheetProps {
   open: boolean;
@@ -95,6 +96,7 @@ export function ProductDetailSheet({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
 
   const [editName, setEditName] = useState("");
   const [editQuantity, setEditQuantity] = useState("");
@@ -109,6 +111,7 @@ export function ProductDetailSheet({
     setEditQuantity(String(product.quantity));
     setEditSalePrice(product.salePrice ?? "");
     setEditDescription(product.description ?? "");
+    setPreviewIndex(0);
   }, [open, product]);
 
   const computed = useMemo(() => {
@@ -117,6 +120,7 @@ export function ProductDetailSheet({
         quantity: 0,
         unit: t("products.defaultUnit"),
         deliveryWeight: 0,
+        deliveryKgValues: [],
         sale: 0,
         fixedDelivery: 0,
         deliveryPerKg: 0,
@@ -130,6 +134,7 @@ export function ProductDetailSheet({
     const quantity = product.quantity || 0;
     const unit = getLocalizedProductUnit(t, product.unit);
     const deliveryWeight = getProductDeliveryWeightValue(product);
+    const deliveryKgValues = getProductDeliveryKgValues(product);
     const sale = getProductSaleUnitPrice(product);
     const fixedDelivery = getProductFixedDeliveryPrice(product);
     const deliveryPerKg = getProductDeliveryPerKgPrice(product);
@@ -141,6 +146,7 @@ export function ProductDetailSheet({
       quantity,
       unit,
       deliveryWeight,
+      deliveryKgValues,
       sale,
       fixedDelivery,
       deliveryPerKg,
@@ -209,7 +215,8 @@ export function ProductDetailSheet({
 
   if (!product) return null;
 
-  const imageSrc = getAvatarUrl(product.imageUrl, `${product.id}-${product.createdAt ?? "1"}`);
+  const imageUrls = getProductResolvedImageUrls(product);
+  const imageSrc = imageUrls[previewIndex] ?? imageUrls[0];
   const deliveryModeLabel = computed.deliveryPerKg > 0 ? t("products.deliveryPerKg") : computed.fixedDelivery > 0 ? t("products.deliveryFixedShort") : "—";
   const deliveryPriceLabel = computed.deliveryPerKg > 0
     ? `${formatAmount(computed.deliveryPerKg)} / ${t("products.defaultKg")}`
@@ -285,6 +292,21 @@ export function ProductDetailSheet({
               </div>
             )}
 
+            {imageUrls.length > 1 ? (
+              <div className="grid grid-cols-4 gap-2">
+                {imageUrls.map((url, index) => (
+                  <button
+                    key={`${url}-${index}`}
+                    type="button"
+                    onClick={() => setPreviewIndex(index)}
+                    className={`overflow-hidden rounded-[16px] border ${previewIndex === index ? "border-primary" : "border-white/8"}`}
+                  >
+                    <img src={url} alt={`${product.name} ${index + 1}`} className="h-16 w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
             {editing ? (
               <div className="space-y-3">
                 <div>
@@ -338,6 +360,15 @@ export function ProductDetailSheet({
                       label={t("products.deliveryKg")}
                       value={computed.deliveryWeight > 0 ? `${computed.deliveryWeight.toFixed(2)} ${t("products.defaultKg")}` : "—"}
                     />
+                    {computed.deliveryKgValues.length > 0 ? (
+                      <>
+                        <div className="border-t border-border/50" />
+                        <InfoRow
+                          label={t("products.deliveryKgShort")}
+                          value={computed.deliveryKgValues.map((value) => `+${value.toFixed(2)} ${t("products.defaultKg")}`).join(", ")}
+                        />
+                      </>
+                    ) : null}
                     <div className="border-t border-border/50" />
                   </>
                 ) : null}

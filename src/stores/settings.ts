@@ -48,21 +48,21 @@ interface SettingsState {
 
 export const DEFAULT_TEMPLATES: MessageTemplates = {
   newDebt:
-    "____________________________________________\n🔴 *Qarz: -{amount} {currency}*\n🏬 {shop}\n💳 Jami: {totalDebt}\n👤 {courier} • {date}",
+    "______________________________________________\n🔴 *Qarz qo'shildi*\n\n🏬 {shop}\n💰 {amount} {currency}\n\n💳 {totalDebt} (jami)\n👤 {courier} • {date}",
   paymentReceived:
-    "____________________________________________\n✅ *To'lov qabul qilindi*\n\n🏬 {shop}\n💰 +{amount} {currency}\n\n👤 {courier}\n💳 Qarz: {remainingDebt}\n\n📅 {date}",
+    "_____________________________________________\n✅ *To'lov qabul qilindi*\n\n🏬 {shop}\n💰 {amount} {currency}\n\n👤 {courier}\n💳 Qarz: {remainingDebt}\n\n📅 {date}",
   newTrip:
-    "____________________________________________\n✈️ *Safar: {name}*\n\n📍 {region}\n💰 {budget} {currency}\n\n👥 {couriers}\n📅 {departureDate}",
+    "______________________________________\n✈️ *Yangi safar*\n\n📛 {name}\n📍 {region}\n\n💰 Byudjet: {budget} {currency}\n👥 {couriers}\n\n📅 {departureDate}",
   tripUpdated:
     "✏️ *Sayohat yangilandi*\n✈️ {name}\n📊 Holat: {status}\n👤 Yangilagan: {courier}",
   newExpense:
     "💸 *Yangi xarajat*\n✈️ Sayohat: {trip}\n📝 Tavsif: {description}\n💰 Summa: {amount} {currency}\n👤 Qo'shgan: {courier}",
   tripExpense:
-    "_______________________________________________\n💸 *Xarajat: {amount} {currency}*\n\n✈️ {trip}\n📝 {description}\n\n👤 {courier} • {date}",
+    "_____________________________________________\n💸 *Sayohat xarajati*\n\n✈️ {trip}\n📝 {description}\n\n💰 {amount} {currency}\n👤 {courier} • {date}",
   tripIncome:
-    "______________________________________________\n💰 *Sayohat kirimi*\n\n✈️ {trip}\n📝 {description}\n\n➕ {amount} {currency}\n👤 {courier} • {date}",
+    "____________________________________________\n💰 *Sayohat kirimi*\n\n✈️ {trip}\n📝 {description}\n\n➕ {amount} {currency}\n👤 {courier} • {date}",
   newProduct:
-    "________________________________________\n📦 *{name} — {quantity} {unit}*\n\n✈️ {trip} | 🏬 {shop}\n\n💵 {saleLine}\n🚚 {deliveryLine}\n\n🧾 Tovar: {totalSale} {currency}\n🚚 Dostavka: {totalDelivery} {currency}\n💰 Jami: {grandTotal} {currency}\n\n👤 {addedBy} • {createdAt}",
+    "📦 *{name} — {quantity} {unit}*\n\n✈️ {trip} | 🏬 {shop}\n\n💵 {saleLine}\n🚚 {deliveryLine}\n\n🧾 Tovar: {totalSale}{currencyShort}\n🚚 Dostavka: {totalDelivery}{currencyShort}\n💰 Jami: {grandTotal}{currencyShort}\n\n👤 {addedBy} • {createdAt}",
   newShop:
     "🏪 *Yangi do'kon*\n📛 Nomi: {name}\n👤 Egasi: {owner}\n📞 Telefon: {phone}\n📍 Manzil: {address}",
   newCourier:

@@ -16,10 +16,12 @@ export async function createProduct(data: {
   quantity: number;
   unit?: string;
   deliveryKg?: string;
+  deliveryKgValues?: string[];
   costPrice?: string;
   salePrice?: string;
   pricePerKg?: string;
   imageUrl?: string;
+  imageUrls?: string[];
   description?: string;
   shopId?: string;
 }): Promise<Product> {
@@ -33,10 +35,12 @@ export async function updateProduct(
     quantity: number;
     unit: string;
     deliveryKg: string;
+    deliveryKgValues: string[];
     costPrice: string;
     salePrice: string;
     pricePerKg: string;
     imageUrl: string;
+    imageUrls: string[];
     description?: string;
     shopId: string | null;
   }>

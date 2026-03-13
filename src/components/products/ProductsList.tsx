@@ -13,10 +13,10 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ProductDetailSheet } from "@/components/trips/ProductDetailSheet";
 import { VirtualList } from "@/components/ui/virtual-list";
 import { useTranslations } from "@/lib/useTranslations";
-import { getAvatarUrl } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { getProductSaleUnitPrice, getProductTotalDelivery, getProductTotalSale } from "@/lib/product-math";
 import { getLocalizedProductUnit } from "@/lib/product-units";
+import { getProductCoverImageUrl } from "@/lib/product-media";
 
 function formatCreatedAt(value?: string): string {
   if (!value) return "—";
@@ -170,7 +170,7 @@ export function ProductsList() {
               const unitPrice = getProductSaleUnitPrice(prod);
               const totalProduct = getProductTotalSale(prod);
               const totalDelivery = getProductTotalDelivery(prod);
-              const imageSrc = getAvatarUrl(prod.imageUrl, `${prod.id}-${prod.createdAt ?? "1"}`);
+              const imageSrc = getProductCoverImageUrl(prod);
 
               return (
                 <div
@@ -181,7 +181,7 @@ export function ProductsList() {
                     <div className="relative h-[76px] w-[76px] shrink-0 overflow-hidden rounded-[20px] border border-border/35 bg-muted">
                       {imageSrc ? (
                         <img
-                          key={`${prod.id}-${prod.imageUrl ?? "no-image"}`}
+                          key={`${prod.id}-${imageSrc ?? "no-image"}`}
                           src={imageSrc}
                           alt={prod.name}
                           className="h-full w-full object-cover"

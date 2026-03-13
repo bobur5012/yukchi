@@ -44,7 +44,7 @@ const TEMPLATE_META: Array<{
   {
     key: "newDebt",
     labelKey: "settings.templateNewDebt",
-    vars: "{shop}, {amount}, {currency}, {courier}, {description}, {totalDebt}, {date}",
+    vars: "{shop}, {amount}, {currency}, {totalDebt}, {courier}, {date}",
   },
   {
     key: "paymentReceived",
@@ -79,7 +79,7 @@ const TEMPLATE_META: Array<{
   {
     key: "newProduct",
     labelKey: "settings.templateNewProduct",
-    vars: "{trip}, {shop}, {name}, {quantity}, {unit}, {deliveryKg}, {salePrice}, {pricePerKg}, {deliveryMode}, {deliveryPrice}, {saleLine}, {deliveryLine}, {totalSale}, {totalDelivery}, {grandTotal}, {addedBy}, {createdAt}, {currency}",
+    vars: "{trip}, {shop}, {name}, {quantity}, {unit}, {saleLine}, {deliveryLine}, {totalSale}, {totalDelivery}, {grandTotal}, {currencyShort}, {addedBy}, {createdAt}",
   },
   {
     key: "newShop",

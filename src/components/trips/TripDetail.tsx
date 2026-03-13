@@ -66,8 +66,17 @@ export function TripDetail({ tripId }: TripDetailProps) {
   }, [t, tripId]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    Promise.all([
+      getTrip(tripId),
+      getProducts(tripId),
+    ])
+      .then(([tripData, productsData]) => {
+        setTrip(tripData ?? null);
+        setProducts(productsData);
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : t("common.loadError")))
+      .finally(() => setLoading(false));
+  }, [t, tripId]);
 
   if (loading) {
     return <ListSkeleton count={3} />;

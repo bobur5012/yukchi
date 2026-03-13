@@ -37,7 +37,7 @@ import {
   getProductDeliveryPerKgPrice,
   getProductDeliveryWeightValue,
   getProductFixedDeliveryPrice,
-  getProductSaleUnitPrice,
+  getProductSalePrice,
   getProductTotalDelivery,
   getProductTotalSale,
 } from "@/lib/product-math";
@@ -135,7 +135,7 @@ export function ProductDetailSheet({
     const unit = getLocalizedProductUnit(t, product.unit);
     const deliveryWeight = getProductDeliveryWeightValue(product);
     const deliveryKgValues = getProductDeliveryKgValues(product);
-    const sale = getProductSaleUnitPrice(product);
+    const sale = getProductSalePrice(product);
     const fixedDelivery = getProductFixedDeliveryPrice(product);
     const deliveryPerKg = getProductDeliveryPerKgPrice(product);
 

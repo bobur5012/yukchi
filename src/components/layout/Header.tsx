@@ -16,6 +16,7 @@ const TITLE_KEYS: Record<string, string> = {
   "/trips/new":     "titles.newTrip",
   "/products":      "titles.products",
   "/products/new":  "titles.newProduct",
+  "/telegram":      "titles.telegram",
   "/shops":         "titles.shops",
   "/shops/new":     "titles.newDebt",
   "/couriers":      "titles.couriers",
@@ -39,6 +40,7 @@ function shouldShowBack(pathname: string): boolean {
     /^\/trips\/[^/]+\/expenses\/new$/.test(pathname)   ||
     /^\/shops\/[^/]+\/debt\/new$/.test(pathname)       ||
     /^\/shops\/[^/]+\/payments\/new$/.test(pathname)   ||
+    pathname === "/telegram"     ||
     pathname === "/trips/new"    ||
     pathname === "/products/new" ||
     pathname === "/shops/new"    ||
@@ -59,6 +61,7 @@ function getBackHref(pathname: string): string | undefined {
   if (pathname.startsWith("/shops/"))    return "/shops";
   if (pathname.startsWith("/couriers/")) return "/couriers";
   if (pathname === "/products/new")      return "/products";
+  if (pathname === "/telegram")          return "/profile";
   if (pathname === "/shops/new")         return "/shops";
   return undefined;
 }

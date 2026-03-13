@@ -218,7 +218,7 @@ export function AddProductForm() {
   const delivery = Number.parseFloat(deliveryPrice) || 0;
   const deliveryWeight = deliveryKgValues.reduce((sum, value) => sum + (Number.parseFloat(value) || 0), 0);
 
-  const totalSale = sale > 0 && qty > 0 ? sale * qty : null;
+  const totalSale = sale > 0 ? sale : null;
   const totalDelivery = delivery > 0
     ? deliveryMode === "per_kg"
       ? deliveryWeight > 0
@@ -644,7 +644,7 @@ export function AddProductForm() {
               <CalcRow label={t("products.unitPriceRow")} value={sale > 0 ? `${sale.toFixed(2)} $` : "—"} />
               <CalcRow
                 label={t("products.totalProduct")}
-                formula={`${t("products.formQuantity")} × ${t("products.formSalePrice")} = ${qty > 0 ? qty : "—"} × ${sale > 0 ? sale.toFixed(2) : "—"}`}
+                formula={sale > 0 ? t("products.totalPriceFormula") : undefined}
                 value={formatMoney(totalSale)}
                 highlight
               />

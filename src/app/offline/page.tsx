@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { WifiOff } from "lucide-react";
 
 export default function OfflinePage() {
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine));
 
   useEffect(() => {
-    setIsOnline(navigator.onLine);
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     window.addEventListener("online", handleOnline);

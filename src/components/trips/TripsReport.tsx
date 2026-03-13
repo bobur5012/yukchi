@@ -32,7 +32,6 @@ export function TripsReport() {
   const [selectedDate, setSelectedDate] = useState(getLocalDateInputValue());
 
   useEffect(() => {
-    setLoading(true);
     getTrips(1, 50)
       .then(async (r) => {
         setTrips(r.trips);

@@ -34,7 +34,8 @@
     "trip": "Sayohat",
     "addDebt": "Qarz qo'shish",
     "payment": "To'lov",
-    "shop": "Do'kon"
+    "shop": "Do'kon",
+    "telegram": "Telegram"
   },
   "common": {
     "fillAllFields": "Barcha maydonlarni to'ldiring",
@@ -186,8 +187,7 @@
     "deleteAction": "O'chirish",
     "enterAmount": "Summani kiriting",
     "debtAdded": "Qarz qo'shildi",
-    "paymentAdded": "To'lov qo'shildi"
-    ,
+    "paymentAdded": "To'lov qo'shildi",
     "formHeroDescription": "Do'konni toza Apple-uslubidagi interfeysda kontaktlar va boshlang'ich qarz bilan tez qo'shing.",
     "regionLabel": "Hudud",
     "summaryContact": "Kontakt",
@@ -217,7 +217,9 @@
     "passwordMismatch": "Yangi parollar mos emas",
     "passwordSaved": "Parol yangilandi",
     "savingPassword": "Parol saqlanmoqda...",
-    "savePassword": "Parolni saqlash"
+    "savePassword": "Parolni saqlash",
+    "telegramWorkspace": "Telegram Workspace",
+    "telegramWorkspaceHint": "Kanal, Telegram client, shablonlar va hisobotlar alohida sahifaga chiqarildi."
   },
   "push": {
     "title": "Push-bildirishnomalar",
@@ -229,7 +231,8 @@
     "error": "Obuna xatosi",
     "retry": "Qayta urinish",
     "enabled": "Bildirishnomalar yoqildi",
-    "disabled": "Bildirishnomalar o'chirildi"
+    "disabled": "Bildirishnomalar o'chirildi",
+    "unsupported": "Bu qurilmada push-bildirishnomalar qo'llab-quvvatlanmaydi"
   },
   "notify": {
     "newTrip": "Yangi sayohat",
@@ -288,7 +291,7 @@
     "emptyFilteredTitle": "Mahsulotlar topilmadi",
     "emptyFilteredDescription": "Boshqa so'rov kiriting yoki to'liq ro'yxatni oching",
     "delivery": "Yetkazish",
-    "unitPrice": "Dona narxi",
+    "unitPrice": "Mahsulot narxi",
     "created": "Mahsulot qo'shildi",
     "updated": "Mahsulot yangilandi",
     "deleted": "Mahsulot o'chirildi",
@@ -320,7 +323,7 @@
     "formDescription": "Tavsif (ixtiyoriy)",
     "formDescriptionPlaceholder": "Mahsulot haqida qisqa izoh",
     "formUnit": "Birlik",
-    "formSalePrice": "Mahsulot narxi ($)",
+    "formSalePrice": "Mahsulotning umumiy narxi ($)",
     "deliveryType": "Yetkazish narxi turi",
     "deliveryPerKg": "kg bo'yicha",
     "deliveryFixed": "Fiks narx",
@@ -340,7 +343,7 @@
     "searchShopPlaceholder": "Do'kon qidiring...",
     "notLinked": "Biriktirilmagan",
     "calculationsTitle": "Hisob-kitoblar",
-    "unitPriceRow": "1 dona narxi",
+    "unitPriceRow": "Mahsulot narxi",
     "totalProduct": "Mahsulot jami",
     "totalDelivery": "Yetkazish jami",
     "savingProduct": "Mahsulot saqlanmoqda...",
@@ -360,7 +363,8 @@
       "pack": "QADOQ",
       "box": "QUTI",
       "packet": "PACHKA"
-    }
+    },
+    "totalPriceFormula": "Mahsulotning umumiy narxi"
   },
   "dashboard": {
     "totalDebt": "Umumiy qarz",
@@ -426,7 +430,6 @@
     "totalIncome": "Umumiy daromad",
     "expense": "Xarajat",
     "income": "Daromad",
-    "totalIncome": "Umumiy daromad",
     "budgetSummary": "Byudjet xulosasi",
     "totalBudget": "Umumiy byudjet",
     "oldDebt": "Eski qarz",
@@ -560,5 +563,22 @@
     "oneTime": "Bir marta: {{date}}",
     "sent": "Yuborildi",
     "saving": "Saqlanmoqda…"
+  },
+  "telegram": {
+    "title": "Telegram Workspace",
+    "description": "Kanal, Telegram client, shablonlar va yuborish hisobotlarini bitta joydan boshqaring.",
+    "testSend": "Kanalga test",
+    "testSent": "Test xabar navbatga qo'yildi",
+    "reportsTitle": "Telegram hisobotlari",
+    "clientReports": "Client",
+    "botReports": "Kanal",
+    "refreshReports": "Hisobotlarni yangilash",
+    "disconnectClient": "Clientni uzish",
+    "clientDisconnected": "Telegram client uzildi",
+    "codeViaApp": "Tasdiqlash kodi Telegram ilovasiga yuborildi.",
+    "noChannelLogs": "Kanal loglari hali yo'q",
+    "channelLabel": "Telegram kanal",
+    "sentAt": "Yuborilgan",
+    "adminOnly": "Bu sahifa faqat administratorlar uchun."
   }
 }

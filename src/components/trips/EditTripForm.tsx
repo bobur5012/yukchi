@@ -118,6 +118,13 @@ export function EditTripForm() {
     }
   };
 
+  const showCityOther = city === OTHER_VALUE;
+  const showDebtInput = fundingMode === "debt";
+  const durationDays = useMemo(() => {
+    if (!dateDeparture || !dateReturn || dateReturn < dateDeparture) return 0;
+    return Math.ceil((new Date(dateReturn).getTime() - new Date(dateDeparture).getTime()) / 86400000) + 1;
+  }, [dateDeparture, dateReturn]);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -126,13 +133,6 @@ export function EditTripForm() {
       </div>
     );
   }
-
-  const showCityOther = city === OTHER_VALUE;
-  const showDebtInput = fundingMode === "debt";
-  const durationDays = useMemo(() => {
-    if (!dateDeparture || !dateReturn || dateReturn < dateDeparture) return 0;
-    return Math.ceil((new Date(dateReturn).getTime() - new Date(dateDeparture).getTime()) / 86400000) + 1;
-  }, [dateDeparture, dateReturn]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pb-20">

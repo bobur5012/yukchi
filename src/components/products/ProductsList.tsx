@@ -14,7 +14,7 @@ import { ProductDetailSheet } from "@/components/trips/ProductDetailSheet";
 import { VirtualList } from "@/components/ui/virtual-list";
 import { useTranslations } from "@/lib/useTranslations";
 import { Input } from "@/components/ui/input";
-import { getProductSaleUnitPrice, getProductTotalDelivery, getProductTotalSale } from "@/lib/product-math";
+import { getProductSalePrice, getProductTotalDelivery, getProductTotalSale } from "@/lib/product-math";
 import { getLocalizedProductUnit } from "@/lib/product-units";
 import { getProductCoverImageUrl } from "@/lib/product-media";
 
@@ -167,7 +167,7 @@ export function ProductsList() {
             gap={12}
             renderItem={(prod) => {
               const trip = trips.find((item) => item.id === prod.tripId);
-              const unitPrice = getProductSaleUnitPrice(prod);
+              const productPrice = getProductSalePrice(prod);
               const totalProduct = getProductTotalSale(prod);
               const totalDelivery = getProductTotalDelivery(prod);
               const imageSrc = getProductCoverImageUrl(prod);
@@ -239,7 +239,7 @@ export function ProductsList() {
                       <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                         <Boxes className="h-3.5 w-3.5 shrink-0" />
                         <span>
-                          {t("products.unitPrice")}: {unitPrice > 0 ? formatAmount(unitPrice) : "—"}
+                          {t("products.unitPrice")}: {productPrice > 0 ? formatAmount(productPrice) : "—"}
                         </span>
                       </div>
                       <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">

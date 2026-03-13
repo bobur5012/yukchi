@@ -11,8 +11,10 @@ let refreshInFlight: Promise<string | null> | null = null;
 function shouldBypassCache(path: string): boolean {
   return (
     path.startsWith("/dashboard") ||
+    path.startsWith("/settings") ||
     path.startsWith("/trips") ||
-    path.startsWith("/products")
+    path.startsWith("/products") ||
+    path.startsWith("/notifications")
   );
 }
 

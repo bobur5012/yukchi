@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/stores/auth";
@@ -11,6 +12,7 @@ import { useTranslations } from "@/lib/useTranslations";
 import { useCurrencyStore } from "@/stores/currency";
 import { getAvatarUrl } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { MessageSquareText } from "lucide-react";
 import { toast } from "sonner";
 import {
   getCurrentUserProfile,
@@ -312,6 +314,21 @@ export function ProfileContent() {
           </Button>
         </div>
       </div>
+
+      {user?.role === "admin" ? (
+        <Link
+          href="/telegram"
+          className="flex items-start gap-3 rounded-2xl border border-border/30 bg-card px-4 py-4 transition-colors hover:bg-card/80"
+        >
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <MessageSquareText className="size-4.5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[15px] font-semibold">{t("profile.telegramWorkspace")}</p>
+            <p className="mt-1 text-[12px] leading-5 text-muted-foreground">{t("profile.telegramWorkspaceHint")}</p>
+          </div>
+        </Link>
+      ) : null}
 
       <SettingsContent role={user?.role} hideNotifications />
     </div>

@@ -26,7 +26,7 @@ export function getProductDeliveryWeightValue(
   return getProductQuantityValue(product.quantity);
 }
 
-export function getProductSaleUnitPrice(product: Pick<Product, "salePrice" | "salePriceUsd">): number {
+export function getProductSalePrice(product: Pick<Product, "salePrice" | "salePriceUsd">): number {
   return toNum(product.salePrice ?? product.salePriceUsd);
 }
 
@@ -39,10 +39,10 @@ export function getProductDeliveryPerKgPrice(product: Pick<Product, "pricePerKg"
 }
 
 export function getProductTotalSale(product: Pick<Product, "quantity" | "salePrice" | "salePriceUsd">): number {
-  const quantity = getProductQuantityValue(product.quantity);
-  const salePrice = getProductSaleUnitPrice(product);
-  return quantity > 0 && salePrice > 0 ? quantity * salePrice : 0;
+  return getProductSalePrice(product);
 }
+
+export const getProductSaleUnitPrice = getProductSalePrice;
 
 export function getProductTotalDelivery(
   product: Pick<Product, "quantity" | "deliveryKgValues" | "deliveryKg" | "pricePerKg" | "pricePerKgUsd" | "costPrice" | "costPriceUsd">

@@ -59,8 +59,11 @@ export function ShopDetail({ shopId }: ShopDetailProps) {
   }, [shopId, t]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    getShop(shopId)
+      .then((data) => setShop(data ?? null))
+      .catch((e) => setError(e instanceof Error ? e.message : t("common.loadError")))
+      .finally(() => setLoading(false));
+  }, [shopId, t]);
 
   if (loading) {
     return <ListSkeleton count={3} />;

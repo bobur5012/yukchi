@@ -42,7 +42,10 @@ export function CurrencyWidget() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const tRef = useRef(t);
-  tRef.current = t;
+
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -54,8 +57,11 @@ export function CurrencyWidget() {
   }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    fetchCBURates()
+      .then(setRates)
+      .catch(() => setError(tRef.current("common.loadError")))
+      .finally(() => setLoading(false));
+  }, []);
 
   const formattedDate = rates?.date
     ? (() => {

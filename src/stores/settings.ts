@@ -62,7 +62,7 @@ export const DEFAULT_TEMPLATES: MessageTemplates = {
   tripIncome:
     "____________________________________________\n💰 *Sayohat kirimi*\n\n✈️ {trip}\n📝 {description}\n\n➕ {amount} {currency}\n👤 {courier} • {date}",
   newProduct:
-    "📦 *{name} — {quantity} {unit}*\n\n✈️ {trip} | 🏬 {shop}\n\n💵 {saleLine}\n🚚 {deliveryLine}\n\n🧾 Tovar: {totalSale}{currencyShort}\n🚚 Dostavka: {totalDelivery}{currencyShort}\n💰 Jami: {grandTotal}{currencyShort}\n\n👤 {addedBy} • {createdAt}",
+    "📦 *{name}*\n✈️ Safar: {trip}\n🏬 Do'kon: {shop}\n🔢 Miqdor: {quantity} {unit}\n💵 Mahsulot narxi: {saleLine}\n🚚 Dostavka: {deliveryLine}\n🧾 Mahsulot jami: {totalSale}{currencyShort}\n🚚 Dostavka jami: {totalDelivery}{currencyShort}\n💰 Umumiy jami: {grandTotal}{currencyShort}\n👤 {addedBy} • {createdAt}",
   newShop:
     "🏪 *Yangi do'kon*\n📛 Nomi: {name}\n👤 Egasi: {owner}\n📞 Telefon: {phone}\n📍 Manzil: {address}",
   newCourier:

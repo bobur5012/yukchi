@@ -132,6 +132,22 @@ function formatDateTime(value?: string | null): string {
   return date.toLocaleString();
 }
 
+function buildTelegramPreview(message?: string | null): string {
+  if (!message) return "-";
+
+  return message
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/^_{10,}\s*$/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export function TelegramWorkspaceContent() {
   const { t } = useTranslations();
   const userRole = useAuthStore((state) => state.user?.role);
@@ -567,7 +583,9 @@ export function TelegramWorkspaceContent() {
                     <span className="font-medium">{log.phone}</span>
                     <span className="text-muted-foreground">{formatDateTime(log.createdAt)}</span>
                   </div>
-                  <p className="mt-2 whitespace-pre-wrap text-[12px] leading-relaxed">{log.message}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-[12px] leading-relaxed">
+                    {buildTelegramPreview(log.message)}
+                  </p>
                   <p className="mt-2 text-[11px] text-muted-foreground">
                     {t("common.status")}: {log.status}
                     {log.floodWaitSeconds ? ` • wait ${log.floodWaitSeconds}s` : ""}
@@ -588,7 +606,9 @@ export function TelegramWorkspaceContent() {
                     <span className="font-medium">{log.shop?.name ?? t("telegram.channelLabel")}</span>
                     <span className="text-muted-foreground">{formatDateTime(log.createdAt)}</span>
                   </div>
-                  <p className="mt-2 whitespace-pre-wrap text-[12px] leading-relaxed">{log.message}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-[12px] leading-relaxed">
+                    {buildTelegramPreview(log.message)}
+                  </p>
                   <p className="mt-2 text-[11px] text-muted-foreground">
                     {t("common.status")}: {log.status}
                     {log.sentAt ? ` • ${t("telegram.sentAt")}: ${formatDateTime(log.sentAt)}` : ""}

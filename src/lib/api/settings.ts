@@ -29,6 +29,30 @@ export interface TelegramSettings {
   status: "configured" | "not_configured";
 }
 
+export interface TelegramClientSettings {
+  appId?: string;
+  appHash?: string;
+  phone?: string;
+  status: "disconnected" | "pending_code" | "password_required" | "connected" | "error";
+  connected: boolean;
+  hasSession: boolean;
+  pendingPhone?: string;
+  lastError?: string;
+  isCodeViaApp?: boolean;
+  needsPassword?: boolean;
+}
+
+export interface TelegramClientLog {
+  id: string;
+  phone: string;
+  message: string;
+  messageId?: string | null;
+  status: string;
+  error?: string | null;
+  floodWaitSeconds?: number | null;
+  createdAt: string;
+}
+
 export async function getTelegramSettings(): Promise<TelegramSettings> {
   return api.get<TelegramSettings>("/settings/telegram");
 }
@@ -43,6 +67,38 @@ export async function checkTelegramConnection(
   data?: { token?: string; chatId?: string }
 ): Promise<{ success: boolean; error?: string }> {
   return api.post<{ success: boolean; error?: string }>("/settings/telegram/check", data ?? {});
+}
+
+export async function getTelegramClientSettings(): Promise<TelegramClientSettings> {
+  return api.get<TelegramClientSettings>("/settings/telegram-client");
+}
+
+export async function updateTelegramClientSettings(
+  data: { appId: string; appHash: string; phone: string }
+): Promise<TelegramClientSettings> {
+  return api.put<TelegramClientSettings>("/settings/telegram-client", data);
+}
+
+export async function sendTelegramClientCode(
+  data: { appId?: string; appHash?: string; phone?: string }
+): Promise<TelegramClientSettings> {
+  return api.post<TelegramClientSettings>("/settings/telegram-client/send-code", data);
+}
+
+export async function verifyTelegramClientCode(code: string): Promise<TelegramClientSettings> {
+  return api.post<TelegramClientSettings>("/settings/telegram-client/verify-code", { code });
+}
+
+export async function verifyTelegramClientPassword(password: string): Promise<TelegramClientSettings> {
+  return api.post<TelegramClientSettings>("/settings/telegram-client/verify-password", { password });
+}
+
+export async function disconnectTelegramClient(): Promise<TelegramClientSettings> {
+  return api.post<TelegramClientSettings>("/settings/telegram-client/disconnect", {});
+}
+
+export async function getTelegramClientLogs(limit = 20): Promise<TelegramClientLog[]> {
+  return api.get<TelegramClientLog[]>(`/settings/telegram-client/logs?limit=${limit}`);
 }
 
 export type MessageTemplatesResponse = Record<string, string>;

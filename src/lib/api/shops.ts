@@ -28,6 +28,8 @@ export async function createShop(data: {
   phone: string;
   address?: string;
   region?: string;
+  initialDebt?: string;
+  initialDebtComment?: string;
 }): Promise<Shop> {
   return api.post<Shop>("/shops", data);
 }

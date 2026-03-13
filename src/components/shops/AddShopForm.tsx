@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { getPhoneDigits } from "@/lib/phone-utils";
 import { useTranslations } from "@/lib/useTranslations";
-import { createShop, addDebtEntry } from "@/lib/api/shops";
+import { createShop } from "@/lib/api/shops";
 import { toast } from "sonner";
 import {
   FormCard,
@@ -47,7 +47,7 @@ export function AddShopForm() {
     const digits = getPhoneDigits(phone);
     const phoneNormalized = digits.length >= 12 ? `+${digits}` : undefined;
     const regionValue = region === OTHER_VALUE ? regionOther.trim() : region;
-    const numDebt = parseFloat(initialDebt);
+    const numDebt = initialDebt.trim() ? parseFloat(initialDebt) : 0;
 
     if (!name.trim()) {
       toast.error(t("shops.nameRequired"));
@@ -72,17 +72,14 @@ export function AddShopForm() {
 
     setIsSubmitting(true);
     try {
-      const shop = await createShop({
+      await createShop({
         name: name.trim(),
         ownerName: ownerName.trim(),
         phone: phoneNormalized,
         address: address.trim() || undefined,
         region: regionValue,
-      });
-      await addDebtEntry(shop.id, {
-        amount: initialDebt,
-        type: "debt",
-        description: comment.trim() || undefined,
+        initialDebt: numDebt.toFixed(2),
+        initialDebtComment: comment.trim() || undefined,
       });
       toast.success(t("shops.added"));
       router.push("/shops");
@@ -200,8 +197,7 @@ export function AddShopForm() {
           !ownerName.trim() ||
           !region ||
           (region === OTHER_VALUE && !regionOther.trim()) ||
-          isNaN(parseFloat(initialDebt)) ||
-          parseFloat(initialDebt) < 0
+          (initialDebt.trim() !== "" && (isNaN(parseFloat(initialDebt)) || parseFloat(initialDebt) < 0))
         }
       >
         {isSubmitting ? t("common.saving") : t("shops.add")}

@@ -34,7 +34,8 @@ export interface MessageTemplates {
   newCourier: string;
   courierAssigned: string;
   tripReminder: string;
-  debtorGreeting: string;
+  debtorNewDebtor: string;
+  debtorDebtAdded: string;
   debtorPaymentReceived: string;
   debtorReminder: string;
 }
@@ -74,8 +75,10 @@ export const DEFAULT_TEMPLATES: MessageTemplates = {
     "🔗 *Kuryer sayohatga tayinlandi*\n✈️ Sayohat: {trip}\n👤 Kuryer: {courier}",
   tripReminder:
     "⏰ *Sayohat eslatmasi*\n✈️ {trip}\n📅 Uchish sanasi: {departureDate}\n⏳ Qoldi: {days} kun",
-  debtorGreeting:
-    "Assalomu alaykum, {owner}! {shop} do'koni bo'yicha siz bilan bog'landik.",
+  debtorNewDebtor:
+    "Assalomu alaykum, {owner}! {shop} bo'yicha boshlang'ich qarz: {debt} {currency}.",
+  debtorDebtAdded:
+    "Assalomu alaykum, {owner}! {shop} bo'yicha {amount} {currency} qarz qo'shildi. Avvalgi qarz: {previousDebt} {currency}. Joriy qarz: {debt} {currency}.",
   debtorPaymentReceived:
     "Assalomu alaykum, {owner}! {shop} bo'yicha {amount} {currency} to'lov qabul qilindi. Qolgan qarz: {remainingDebt} {currency}.",
   debtorReminder:

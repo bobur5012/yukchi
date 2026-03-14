@@ -33,6 +33,7 @@ export interface TelegramClientSettings {
   appId?: string;
   appHash?: string;
   phone?: string;
+  rateLimitPerMinute: number;
   status: "disconnected" | "pending_code" | "password_required" | "connected" | "error";
   connected: boolean;
   hasSession: boolean;
@@ -74,7 +75,7 @@ export async function getTelegramClientSettings(): Promise<TelegramClientSetting
 }
 
 export async function updateTelegramClientSettings(
-  data: { appId: string; appHash: string; phone: string }
+  data: { appId: string; appHash: string; phone?: string; rateLimitPerMinute?: number }
 ): Promise<TelegramClientSettings> {
   return api.put<TelegramClientSettings>("/settings/telegram-client", data);
 }

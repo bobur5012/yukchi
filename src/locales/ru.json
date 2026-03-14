@@ -582,10 +582,18 @@
     "channelLabel": "Telegram канал",
     "sentAt": "Отправлено",
     "debtorTemplatesTitle": "Шаблоны для должника",
-    "debtorTemplatesHint": "Отдельные шаблоны для приветствия, сообщения о платеже и напоминания о долге.",
+    "debtorTemplatesHint": "Отдельные client-шаблоны для нового должника, добавления долга и платежа.",
     "debtorGreeting": "Приветствие",
-    "debtorPaymentReceived": "Внесение платежка",
+    "debtorPaymentReceived": "Платёж",
     "debtorReminder": "Долг",
+    "rateLimitLabel": "Лимит отправки",
+    "rateLimitHint": "Client-сообщения идут по очереди. Рекомендуемое безопасное значение:",
+    "rateLimitRecommended": "1 сообщение в минуту.",
+    "debtorNewDebtor": "Новый должник",
+    "debtorDebtAdded": "Добавление долга",
+    "prevPage": "Назад",
+    "nextPage": "Дальше",
+    "pageLabel": "{{page}} / {{total}}",
     "adminOnly": "Эта страница доступна только администраторам."
   }
 }

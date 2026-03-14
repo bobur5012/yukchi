@@ -578,14 +578,22 @@
     "disconnectClient": "Clientni uzish",
     "clientDisconnected": "Telegram client uzildi",
     "codeViaApp": "Tasdiqlash kodi Telegram ilovasiga yuborildi.",
+    "rateLimitLabel": "Yuborish limiti",
+    "rateLimitHint": "Client xabarlar ketma-ket yuboriladi. Xavfsiz tavsiya etilgan limit:",
+    "rateLimitRecommended": "1 xabar / 1 daqiqa.",
     "noChannelLogs": "Kanal loglari hali yo'q",
     "channelLabel": "Telegram kanal",
     "sentAt": "Yuborilgan",
     "debtorTemplatesTitle": "Qarzdor uchun shablonlar",
-    "debtorTemplatesHint": "Salomlashuv, to'lov va qarz eslatmasi uchun alohida shablonlar.",
+    "debtorTemplatesHint": "Yangi qarzdor, qarz qo'shish va to'lov uchun alohida client shablonlari.",
+    "debtorNewDebtor": "Yangi qarzdor",
+    "debtorDebtAdded": "Qarz qo'shildi",
     "debtorGreeting": "Salomlashuv",
     "debtorPaymentReceived": "To'lov xabari",
     "debtorReminder": "Qarz",
+    "prevPage": "Oldingi",
+    "nextPage": "Keyingi",
+    "pageLabel": "{{page}} / {{total}}",
     "adminOnly": "Bu sahifa faqat administratorlar uchun."
   }
 }
